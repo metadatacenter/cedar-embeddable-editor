@@ -275,6 +275,10 @@ test.describe('changes an action makes to the form', () => {
     const occurrences = page.locator('app-cedar-multi-pager').first();
     const add = occurrences.getByRole('button', { name: 'Add empty instance here', exact: true });
     for (let count = 2; count < 6; count++) await add.click();
+    // The last addition is announced a tenth of a second after it, so listening starts once it has been.
+    await expect(page.locator('.cee-live-region').filter({ hasText: 'attribute: instance 5 of 6 added' })).toHaveCount(
+      1,
+    );
     const next = occurrences.getByRole('button', { name: 'Next page' });
     await listen(page);
     await next.focus();
