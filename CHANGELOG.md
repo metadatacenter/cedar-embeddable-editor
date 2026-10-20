@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.26] - 2026-10-20
+
+Aligns with `cedar-model-typescript-library@1.0.21`.
+
+- Fixes the six accessibility defects an axe-core check against WCAG 2.2 AA found, none of them visible: a field's help icon is hidden from assistive technology because its description is already in the page, the required and property-IRI markers are named images, the empty pager and page-break chip lists are named, and the logo link and the emptied pager's chip are named by the text they show.
+
 ## [2.0.25] - 2026-10-19
 
 Aligns with `cedar-model-typescript-library@1.0.21`.
