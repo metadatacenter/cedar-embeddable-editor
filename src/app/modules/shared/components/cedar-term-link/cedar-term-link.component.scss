@@ -44,23 +44,32 @@
  * natural width until the row needs it to shrink, then ellipsizes; it must not grow into spare space
  * and push the dash and identifier to the far edge. The identifier and authority action retain their
  * full width. The complete title is still the span's text and its native hover title.
+ *
+ * The title starts from no width and grows into what the line leaves, up to its own width, which is
+ * the width shrinking left it before. So the row wraps only where the dash, the identifier and the
+ * action cannot share one line at all, as at 320px. There they used to be cut off. Now the identifier
+ * and the action take lines of their own, and the identifier breaks where it is wider than the box.
  */
 .cee-term-link-single-line {
-  flex-wrap: nowrap;
   overflow: hidden;
 
   .cee-term-link-label {
-    flex: 0 1 auto;
+    flex: 1 1 0;
     min-width: 0;
+    max-width: max-content;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
   .cee-term-link-dash,
-  .cee-term-link-iri,
   .cee-term-link-suffix {
     flex: 0 0 auto;
     white-space: nowrap;
+  }
+
+  .cee-term-link-iri {
+    flex: 0 0 auto;
+    max-width: 100%;
   }
 }
