@@ -1,5 +1,4 @@
 // @vitest-environment jsdom
-import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { AnnouncedMessage, DescriptionLink, WidgetMessage } from './message-links';
 
 describe('DescriptionLink', () => {
@@ -38,11 +37,13 @@ describe('DescriptionLink', () => {
 });
 
 describe('AnnouncedMessage', () => {
-  const announcer = (): { announce: ReturnType<typeof vi.fn> } => ({ announce: vi.fn(() => Promise.resolve()) });
+  const announcer = () => ({
+    announce: vi.fn((_message: string, _politeness: 'polite', _duration: number) => Promise.resolve()),
+  });
 
   it('announces a message that appears or changes, but not one the form opened with', () => {
     const live = announcer();
-    const message = new AnnouncedMessage(live as unknown as LiveAnnouncer);
+    const message = new AnnouncedMessage(live);
     message.check('Already wrong');
     message.check('Already wrong');
     expect(live.announce).not.toHaveBeenCalled();
@@ -57,8 +58,8 @@ describe('AnnouncedMessage', () => {
 
 describe('WidgetMessage', () => {
   it('links the element showing the message while it is shown, and announces it once', () => {
-    const live = { announce: vi.fn(() => Promise.resolve()) };
-    const message = new WidgetMessage(live as unknown as LiveAnnouncer);
+    const live = { announce: vi.fn((_message: string, _politeness: 'polite', _duration: number) => Promise.resolve()) };
+    const message = new WidgetMessage(live);
     const box = document.createElement('input');
     message.check(null, [box]);
 

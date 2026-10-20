@@ -1,4 +1,12 @@
-import { LiveAnnouncer } from '@angular/cdk/a11y';
+/**
+ * What announcing needs of CDK's `LiveAnnouncer`.
+ *
+ * Stated here rather than imported, so the domain layer this file belongs to stays free of the
+ * framework. The element's own announcer is what widgets pass.
+ */
+export interface Announcer {
+  announce(message: string, politeness: 'polite', duration: number): Promise<void>;
+}
 
 const idsOf = (element: Element): string[] =>
   (element.getAttribute('aria-describedby') ?? '').split(/\s+/).filter(Boolean);
@@ -65,7 +73,7 @@ export class AnnouncedMessage {
   private static readonly DURATION = 10_000;
   private shown: string | null = null;
 
-  constructor(private readonly announcer: LiveAnnouncer | null) {}
+  constructor(private readonly announcer: Announcer | null) {}
 
   check(text: string): void {
     const previous = this.shown;
@@ -91,7 +99,7 @@ export class WidgetMessage {
   private readonly link = new DescriptionLink();
   private readonly announcement: AnnouncedMessage;
 
-  constructor(announcer: LiveAnnouncer | null) {
+  constructor(announcer: Announcer | null) {
     this.announcement = new AnnouncedMessage(announcer);
   }
 
