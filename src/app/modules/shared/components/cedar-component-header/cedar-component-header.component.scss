@@ -163,13 +163,13 @@
 }
 
 .field-title {
-  font-weight: var(--cedar-font-weight-medium, 500);
+  font-weight: var(--cedar-font-weight-medium, #{tokens.$font-weight-medium});
 }
 
 .multi-instance-range {
   flex: 0 0 auto;
   color: tokens.$text-muted;
-  font-weight: var(--cedar-font-weight-regular, 400);
+  font-weight: var(--cedar-font-weight-regular, #{tokens.$font-weight-regular});
 }
 
 /* Keep the Material help icon aligned with text */

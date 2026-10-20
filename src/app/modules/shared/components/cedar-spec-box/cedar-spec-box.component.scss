@@ -49,7 +49,7 @@
 .cee-spec-box-kind,
 .cee-spec-box-default-kind {
   font-style: italic;
-  font-weight: var(--cedar-font-weight-regular, 400);
+  font-weight: var(--cedar-font-weight-regular, #{ui-tokens.$font-weight-regular});
 }
 
 /*

@@ -52,7 +52,7 @@ $bio-portal-icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYUAAACBCAMAAAA
   margin-right: ui-tokens.$space-1;
   color: var(--cedar-specification-keyword-color, #{ui-tokens.$text-muted});
   font-style: italic;
-  font-weight: var(--cedar-font-weight-regular, 400);
+  font-weight: var(--cedar-font-weight-regular, #{ui-tokens.$font-weight-regular});
 }
 
 /*

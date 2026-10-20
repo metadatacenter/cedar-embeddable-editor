@@ -78,7 +78,7 @@
     "SecondPlaceholder": "SS",
     "DecimalSecondsPlaceholder": "sss",
     "Required": "required",
-    "CeeOnNpm": "CEE on npm",
+    "OnNpm": "on npm",
     "YoutubeVideo": "YouTube video"
   },
   "Multi": {
@@ -86,8 +86,7 @@
     "AddEmptyAfter": "Add empty instance here",
     "AddCloneAfter": "Add copy of this instance",
     "DeleteCurrent": "Delete current",
-    "AllowsMultiValues": "Allows multi values.",
-    "NoValuesYet": "No values yet"
+    "AllowsMultiValues": "Allows multi values."
   },
   "Error": {
     "LookupFailed": "Search failed: the service could not be reached",

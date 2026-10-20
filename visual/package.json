@@ -28,6 +28,7 @@
     "cedar-model-typescript-library": "1.0.21"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
     "@playwright/test": "1.64.1",
     "esbuild": "^0.28.2"
   }

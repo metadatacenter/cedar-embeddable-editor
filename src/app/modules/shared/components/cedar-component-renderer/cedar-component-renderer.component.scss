@@ -19,7 +19,7 @@ mat-accordion {
  */
 .cee-element-heading {
   font-size: tokens.$font-size-large;
-  font-weight: var(--cedar-font-weight-medium, 500);
+  font-weight: var(--cedar-font-weight-medium, #{ui-tokens.$font-weight-medium});
   margin-inline-end: 0;
 }
 

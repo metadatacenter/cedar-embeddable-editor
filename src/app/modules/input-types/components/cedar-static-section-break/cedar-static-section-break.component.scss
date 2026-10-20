@@ -30,6 +30,6 @@
    * same size, so a section break inside an element never outranks it.
    */
   font-size: tokens.$font-size-large;
-  font-weight: var(--cedar-font-weight-medium, 500);
+  font-weight: var(--cedar-font-weight-medium, #{ui-tokens.$font-weight-medium});
   line-height: tokens.$line-height-heading;
 }

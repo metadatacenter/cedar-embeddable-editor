@@ -280,12 +280,12 @@ app-sample-templates {
  * beside 14px text, where they read as the loudest thing in the row rather than as
  * an index. 26px with a 12px label is the step down the type scale that hints take.
  *
- * Here rather than in `cedar-multi-pager.component.scss`, where it belongs, for one
- * reason: the height is a Material design token, and Angular namespaces a custom
- * property declared in a component stylesheet. `--mat-chip-container-height` emitted
- * from there becomes `--%NS%mat-chip-container-height`, which Material never reads,
- * so the rule looks right and does nothing. A token has to be set from a stylesheet
- * that is not namespaced.
+ * It sits here rather than in `cedar-multi-pager.component.scss` with the rest of the
+ * pager's styles. Moving it would not rename the token. Angular compiles a custom
+ * property in a component stylesheet as `--%NS%mat-chip-container-height`, and the
+ * renderer replaces `%NS%` with the application's CSS variable namespace, which is
+ * empty because CEE never calls `provideCssVarNamespacing`. Moving it would change the
+ * selector's specificity, though, which the next paragraph depends on.
  *
  * Scoped to `app-cedar-multi-pager`, not to `.pager-chips` alone. The page-break
  * component reuses that class for its page-number chips, and those are navigation
@@ -489,9 +489,7 @@ app-cedar-component-renderer:has(> mat-accordion) + app-cedar-component-renderer
    * Through Material's own tokens, not through selectors. `.mdc-text-field--outlined
    * .mat-mdc-form-field-infix` reads its padding from these two custom properties and ties with any
    * two-class rule written here, winning on order — so a selector fight is unwinnable and the tokens
-   * are the supported API the density mixin itself uses. Set here rather than in a component
-   * stylesheet because Angular namespaces a custom property declared in one, which Material then
-   * never reads.
+   * are the supported API the density mixin itself uses.
    */
   @include theme.control-size(36px, 6px);
 
@@ -615,7 +613,7 @@ app-cedar-component-renderer:has(> mat-accordion) + app-cedar-component-renderer
 
 // Interface emphasis uses the shared medium face; authored rich text keeps its own styles.
 .required-mark b {
-  font-weight: var(--cedar-font-weight-medium, 500);
+  font-weight: var(--cedar-font-weight-medium, #{ui-tokens.$font-weight-medium});
 }
 
 mat-icon.cedar-icon {
