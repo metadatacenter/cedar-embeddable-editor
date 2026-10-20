@@ -22,10 +22,12 @@ for (const [preset, language] of [
   ['hu', 'hu'],
 ] as const) {
   test(`the editor marks its root, its overlays and its descriptions as ${language}`, async ({ page }) => {
+    // Descriptions are registered as tooltips are, on load. An occurrence pager's actions carry
+    // tooltips; a field's marks carry none of their own.
+    await open(page, '03-nested-multi', preset);
+    await expect(inEditor(page, '.cdk-describedby-message-container')).toHaveAttribute('lang', language);
     await open(page, '02-choices', preset);
     await expect(editorRoot(page)).toHaveAttribute('lang', language);
-    // Descriptions are registered as tooltips are, on load.
-    await expect(inEditor(page, '.cdk-describedby-message-container')).toHaveAttribute('lang', language);
     await page.locator('mat-select').first().click();
     await expect(page.getByRole('listbox')).toBeVisible();
     await expect(inEditor(page, '.cee-overlay-container')).toHaveAttribute('lang', language);

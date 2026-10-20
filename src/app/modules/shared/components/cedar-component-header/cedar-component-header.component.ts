@@ -21,6 +21,9 @@ import { UserPreferencesService } from '../../service/user-preferences.service';
   standalone: false,
 })
 export class CedarComponentHeaderComponent implements OnInit {
+  private static nextId = 0;
+  /** The id of the visually hidden text holding the description. Unique within the page. */
+  readonly descriptionId = `cee-description-${CedarComponentHeaderComponent.nextId++}`;
   component!: CedarComponent;
   /** Null for a component that is not multi-instance, which is most of them. */
   multiComponent: MultiComponent | null = null;
@@ -54,6 +57,11 @@ export class CedarComponentHeaderComponent implements OnInit {
    * open and close. The panel header is the control; the chevron only shows its state.
    */
   @Input() disclosure: boolean | null = null;
+
+  /** Whether the help and property marks take focus, which a mark inside an element's panel header cannot. */
+  get focusableMarks(): boolean {
+    return this.disclosure === null;
+  }
 
   @Input({ required: true }) set componentToRender(componentToRender: CedarComponent) {
     this.component = componentToRender;

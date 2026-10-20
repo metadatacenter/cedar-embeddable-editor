@@ -10,6 +10,14 @@ interface DescriptionEntry {
   owned: boolean;
 }
 
+/**
+ * Marks a tooltip's host whose text the page already holds as text a screen reader reads.
+ *
+ * A field's help mark shows its description as a tooltip, and the description is also in visually
+ * hidden text beside the mark. Described by the tooltip too, the mark would have it read twice.
+ */
+export const TOOLTIP_TEXT_IN_PAGE = 'data-cee-tooltip-text-in-page';
+
 /** Keeps CDK aria-describedby messages inside one CEE shadow root. */
 @Injectable()
 export class CedarAriaDescriber implements OnDestroy {
@@ -34,7 +42,12 @@ export class CedarAriaDescriber implements OnDestroy {
   }
 
   describe(hostElement: Element, message: string | HTMLElement, role?: string): void {
-    if (!hostElement || !message || CedarAriaDescriber.restatesName(hostElement, message)) {
+    if (
+      !hostElement ||
+      !message ||
+      CedarAriaDescriber.restatesName(hostElement, message) ||
+      hostElement.hasAttribute(TOOLTIP_TEXT_IN_PAGE)
+    ) {
       return;
     }
 
@@ -145,15 +158,17 @@ export class CedarAriaDescriber implements OnDestroy {
   }
 
   /**
-   * Whether a text message only repeats the name the host already has, as CDK's own describer skips.
+   * Whether a text message only repeats what the name the host already has says, as CDK's own
+   * describer skips a message equal to the name.
    *
    * An icon button's tooltip is usually its `aria-label`, so describing it made a screen reader say
    * the name twice. It also put Material's English paginator labels into a container marked with the
-   * form's language.
+   * form's language. A property mark is named "Property IRI:" followed by the IRI its tooltip shows,
+   * so a name that contains the message repeats it too.
    */
   private static restatesName(hostElement: Element, message: string | HTMLElement): boolean {
     const label = hostElement.getAttribute('aria-label');
-    return typeof message === 'string' && label !== null && label.trim() === message.trim();
+    return typeof message === 'string' && label !== null && label.trim().includes(message.trim());
   }
 
   private referenceIds(element: Element): string[] {

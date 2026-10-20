@@ -511,6 +511,16 @@ const REPRESENTATIVES: ReadonlyArray<{
     control: async (page) => page.getByRole('button', { name: 'Switch between AM and PM' }).first(),
   },
   {
+    kind: 'help mark',
+    fixture: '01-input-types',
+    control: async (page) => page.getByRole('img', { name: 'Description', exact: true }).first(),
+  },
+  {
+    kind: 'property mark',
+    fixture: '01-input-types',
+    control: async (page) => page.getByRole('img', { name: /^Property IRI: / }).first(),
+  },
+  {
     kind: 'text box',
     fixture: '01-input-types',
     control: async (page) => page.getByRole('textbox', { name: 'text', exact: true }),

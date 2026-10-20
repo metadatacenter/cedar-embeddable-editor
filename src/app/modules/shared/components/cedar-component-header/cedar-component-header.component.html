@@ -39,13 +39,23 @@
         <mat-icon class="disclosure-icon" [class.expanded]="disclosure" cedarIcon="chevron-down"></mat-icon>
       </span>
     }
-    <!-- A pointer's view of the description, which the visually hidden text below gives a screen reader. -->
+    <!--
+      Both marks show their text as a tooltip. A field's marks are Tab stops, so keyboard focus shows
+      the tooltip as a pointer does. An element's are not: they sit inside its panel header, which is
+      a button, and a screen reader cannot reach a control inside a button. Material hides an icon
+      that states no `aria-hidden` of its own, so a focusable help mark binds the attribute away. The
+      mark is named for what it holds. The description itself is in the visually hidden text below,
+      so the tooltip does not describe the mark as well.
+    -->
     @if (!readOnlyMode && component.labelInfo.description) {
       <mat-icon
         cedarIcon="help"
         matTooltip="{{ component.labelInfo.description }}"
         matTooltipPosition="right"
-        aria-hidden="true"
+        [attr.tabindex]="focusableMarks ? 0 : null"
+        [attr.aria-hidden]="focusableMarks ? null : 'true'"
+        [attr.aria-label]="focusableMarks ? ('Generic.Description' | translate) : null"
+        data-cee-tooltip-text-in-page
         class="icon-help icon-questionmark"
         inline="false"
       ></mat-icon>
@@ -57,6 +67,7 @@
         role="img"
         [matTooltip]="component.propertyIri"
         matTooltipPosition="above"
+        [attr.tabindex]="focusableMarks ? 0 : null"
         [attr.aria-label]="'Generic.PropertyIri' | translate: { iri: component.propertyIri }"
         [attr.data-property-iri]="component.propertyIri"
       >
@@ -65,7 +76,5 @@
     }
   </span>
 
-  <span id="Description of {{ cds.getRenderingLabelForComponent(component) }}" class="cdk-visually-hidden">{{
-    component.labelInfo.description
-  }}</span>
+  <span [id]="descriptionId" class="cdk-visually-hidden cee-description">{{ component.labelInfo.description }}</span>
 </div>

@@ -50,6 +50,7 @@
     "Filter": "Kezdjen el írni a szűréshez",
     "OpenLink": "Hivatkozás megnyitása",
     "PropertyIri": "Tulajdonság IRI: {{iri}}",
+    "Description": "Leírás",
     "OpenAuthorityPage": "A {{authority}} oldal megnyitása",
     "FilterOrcid": "Kezdjen el írni kutatónevet vagy ORCID-ot",
     "FilterRor": "Kezdjen el írni intézménynevet vagy ROR-t",

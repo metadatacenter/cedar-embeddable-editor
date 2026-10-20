@@ -2300,17 +2300,17 @@ test.describe('template-authored strings that are not rich text', () => {
   });
 
   /**
-   * The section break's help text is the one string here that is not in the page
-   * until it is asked for. It reaches the reader twice — as the tooltip Material
-   * shows on hover, and as the hidden element `aria-describedby` points at — so
-   * both are checked, the second because a screen reader is the only route to it.
+   * The section break's help text is the one string here that is not on screen
+   * until it is asked for. It reaches a sighted reader as the tooltip Material
+   * shows on hover and on keyboard focus, and a screen reader as the visually
+   * hidden text after the heading. Both are checked, the second because a screen
+   * reader has no other route to it.
    */
   test('reach the help tooltip as text too', async ({ page }) => {
     await open(page, '20-static-markup');
 
-    // The message this help icon points at, rather than the first on the page: the
-    // header's expand, collapse and download controls carry tooltips of their own,
-    // and theirs are registered before any field's.
+    // The section break's own help icon, rather than the first tooltip on the page:
+    // the header's expand, collapse and download controls carry tooltips of their own.
     const help = page.locator('app-cedar-static-section-break mat-icon.icon-help').first();
     // Standalone CEE must compile the shared Sass size even when the host does
     // not provide the design-token CSS custom properties.
@@ -2323,12 +2323,12 @@ test.describe('template-authored strings that are not rich text', () => {
       return { width: svg.width, height: svg.height, top: svg.top - outer.top, left: svg.left - outer.left };
     });
     expect(bounds).toEqual({ width: 16, height: 16, top: 0, left: 0 });
-    const describedBy = (await help.getAttribute('aria-describedby')) ?? '';
-    const messageId = describedBy.split(/\s+/).find((id) => id.startsWith('cdk-describedby-message'));
-    expect(messageId, 'the help icon points at no description element').toBeTruthy();
-
-    const described = page.locator(`[id="${messageId}"]`);
-    await expect(described).toContainText('onerror="window.__staticMarkupRan = true"');
+    // The mark is named for what it holds, and the hidden text after the heading holds it. A
+    // description on the mark as well would have a screen reader read it twice.
+    await expect(help).toHaveAccessibleName('Description');
+    await expect(help).toHaveAccessibleDescription('');
+    const hidden = page.locator('app-cedar-static-section-break > .cdk-visually-hidden').first();
+    await expect(hidden).toHaveText(/^Help .*onerror="window\.__staticMarkupRan = true"/);
 
     await help.hover();
     const tooltip = page.locator('.mat-mdc-tooltip-surface').first();
