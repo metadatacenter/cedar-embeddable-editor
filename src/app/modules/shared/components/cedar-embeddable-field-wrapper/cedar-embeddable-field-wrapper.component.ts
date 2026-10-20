@@ -41,6 +41,7 @@ import { FallbackTranslateLoaderFactory } from '../../util/fallback-translate-lo
 import { HandlerContext } from '../../util/handler-context';
 import { WidgetConfigCoordinator } from '../../util/widget-config-coordinator';
 import { WrapperConfigCoordinator } from '../../util/wrapper-config-coordinator';
+import { uiLanguageOf } from '../../util/language-tag';
 import { isCedarFieldValue, readFieldValue, sameFieldValue, writeFieldValue } from '../../util/cedar-field-value';
 import { templateForField } from '../../util/single-field-template';
 import { decideComponentRender } from '../cedar-component-renderer/component-render-decision';
@@ -165,6 +166,11 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.initialized = true;
     this.applyConfiguration();
+  }
+
+  /** The language of CEE's own text, marked on the root so that a screen reader speaks it as such. */
+  get uiLanguage(): string | null {
+    return uiLanguageOf(this.translateService, this.globalSettingsContextService);
   }
 
   ngOnDestroy(): void {

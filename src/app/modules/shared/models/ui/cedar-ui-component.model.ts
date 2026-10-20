@@ -6,6 +6,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
 import { CedarComponent } from '../component/cedar-component.model';
+import { languageTag } from '../../util/language-tag';
 
 @Directive()
 export abstract class CedarUIDirective implements OnInit, OnDestroy {
@@ -26,7 +27,20 @@ export abstract class CedarUIDirective implements OnInit, OnDestroy {
    */
   abstract setCurrentValue(currentValue: unknown): void;
 
+  /**
+   * The `@language` tag the shown value carries, set beside each `setCurrentValue`.
+   *
+   * A read-only widget marks the value with it, since an instance may hold text in a language other
+   * than CEE's own. An editable box does not: what it holds is whatever the user is typing.
+   */
+  valueLanguage: string | null = null;
+
   readOnlyMode = false;
+
+  /** The `lang` a read-only value is marked with, which is none while the box is editable. */
+  get readOnlyValueLanguage(): string | null {
+    return this.readOnlyMode ? languageTag(this.valueLanguage) : null;
+  }
 
   quietEmptyPreview(value: unknown): boolean {
     return (

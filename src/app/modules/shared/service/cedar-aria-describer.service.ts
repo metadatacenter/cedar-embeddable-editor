@@ -1,4 +1,8 @@
-import { ElementRef, Injectable, OnDestroy } from '@angular/core';
+import { ElementRef, Injectable, OnDestroy, Optional } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
+import { merge, Subscription } from 'rxjs';
+import { markLanguage, uiLanguageOf } from '../util/language-tag';
+import { GlobalSettingsContextService } from './global-settings-context.service';
 
 interface DescriptionEntry {
   element: HTMLElement;
@@ -16,8 +20,18 @@ export class CedarAriaDescriber implements OnDestroy {
   private readonly hostReferences = new Map<Element, Set<string>>();
   private container: HTMLDivElement | null = null;
   private nextMessageId = 0;
+  private readonly languageChanges: Subscription | undefined;
 
-  constructor(private readonly wrapper: ElementRef<HTMLElement>) {}
+  constructor(
+    private readonly wrapper: ElementRef<HTMLElement>,
+    @Optional() private readonly translate: TranslateService | null = null,
+    @Optional() private readonly globals: GlobalSettingsContextService | null = null,
+  ) {
+    // Tooltip text is CEE's, and its container sits beside the element's root rather than inside it.
+    this.languageChanges = translate
+      ? merge(translate.onLangChange, translate.onTranslationChange).subscribe(() => this.markLanguage())
+      : undefined;
+  }
 
   describe(hostElement: Element, message: string | HTMLElement, role?: string): void {
     if (!hostElement || !message) {
@@ -88,6 +102,7 @@ export class CedarAriaDescriber implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.languageChanges?.unsubscribe();
     for (const [host, ids] of this.hostReferences) {
       this.writeReferenceIds(
         host,
@@ -112,7 +127,14 @@ export class CedarAriaDescriber implements OnDestroy {
     this.container.classList.add('cdk-describedby-message-container', 'cdk-visually-hidden');
     this.container.style.visibility = 'hidden';
     shadowRoot.appendChild(this.container);
+    this.markLanguage();
     return this.container;
+  }
+
+  private markLanguage(): void {
+    if (this.container && this.translate && this.globals) {
+      markLanguage(this.container, uiLanguageOf(this.translate, this.globals));
+    }
   }
 
   private removeEmptyContainer(): void {

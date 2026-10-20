@@ -11,6 +11,7 @@
         type="text"
         [value]="displayValue"
         readonly
+        [attr.lang]="readOnlyValueLanguage"
         attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"
       />
     }

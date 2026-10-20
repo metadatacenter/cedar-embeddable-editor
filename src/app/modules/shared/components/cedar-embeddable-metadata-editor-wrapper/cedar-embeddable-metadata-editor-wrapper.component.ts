@@ -49,6 +49,7 @@ import { RenderSchedulerService } from '../../service/render-scheduler.service';
 import { ArtifactInputCoordinator } from '../../util/artifact-input-coordinator';
 import { WrapperConfigCoordinator } from '../../util/wrapper-config-coordinator';
 import { FieldRevealService } from '../../service/field-reveal.service';
+import { uiLanguageOf } from '../../util/language-tag';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor-wrapper',
@@ -127,6 +128,11 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
   get innerConfig(): CeeConfig | null {
     return this.configuration.config;
+  }
+
+  /** The language of CEE's own text, marked on the root so that a screen reader speaks it as such. */
+  get uiLanguage(): string | null {
+    return uiLanguageOf(this.translateService, this.globalSettingsContextService);
   }
 
   get templateJson(): CeeJsonObject | null {

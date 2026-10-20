@@ -41,6 +41,7 @@
       [formControl]="valueInputControl"
       (input)="valueChanged($event)"
       [readonly]="readOnlyMode"
+      [attr.lang]="readOnlyValueLanguage"
       attr.aria-label="{{ 'Generic.AttributeValue' | translate }}"
     />
     @if (valueInputControl.value && !readOnlyMode) {

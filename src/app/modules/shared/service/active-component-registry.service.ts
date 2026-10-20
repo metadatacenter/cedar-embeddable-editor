@@ -136,6 +136,7 @@ export class ActiveComponentRegistryService {
         // occurrences. A child that is absent from the new occurrence must
         // actively clear that widget, or the preceding occurrence remains on
         // screen even though it is not present in the model.
+        uiComponent.valueLanguage = null;
         uiComponent.setCurrentValue(null);
       } else if (uiComponent != null && dataObject != null) {
         const clearDefault = ActiveComponentRegistryService.shouldClearDeclaredDefault(
@@ -143,6 +144,7 @@ export class ActiveComponentRegistryService {
           handlerContext,
           dataObject,
         );
+        uiComponent.valueLanguage = clearDefault ? null : InstanceValueNode.language(dataObject);
         if (InstanceValueNode.isLiteral(dataObject)) {
           uiComponent.setCurrentValue(clearDefault ? null : InstanceValueNode.literal(dataObject));
         } else if (InstanceValueNode.isIriBearing(dataObject)) {
@@ -167,6 +169,7 @@ export class ActiveComponentRegistryService {
         const dataArr = isInstanceArray(dataObject) ? dataObject : null;
 
         if (uiComponent) {
+          uiComponent.valueLanguage = InstanceValueNode.sharedLanguage(dataArr ?? []);
           uiComponent.setCurrentValue(dataArr?.map((a) => InstanceValueNode.literal(a)) ?? []);
         }
       } else if (isInstanceArray(dataObject) && multiInstanceInfo !== null) {
@@ -191,6 +194,9 @@ export class ActiveComponentRegistryService {
                 ? InstanceValueNode.literal(parentDataObject.values[keyName])
                 : null;
               if (uiComponent) {
+                uiComponent.valueLanguage = isInstanceObject(parentDataObject)
+                  ? InstanceValueNode.language(parentDataObject.values[keyName])
+                  : null;
                 uiComponent.setCurrentValue({ '': value ?? null });
               }
               return;
@@ -204,10 +210,14 @@ export class ActiveComponentRegistryService {
             const obj: Record<string, string | null> = { [keyName]: value ?? null };
 
             if (uiComponent) {
+              uiComponent.valueLanguage = InstanceValueNode.language(parentDataObject.values[keyName]);
               uiComponent.setCurrentValue(obj);
             }
           } else {
             const pageNode = dataObject[multiInstanceInfo.currentIndex];
+            if (uiComponent) {
+              uiComponent.valueLanguage = InstanceValueNode.language(pageNode);
+            }
             if (InstanceValueNode.isLiteral(pageNode)) {
               if (uiComponent) {
                 uiComponent.setCurrentValue(InstanceValueNode.literal(pageNode));
@@ -233,6 +243,7 @@ export class ActiveComponentRegistryService {
             }
           }
         } else if (uiComponent && component.basicInfo.inputType !== InputType.attributeValue) {
+          uiComponent.valueLanguage = null;
           uiComponent.setCurrentValue(null);
         }
 
@@ -246,6 +257,7 @@ export class ActiveComponentRegistryService {
       } else {
         // Empty multi-field
         if (uiComponent && component.basicInfo.inputType !== InputType.attributeValue) {
+          uiComponent.valueLanguage = null;
           uiComponent.setCurrentValue(component.isMultiPage() ? null : []);
         }
         const uiPager = this.getMultiPagerUI(component);

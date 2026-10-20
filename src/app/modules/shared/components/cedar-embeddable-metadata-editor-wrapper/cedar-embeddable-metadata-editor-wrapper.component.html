@@ -1,5 +1,5 @@
 <app-cedar-font-registrar></app-cedar-font-registrar>
-<div (change)="suppressNativeChange($event)">
+<div [attr.lang]="uiLanguage" (change)="suppressNativeChange($event)">
   @if (editorDataReady()) {
     <app-cedar-embeddable-metadata-editor
       [config]="innerConfig"

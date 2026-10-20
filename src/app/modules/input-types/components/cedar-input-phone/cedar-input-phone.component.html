@@ -10,6 +10,7 @@
       [formControl]="inputValueControl"
       (input)="inputChanged($event)"
       [readonly]="readOnlyMode"
+      [attr.lang]="readOnlyValueLanguage"
       attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"
     />
     @if (inputValueControl.value && !readOnlyMode) {
