@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { readdirSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { open } from './support/host';
 
@@ -10,7 +10,9 @@ import { open } from './support/host';
  * A rule engine decides names, roles, ARIA validity, the contrast it can compute and target
  * sizes. It cannot decide focus order or what a screen reader announces. The tags are the
  * designer's and the term picker's: WCAG 2.0, 2.1 and 2.2 at levels A and AA. Each template is
- * checked empty, filled with each instance written for it, and read only, at both widths.
+ * checked empty, filled with each instance written for it, and read only, at both widths. So is
+ * the field element on its own under each presentation preset, comfortable density beside the
+ * compact default, and an authority search under way and finished.
  */
 const WCAG = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 
@@ -72,7 +74,7 @@ async function expectAccessible(page: Page, state: string): Promise<void> {
   const failures = [...violations, ...ignoredLabels].flatMap((violation) =>
     violation.nodes.map((node) => `${violation.id}: ${JSON.stringify(node.target)}`),
   );
-  expect(failures, state).toEqual([]);
+  expect.soft(failures, state).toEqual([]);
 }
 
 for (const template of templates)
@@ -86,3 +88,44 @@ for (const template of templates)
     await open(page, template, 'readonly');
     await expectAccessible(page, `${template} read only`);
   });
+
+const fixturesDir = new URL('../fixtures/', import.meta.url);
+const orderOf = (fixture: string): string[] =>
+  JSON.parse(readFileSync(fileURLToPath(new URL(`${fixture}.json`, fixturesDir)), 'utf8'))._ui.order;
+
+for (const fixture of ['01-input-types', '02-choices', '08-authority', '09-temporal'])
+  for (const property of orderOf(fixture))
+    test(`the field element for ${fixture} ${property}, editable, read only and in preview`, async ({ page }) => {
+      for (const preset of [undefined, 'readonly', 'preview', 'preview-typed']) {
+        await open(page, fixture, preset, undefined, undefined, `&host=field&p=${property}`);
+        await expectAccessible(page, `${fixture} ${property} ${preset ?? 'editable'}`);
+      }
+    });
+
+for (const fixture of ['01-input-types', '02-choices', '09-temporal'])
+  test(`${fixture} at comfortable density`, async ({ page }) => {
+    for (const preset of [undefined, 'readonly']) {
+      await open(page, fixture, preset);
+      await page.locator('cedar-embeddable-editor').evaluate((editor) => editor.setAttribute('density', 'comfortable'));
+      await expectAccessible(page, `${fixture} comfortable ${preset ?? 'editable'}`);
+    }
+  });
+
+test('an authority search under way, and one that found nothing', async ({ page }) => {
+  let release!: () => void;
+  const pending = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route('http://127.0.0.1:9/**', async (route) => {
+    await pending;
+    await route.fulfill({ json: { found: false, results: {} } });
+  });
+  await open(page, '08-authority', undefined, undefined, undefined, '&host=field&p=_contributor_orcid');
+  const field = page.locator('cedar-embeddable-field');
+  await field.locator('input').first().fill('Unmatched example');
+  await expect(field.getByText('Searching…', { exact: true })).toBeVisible();
+  await expectAccessible(page, 'authority search under way');
+  release();
+  await expect(field.getByText('No results found', { exact: true })).toBeVisible();
+  await expectAccessible(page, 'authority search that found nothing');
+});
