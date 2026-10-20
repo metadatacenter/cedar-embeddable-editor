@@ -7,6 +7,7 @@
       matInput
       [errorStateMatcher]="previewErrorStateMatcher"
       type="text"
+      #nameBox
       [formControl]="nameInputControl"
       (input)="nameChanged($event)"
       (blur)="nameChanged($event)"
@@ -19,7 +20,7 @@
         matSuffix
         mat-icon-button
         attr.aria-label="{{ 'Generic.Clear' | translate }}"
-        (click)="clearName()"
+        (click)="clearName(); nameBox.focus()"
       >
         <mat-icon cedarIcon="close"></mat-icon>
       </button>
@@ -38,6 +39,7 @@
       matInput
       [errorStateMatcher]="previewErrorStateMatcher"
       type="text"
+      #valueBox
       [formControl]="valueInputControl"
       (input)="valueChanged($event)"
       [readonly]="readOnlyMode"
@@ -50,7 +52,7 @@
         matSuffix
         mat-icon-button
         attr.aria-label="{{ 'Generic.Clear' | translate }}"
-        (click)="clearValue()"
+        (click)="clearValue(); valueBox.focus()"
       >
         <mat-icon cedarIcon="close"></mat-icon>
       </button>

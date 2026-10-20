@@ -20,6 +20,7 @@
             an answer, and calling it the default would misdescribe it.
           -->
           <mat-radio-button
+            #option
             color="primary"
             [value]="choice.label"
             (change)="inputChanged($event)"
@@ -37,7 +38,7 @@
               mat-icon-button
               [matTooltip]="'Generic.Clear' | translate"
               attr.aria-label="{{ 'Generic.Clear' | translate }}"
-              (click)="clearValue()"
+              (click)="clearValue(); option.focus()"
             >
               <mat-icon cedarIcon="close"></mat-icon>
             </button>

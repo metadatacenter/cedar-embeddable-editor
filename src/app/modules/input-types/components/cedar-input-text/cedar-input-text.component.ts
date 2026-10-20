@@ -1,5 +1,13 @@
 import { TextPolicy } from 'cedar-model-typescript-library';
-import { Component, Input, OnInit, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  Input,
+  OnInit,
+  ViewChild,
+  ViewEncapsulation,
+} from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
@@ -43,6 +51,8 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
   isOrcid: boolean = false;
   isRor: boolean = false;
   originalValue: string | null = null;
+  /** The box the value is typed into, a line or a paragraph. */
+  @ViewChild('valueBox') private valueBox?: ElementRef<HTMLInputElement | HTMLTextAreaElement>;
 
   constructor(
     private readonly fb: FormBuilder,
@@ -150,6 +160,11 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
   }
   clearValue(): void {
     this.setValueUIAndModel(null);
+  }
+
+  /** Where focus goes once the clear button, which disappears with the value, has been used. */
+  focusValueBox(): void {
+    this.valueBox?.nativeElement.focus();
   }
 
   private setValueUIAndModel(value: string | null): void {

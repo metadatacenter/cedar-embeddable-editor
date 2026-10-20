@@ -8,6 +8,7 @@ import {
   Input,
   OnDestroy,
   QueryList,
+  ViewChild,
   ViewChildren,
   ViewEncapsulation,
   ChangeDetectionStrategy,
@@ -25,6 +26,7 @@ import { DatePickerComponent } from '../../../shared/components/date-picker/date
 import { Xsd } from '../../../shared/models/xsd.model';
 import { Temporal } from '../../../shared/models/temporal.model';
 import { TimezonePickerComponent, TZone } from '../../../shared/components/timezone-picker/timezone-picker.component';
+import { TimePickerComponent } from '../../../shared/components/time-picker/time-picker.component';
 import {
   CedarTemporalConfiguration,
   CedarTemporalParts,
@@ -115,6 +117,7 @@ export class CedarInputDatetimeComponent
   readonly errorMessage = new WidgetMessage(inject(LiveAnnouncer, { optional: true }));
   @ViewChildren('temporalError', { read: ElementRef }) private temporalErrors?: QueryList<ElementRef<HTMLElement>>;
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef, { optional: true });
+  @ViewChild(TimePickerComponent) private timePicker?: TimePickerComponent;
 
   @Input({ required: true }) handlerContext!: HandlerContext;
 
@@ -138,6 +141,17 @@ export class CedarInputDatetimeComponent
   override ngOnDestroy(): void {
     super.ngOnDestroy();
     this.errorMessage.clear();
+  }
+
+  /**
+   * Where focus goes once the clear button, which disappears with the value, has been used.
+   *
+   * The clock is told at once that it is empty. `ngModel` would tell it a moment later, and by then
+   * a focused hour box keeps what it showed, since the clock never rewrites the part being typed in.
+   */
+  focusFirstControl(): void {
+    this.timePicker?.writeValue(null);
+    this.host?.nativeElement.querySelector<HTMLElement>('input, mat-select')?.focus();
   }
 
   @Input({ required: true }) set componentToRender(componentToRender: FieldComponent) {

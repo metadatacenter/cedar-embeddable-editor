@@ -96,7 +96,7 @@
       class="cee-temporal-clear"
       attr.aria-label="{{ 'Generic.Clear' | translate }}"
       matTooltip="{{ 'Generic.Clear' | translate }}"
-      (click)="clearValue()"
+      (click)="clearValue(); focusFirstControl()"
     >
       <mat-icon cedarIcon="close"></mat-icon>
     </button>

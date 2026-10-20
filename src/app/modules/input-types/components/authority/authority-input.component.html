@@ -54,6 +54,7 @@ genuinely theirs.
         type="text"
         [placeholder]="readOnlyMode ? '' : (descriptor.placeholderKey | translate)"
         #autoCompleteInput="matAutocompleteTrigger"
+        #lookupInput
         [formControl]="inputValueControl"
         [errorStateMatcher]="errorStateMatcher"
         [matAutocomplete]="auto"
@@ -153,13 +154,13 @@ genuinely theirs.
           mat-icon-button
           attr.aria-label="{{ 'Generic.Clear' | translate }}"
           matTooltip="{{ 'Generic.Clear' | translate }}"
-          (click)="clearValue()"
+          (click)="clearValue(); lookupInput.focus()"
         >
           <mat-icon cedarIcon="close"></mat-icon>
         </button>
       }
       @if (inputValueControl.getError('required') && !readOnlyMode && !quietEmptyPreview(inputValueControl.value)) {
-        <mat-error tabindex="0" class="mat-error align-start">{{ 'Validation.Required' | translate }}</mat-error>
+        <mat-error class="mat-error align-start">{{ 'Validation.Required' | translate }}</mat-error>
       }
     </mat-form-field>
     @if (justCleared) {
