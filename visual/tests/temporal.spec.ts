@@ -300,7 +300,7 @@ test.describe('the time picker', () => {
     await open(page, '09-temporal');
     // The one field with a fraction box, which names it more reliably than a position.
     const field = page.locator('app-cedar-input-datetime').filter({
-      has: page.locator('input[aria-label="Select Decimal Seconds"]'),
+      has: page.locator('input[aria-label$=", select decimal seconds"]'),
     });
 
     await field.locator('input[aria-label="Hour"]').fill('14');
@@ -500,7 +500,7 @@ test.describe('the time picker', () => {
     await expect(field.locator('input[aria-label="Hour"]')).toHaveValue('');
     await expect(field.locator('input[aria-label="Minute"]')).toHaveValue('');
     await expect(field.locator('input[aria-label="Second"]')).toHaveValue('');
-    await expect(field.locator('input[aria-label="Select Decimal Seconds"]')).toHaveValue('');
+    await expect(field.locator('input[aria-label$=", select decimal seconds"]')).toHaveValue('');
   });
 });
 

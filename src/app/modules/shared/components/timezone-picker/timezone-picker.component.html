@@ -10,12 +10,17 @@
       placeholder occupies the value slot, so it sits where the value it
       stands in for will sit.
     -->
+    <!--
+      The select's name is the field's label followed by what the box shows, the placeholder or
+      the chosen offset. Given neither a label nor a name, Material names it by its value alone.
+    -->
     <mat-select
+      #zoneSelect
       formControlName="timezone"
       [compareWith]="compareZones"
       (closed)="markTouched()"
       placeholder="{{ customPlaceholderText }}"
-      attr.aria-label="{{ customPlaceholderText }}"
+      [aria-labelledby]="labelId + ' ' + zoneSelect._valueId"
     >
       @for (zone of timeZones; track zone.id) {
         <mat-option [value]="zone"
@@ -29,4 +34,5 @@
       }
     </mat-select>
   </mat-form-field>
+  <span class="cdk-visually-hidden" [id]="labelId">{{ fieldLabel }}</span>
 </div>

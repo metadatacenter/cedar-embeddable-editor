@@ -20,6 +20,7 @@
         [dateFormat]="dateFormat()"
         (dateChangedEvent)="dateInputChanged($event)"
         [dateMonthYear]="dateMonthYearControl"
+        [fieldLabel]="cds.getRenderingLabelForComponent(component)"
         xmlns="http://www.w3.org/1999/html"
       ></app-date-picker>
     </div>
@@ -33,6 +34,7 @@
         [enableMeridian]="enableMeridian()"
         [disableMinute]="disableMinute()"
         [showSeconds]="showSeconds()"
+        [fieldLabel]="cds.getRenderingLabelForComponent(component)"
       >
       </app-time-picker>
 
@@ -66,7 +68,9 @@
             name="decimalSeconds"
             placeholder="{{ 'Generic.DecimalSecondsPlaceholder' | translate }}"
             matTooltip="{{ 'Generic.DecimalSeconds' | translate }}"
-            attr.aria-label="{{ 'Generic.SelectDecimalSeconds' | translate }}"
+            attr.aria-label="{{
+              'Generic.SelectDecimalSecondsFor' | translate: { label: cds.getRenderingLabelForComponent(component) }
+            }}"
           />
         </mat-form-field>
       }
@@ -79,6 +83,7 @@
         [(ngModel)]="timezone"
         (ngModelChange)="timezoneInputChanged($event)"
         customPlaceholderText="{{ 'Generic.SelectUtcOffset' | translate }}"
+        [fieldLabel]="cds.getRenderingLabelForComponent(component)"
         [getUserZone]="setDefaultZone"
       ></app-timezone-picker>
     </div>

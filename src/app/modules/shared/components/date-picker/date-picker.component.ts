@@ -17,6 +17,7 @@ import { DateTimeService } from '../../service/date-time/date-time.service';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
 import { MATERIAL_TEXT_LANGUAGE } from '../../util/language-tag';
+import { PeriodButtonName } from './period-button-name';
 
 @Component({
   selector: 'app-date-picker',
@@ -63,9 +64,12 @@ export class DatePickerComponent implements OnInit {
   yearMonthDayFormat = DatePickerComponent.YEAR_MONTH_DAY_FORMAT;
   /** The toggle's name and the calendar's text are Material's English. */
   readonly materialLanguage = MATERIAL_TEXT_LANGUAGE;
+  private readonly periodButtonName = new PeriodButtonName();
 
   @Input({ required: true }) dateMonthYear!: FormControl<Date | null>;
   @Input() dateFormat = DatePickerComponent.YEAR_FORMAT;
+  /** The label of the field the date belongs to, which the box's name begins with. */
+  @Input() fieldLabel = '';
   @Output() dateChangedEvent = new EventEmitter<Date>();
   private userPreferencesService: UserPreferencesService;
   readOnlyMode = false;
@@ -127,20 +131,26 @@ export class DatePickerComponent implements OnInit {
   }
 
   /**
-   * Mark the calendar as the English it is written in.
+   * Mark the calendar as the English it is written in, and name its period button by its period.
    *
-   * Material draws it in the overlay container, which carries the form's language, and gives the
-   * datepicker no input that reaches the element. Only one calendar is open at a time.
+   * Material draws the calendar in the overlay container, which carries the form's language, and
+   * gives the datepicker no input that reaches either element. Only one calendar is open at a time.
    */
   calendarOpened(): void {
     const root = this.elementRef.nativeElement.getRootNode();
-    if (root instanceof Document || root instanceof ShadowRoot) {
-      root.querySelector('.mat-datepicker-content')?.setAttribute('lang', MATERIAL_TEXT_LANGUAGE);
+    if (!(root instanceof Document || root instanceof ShadowRoot)) {
+      return;
+    }
+    const calendar = root.querySelector('.mat-datepicker-content');
+    if (calendar !== null) {
+      calendar.setAttribute('lang', MATERIAL_TEXT_LANGUAGE);
+      this.periodButtonName.attach(calendar);
     }
   }
 
   /** Restore the toggle only when focus did not move out of the closing calendar. */
   datepickerClosed(): void {
+    this.periodButtonName.detach();
     const root = this.elementRef.nativeElement.getRootNode();
     const closedFrom = DatePickerComponent.activeElement(root);
     if (closedFrom instanceof HTMLElement && closedFrom.closest('.cdk-overlay-container') === null) {

@@ -8,7 +8,7 @@
       [formControl]="selectedChoiceInputControl"
       style="display: none"
     />
-    <mat-radio-group [formControl]="selectedChoiceInputControl">
+    <mat-radio-group [formControl]="selectedChoiceInputControl" [attr.aria-label]="fieldLabel">
       @for (choice of component.choiceInfo.choices; track choice) {
         <div class="choice-option-row">
           <!--

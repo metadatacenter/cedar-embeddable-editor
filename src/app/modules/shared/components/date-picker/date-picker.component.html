@@ -9,7 +9,7 @@
       [placeholder]="dateNotation | translate"
       [matDatepicker]="dp"
       [formControl]="dateMonthYear"
-      attr.aria-label="{{ 'Generic.SelectYear' | translate }}"
+      attr.aria-label="{{ 'Generic.SelectYearFor' | translate: { label: fieldLabel } }}"
     />
     <!--
       No requirement of its own. The year template alone used to carry one, with a
@@ -44,7 +44,7 @@
       [placeholder]="dateNotation | translate"
       [matDatepicker]="dp"
       [formControl]="dateMonthYear"
-      attr.aria-label="{{ 'Generic.SelectYearAndMonth' | translate }}"
+      attr.aria-label="{{ 'Generic.SelectYearAndMonthFor' | translate: { label: fieldLabel } }}"
     />
     @if (!readOnlyMode) {
       <mat-datepicker-toggle matSuffix [for]="dp" [attr.lang]="materialLanguage"
@@ -75,7 +75,7 @@
       [matDatepicker]="dp"
       [formControl]="dateMonthYear"
       (dateChange)="chosenDateHandler($event)"
-      attr.aria-label="{{ 'Generic.SelectDate' | translate }}"
+      attr.aria-label="{{ 'Generic.SelectDateFor' | translate: { label: fieldLabel } }}"
     />
     @if (!readOnlyMode) {
       <mat-datepicker-toggle matSuffix [for]="dp" [attr.lang]="materialLanguage"
@@ -83,8 +83,7 @@
       ></mat-datepicker-toggle>
     }
     <!-- `(dateChange)` above is what carries the chosen date. `(opened)` emits
-    nothing, so binding the same handler to it passed `undefined` and the body
-    never ran; removed rather than left looking live. -->
+    nothing, so it carries no date: it only prepares the calendar for assistive technology. -->
     <mat-datepicker
       #dp
       (opened)="calendarOpened()"

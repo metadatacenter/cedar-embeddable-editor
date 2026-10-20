@@ -1,4 +1,5 @@
-<form class="form-container" [formGroup]="options">
+<!-- The options form a group named by the field, so each is announced as an answer to it. -->
+<form class="form-container" [formGroup]="options" role="group" [attr.aria-label]="fieldLabel">
   @for (choice of component.choiceInfo.choices; track choice) {
     <div>
       <mat-checkbox

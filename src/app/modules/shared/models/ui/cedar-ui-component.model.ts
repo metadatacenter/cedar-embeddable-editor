@@ -7,6 +7,7 @@ import { UserPreferencesService } from '../../service/user-preferences.service';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
 import { CedarComponent } from '../component/cedar-component.model';
 import { languageTag } from '../../util/language-tag';
+import { renderingLabelOf } from '../../service/component-data.service';
 
 @Directive()
 export abstract class CedarUIDirective implements OnInit, OnDestroy {
@@ -36,6 +37,11 @@ export abstract class CedarUIDirective implements OnInit, OnDestroy {
   valueLanguage: string | null = null;
 
   readOnlyMode = false;
+
+  /** The field's label as the form shows it, which every name for one of its controls contains. */
+  get fieldLabel(): string {
+    return renderingLabelOf(this.component);
+  }
 
   /** The `lang` a read-only value is marked with, which is none while the box is editable. */
   get readOnlyValueLanguage(): string | null {

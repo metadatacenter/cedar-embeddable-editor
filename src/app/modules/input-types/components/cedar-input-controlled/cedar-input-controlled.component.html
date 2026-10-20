@@ -105,7 +105,11 @@ different destinations worth having.
         @let terms = filteredOptions | async;
         @if (loading) {
           <mat-option disabled>
-            <mat-progress-spinner mode="indeterminate" diameter="24"></mat-progress-spinner>
+            <mat-progress-spinner
+              mode="indeterminate"
+              diameter="24"
+              [attr.aria-label]="'Generic.Searching' | translate"
+            ></mat-progress-spinner>
           </mat-option>
         }
         @if (lookupFailed && !loading) {

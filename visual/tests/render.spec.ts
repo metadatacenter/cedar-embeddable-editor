@@ -1094,7 +1094,7 @@ test('temporal placeholders and decimal seconds fit without clipping', async ({ 
   });
   expect(clipped, 'a placeholder is wider than the box that shows it').toEqual([]);
 
-  const fraction = page.locator('input[aria-label="Select Decimal Seconds"]');
+  const fraction = page.locator('input[aria-label$=", select decimal seconds"]');
   await fraction.fill('999');
   const fractionFit = await fraction.evaluate((input: HTMLInputElement) => ({
     clientWidth: input.clientWidth,
@@ -2021,7 +2021,7 @@ test.describe('declared non-enumerated defaults', () => {
 
     await expect(page.locator('input[aria-label="title"]')).toHaveValue('Draft record');
     await expect(page.locator('input[aria-label="measurement"]')).toHaveValue('42.5');
-    await expect(page.locator('input[aria-label="Select Date"]')).not.toHaveValue('');
+    await expect(page.locator('input[aria-label$=", select date"]')).not.toHaveValue('');
     await expect(page.locator('input[aria-label="organism"]')).toHaveValue('Homo sapiens');
 
     const metadata = await page.evaluate(() => document.querySelector('cedar-embeddable-editor')!.currentMetadata);
@@ -3774,8 +3774,8 @@ test.describe('date display formats', () => {
   test('a year field and a day field each use their own format', async ({ page }) => {
     await open(page, '09-temporal', undefined, '15-date-formats-instance');
 
-    const year = page.locator('input[aria-label="Select Year"]').first();
-    const day = page.locator('input[aria-label="Select Date"]').first();
+    const year = page.locator('input[aria-label$=", select year"]').first();
+    const day = page.locator('input[aria-label$=", select date"]').first();
 
     await expect(year, 'the year field should render year granularity only').toHaveValue('2019');
     await expect(day, 'the day field should render a full date').toHaveValue('03/04/2026');
@@ -3917,7 +3917,7 @@ test.describe('date calendar selection', () => {
 
   test('year selection stores January 1 at year granularity', async ({ page }) => {
     await open(page, '09-temporal');
-    const year = page.locator('input[aria-label="Select Year"]').first();
+    const year = page.locator('input[aria-label$=", select year"]').first();
 
     await openCalendar(year);
     await chooseCell(page, '2030');
@@ -3928,7 +3928,7 @@ test.describe('date calendar selection', () => {
 
   test('month selection stores the first day at month granularity', async ({ page }) => {
     await open(page, '21-temporal-normalization', undefined, '21-temporal-normalization-instance');
-    const month = page.locator('input[aria-label="Select Year and Month"]').first();
+    const month = page.locator('input[aria-label$=", select year and month"]').first();
 
     await openCalendar(month);
     await chooseCell(page, '2030');
@@ -3940,7 +3940,7 @@ test.describe('date calendar selection', () => {
 
   test('day selection stores exactly the selected local calendar day', async ({ page }) => {
     await open(page, '09-temporal', undefined, '15-date-formats-instance');
-    const day = page.locator('input[aria-label="Select Date"]').first();
+    const day = page.locator('input[aria-label$=", select date"]').first();
 
     await openCalendar(day);
     await chooseCell(page, '03/15/2026');

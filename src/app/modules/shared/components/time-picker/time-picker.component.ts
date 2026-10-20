@@ -59,6 +59,8 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit {
   @Input() disableMinute = false;
   /** Show a seconds box. */
   @Input() showSeconds = false;
+  /** The label of the field the time belongs to, which the group's name begins with. */
+  @Input() fieldLabel = '';
 
   /** What the boxes hold. Hour is 1–12 when `enableMeridian`, else 0–23. */
   hour = 0;

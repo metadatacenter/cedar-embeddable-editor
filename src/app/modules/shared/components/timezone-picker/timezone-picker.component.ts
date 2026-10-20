@@ -88,8 +88,13 @@ export class TimezonePickerComponent implements OnInit, OnChanges, ControlValueA
     '+14:00',
   ].map((id) => ({ id, label: TimezonePickerComponent.labelFor(id) }));
 
+  private static nextLabelId = 0;
+
   @Input() getUserZone = false;
   @Input() customPlaceholderText = 'Timezone unspecified';
+  /** The label of the field the offset belongs to, which the select's name begins with. */
+  @Input() fieldLabel = '';
+  readonly labelId = `cee-utc-offset-label-${TimezonePickerComponent.nextLabelId++}`;
 
   readonly form = new FormGroup({
     timezone: new FormControl<TZone | null>(null),
