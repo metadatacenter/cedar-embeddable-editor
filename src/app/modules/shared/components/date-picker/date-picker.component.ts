@@ -16,6 +16,7 @@ import { CustomDateAdapter } from '../../service/date-time/custom-date-adapter';
 import { DateTimeService } from '../../service/date-time/date-time.service';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
+import { MATERIAL_TEXT_LANGUAGE } from '../../util/language-tag';
 
 @Component({
   selector: 'app-date-picker',
@@ -60,6 +61,8 @@ export class DatePickerComponent implements OnInit {
   }
   yearMonthFormat = DatePickerComponent.YEAR_MONTH_FORMAT;
   yearMonthDayFormat = DatePickerComponent.YEAR_MONTH_DAY_FORMAT;
+  /** The toggle's name and the calendar's text are Material's English. */
+  readonly materialLanguage = MATERIAL_TEXT_LANGUAGE;
 
   @Input({ required: true }) dateMonthYear!: FormControl<Date | null>;
   @Input() dateFormat = DatePickerComponent.YEAR_FORMAT;
@@ -120,6 +123,19 @@ export class DatePickerComponent implements OnInit {
   chosenDateHandler(event: MatDatepickerInputEvent<Date>): void {
     if (event.value !== null) {
       this.dateChangedEvent.emit(event.value);
+    }
+  }
+
+  /**
+   * Mark the calendar as the English it is written in.
+   *
+   * Material draws it in the overlay container, which carries the form's language, and gives the
+   * datepicker no input that reaches the element. Only one calendar is open at a time.
+   */
+  calendarOpened(): void {
+    const root = this.elementRef.nativeElement.getRootNode();
+    if (root instanceof Document || root instanceof ShadowRoot) {
+      root.querySelector('.mat-datepicker-content')?.setAttribute('lang', MATERIAL_TEXT_LANGUAGE);
     }
   }
 

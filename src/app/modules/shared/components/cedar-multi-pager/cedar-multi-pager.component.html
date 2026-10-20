@@ -91,6 +91,7 @@
     <div>
       @if (getInstanceCount() > pageSize) {
         <mat-paginator
+          [attr.lang]="materialLanguage"
           [length]="length"
           [pageSize]="pageSize"
           [pageSizeOptions]="showPageSizeOptions ? pageSizeOptions : []"

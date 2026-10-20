@@ -14,6 +14,7 @@
   </div>
   <div class="page-break-pager">
     <mat-paginator
+      [attr.lang]="materialLanguage"
       [length]="pageBreakPaginatorService.numPages()"
       [hidePageSize]="true"
       [pageSize]="1"

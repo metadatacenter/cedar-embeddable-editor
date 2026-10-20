@@ -2,6 +2,7 @@ import { Component, Injectable, Input, ViewEncapsulation, ChangeDetectionStrateg
 import { DataContext } from '../../../shared/util/data-context';
 import { MatPaginatorIntl, PageEvent } from '@angular/material/paginator';
 import { PageBreakPaginatorService } from '../../../shared/service/page-break-paginator.service';
+import { MATERIAL_TEXT_LANGUAGE } from '../../../shared/util/language-tag';
 
 @Injectable()
 export class CustomMatPaginatorIntl extends MatPaginatorIntl {
@@ -22,6 +23,8 @@ export class CustomMatPaginatorIntl extends MatPaginatorIntl {
 export class CedarStaticPageBreakComponent {
   @Input({ required: true }) dataContext!: DataContext;
   @Input({ required: true }) pageBreakPaginatorService!: PageBreakPaginatorService;
+  /** The paginator's labels and tooltips are Material's English. */
+  readonly materialLanguage = MATERIAL_TEXT_LANGUAGE;
 
   constructor() {}
 

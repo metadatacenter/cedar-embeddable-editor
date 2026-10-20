@@ -34,7 +34,7 @@ export class CedarAriaDescriber implements OnDestroy {
   }
 
   describe(hostElement: Element, message: string | HTMLElement, role?: string): void {
-    if (!hostElement || !message) {
+    if (!hostElement || !message || CedarAriaDescriber.restatesName(hostElement, message)) {
       return;
     }
 
@@ -142,6 +142,18 @@ export class CedarAriaDescriber implements OnDestroy {
       this.container.remove();
       this.container = null;
     }
+  }
+
+  /**
+   * Whether a text message only repeats the name the host already has, as CDK's own describer skips.
+   *
+   * An icon button's tooltip is usually its `aria-label`, so describing it made a screen reader say
+   * the name twice. It also put Material's English paginator labels into a container marked with the
+   * form's language.
+   */
+  private static restatesName(hostElement: Element, message: string | HTMLElement): boolean {
+    const label = hostElement.getAttribute('aria-label');
+    return typeof message === 'string' && label !== null && label.trim() === message.trim();
   }
 
   private referenceIds(element: Element): string[] {

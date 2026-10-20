@@ -19,6 +19,7 @@ import { MessageHandlerService } from '../../service/message-handler.service';
 import { PageBreakPaginatorService } from '../../service/page-break-paginator.service';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 import { RenderSchedulerService } from '../../service/render-scheduler.service';
+import { MATERIAL_TEXT_LANGUAGE } from '../../util/language-tag';
 
 @Component({
   selector: 'app-cedar-multi-pager',
@@ -51,6 +52,8 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy {
   pageNumbers: number[] = [];
   showPageSizeOptions = false;
   hidePageSize = true;
+  /** The paginator's labels, tooltips and range are Material's English. */
+  readonly materialLanguage = MATERIAL_TEXT_LANGUAGE;
 
   constructor(
     activeComponentRegistry: ActiveComponentRegistryService,

@@ -33,6 +33,16 @@ export function uiLanguageOf(translate: TranslateService, globals: GlobalSetting
   return current === null ? null : languageTag(globals.mapLanguage(current));
 }
 
+/**
+ * The language of the text Angular Material supplies itself.
+ *
+ * CEE translates none of it: the paginator's and the datepicker's labels come from Material's
+ * English defaults, and the calendar names months and weekdays in the default `en-US` locale. In a
+ * form shown in another language, the elements drawing that text are marked with this, so it is
+ * not read as the form's language.
+ */
+export const MATERIAL_TEXT_LANGUAGE = 'en';
+
 /** Mark an element CEE renders outside its root, such as the overlay container, with that language. */
 export function markLanguage(element: HTMLElement, language: string | null): void {
   if (language === null) {

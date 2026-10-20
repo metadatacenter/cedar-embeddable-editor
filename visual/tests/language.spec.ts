@@ -32,6 +32,23 @@ for (const [preset, language] of [
   });
 }
 
+/**
+ * Material's own text is English whatever the form's language: CEE translates neither its paginator
+ * nor its datepicker, and the calendar names months in the default locale. In a Hungarian form the
+ * elements drawing it are marked as English.
+ */
+test("Material's English paginator and calendar are marked as English in a Hungarian form", async ({ page }) => {
+  await open(page, '05-static-paged', 'hu');
+  await expect(editorRoot(page)).toHaveAttribute('lang', 'hu');
+  await expect(inEditor(page, 'mat-paginator')).toHaveAttribute('lang', 'en');
+
+  await open(page, '09-temporal', 'hu');
+  const toggle = inEditor(page, 'mat-datepicker-toggle').first();
+  await expect(toggle).toHaveAttribute('lang', 'en');
+  await toggle.locator('button').click();
+  await expect(inEditor(page, '.mat-datepicker-content')).toHaveAttribute('lang', 'en');
+});
+
 /** A second editor or field, configured as a host would, whose first configuration is the one under test. */
 const freshElement = async (
   page: Page,

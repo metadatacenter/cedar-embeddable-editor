@@ -35,6 +35,19 @@ describe('CedarAriaDescriber', () => {
     expect(shadowRoot.querySelector('.cdk-describedby-message-container')).toBeNull();
   });
 
+  it('does not describe a host with the name it already has', () => {
+    const button = document.createElement('button');
+    button.setAttribute('aria-label', 'Clear');
+    shadowRoot.appendChild(button);
+
+    service.describe(button, 'Clear', 'tooltip');
+
+    expect(button.hasAttribute('aria-describedby')).toBe(false);
+    expect(shadowRoot.querySelector('.cdk-describedby-message-container')).toBeNull();
+    service.removeDescription(button, 'Clear', 'tooltip');
+    expect(button.hasAttribute('aria-describedby')).toBe(false);
+  });
+
   it('preserves aria-describedby ids owned by the host', () => {
     const control = document.createElement('input');
     control.setAttribute('aria-describedby', 'host-description');
