@@ -78,7 +78,7 @@
     "SecondPlaceholder": "MM",
     "DecimalSecondsPlaceholder": "mmm",
     "Required": "kötelező",
-    "CeeOnNpm": "A CEE az npm-en",
+    "OnNpm": "az npm-en",
     "YoutubeVideo": "YouTube-videó"
   },
   "Multi": {
@@ -86,8 +86,7 @@
     "AddEmptyAfter": "Üres példány hozzáadása ide",
     "AddCloneAfter": "E példány másolatának hozzáadása",
     "DeleteCurrent": "Aktuális törlése",
-    "AllowsMultiValues": "Több érték is megadható.",
-    "NoValuesYet": "Még nincsenek értékek"
+    "AllowsMultiValues": "Több érték is megadható."
   },
   "Error": {
     "LookupFailed": "A keresés sikertelen: a szolgáltatás nem érhető el",

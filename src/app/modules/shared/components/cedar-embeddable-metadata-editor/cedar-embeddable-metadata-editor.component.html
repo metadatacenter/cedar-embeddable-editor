@@ -20,11 +20,12 @@
           href="https://www.npmjs.com/package/cedar-embeddable-editor"
           target="_blank"
           rel="noreferrer"
-          attr.aria-label="{{ 'Generic.CeeOnNpm' | translate }}"
         >
           <div mat-card-avatar class="header-image"></div>
           <span class="cee-name">CEE</span>
           <span class="cee-version" [title]="ceeVersion">{{ ceeVersion }}</span>
+          <!-- The link is named by what it shows, and this says where it goes. -->
+          <span class="cdk-visually-hidden"> {{ 'Generic.OnNpm' | translate }}</span>
         </a>
         <div class="template-title-block">
           <h1 class="template-label">{{ dataContext.templateRepresentation?.labelInfo?.label }}</h1>
