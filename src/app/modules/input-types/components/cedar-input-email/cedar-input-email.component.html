@@ -4,12 +4,14 @@
     <input
       spellcheck="false"
       autocomplete="off"
+      #valueBox
       matInput
       [errorStateMatcher]="previewErrorStateMatcher"
       type="text"
       [formControl]="inputValueControl"
       (input)="inputChanged($event)"
       [readonly]="readOnlyMode"
+      [attr.lang]="valueLanguageMark"
       attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"
     />
     @if (inputValueControl.value && !readOnlyMode) {
@@ -18,7 +20,7 @@
         matSuffix
         mat-icon-button
         attr.aria-label="{{ 'Generic.Clear' | translate }}"
-        (click)="clearValue()"
+        (click)="clearValue(); valueBox.focus()"
       >
         <mat-icon cedarIcon="close"></mat-icon>
       </button>

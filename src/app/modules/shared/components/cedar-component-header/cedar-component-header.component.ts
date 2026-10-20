@@ -1,5 +1,17 @@
-import { Component, DestroyRef, Input, OnInit, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
+import {
+  AfterViewChecked,
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  ElementRef,
+  Input,
+  OnDestroy,
+  OnInit,
+  Optional,
+  ViewEncapsulation,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TranslateService } from '@ngx-translate/core';
 import { CedarComponent } from '../../models/component/cedar-component.model';
 import { ComponentDataService } from '../../service/component-data.service';
 import { MultiComponent } from '../../models/component/multi-component.model';
@@ -11,6 +23,9 @@ import { StaticFieldComponent } from '../../models/static/static-field-component
 import { InputType } from '../../models/input-type.model';
 import { fieldTypeIcon } from '../../util/field-type-icon';
 import { UserPreferencesService } from '../../service/user-preferences.service';
+import { DescriptionLink } from '../../a11y/message-links';
+import { textLanguageOf, uiLanguageOf } from '../../a11y/language-tag';
+import { GlobalSettingsContextService } from '../../service/global-settings-context.service';
 
 @Component({
   selector: 'app-cedar-component-header',
@@ -20,7 +35,10 @@ import { UserPreferencesService } from '../../service/user-preferences.service';
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
-export class CedarComponentHeaderComponent implements OnInit {
+export class CedarComponentHeaderComponent implements OnInit, AfterViewChecked, OnDestroy {
+  private static nextId = 0;
+  /** The id of the visually hidden text holding the description. Unique within the page. */
+  readonly descriptionId = `cee-description-${CedarComponentHeaderComponent.nextId++}`;
   component!: CedarComponent;
   /** Null for a component that is not multi-instance, which is most of them. */
   multiComponent: MultiComponent | null = null;
@@ -35,11 +53,22 @@ export class CedarComponentHeaderComponent implements OnInit {
    */
   fieldToDescribe: FieldComponent | null = null;
   userPreferencesService: UserPreferencesService;
+  private readonly describedHeading = new DescriptionLink();
+
+  /**
+   * Whether the description is drawn as text below this header, which read-only fields do. The header
+   * then leaves out its own visually hidden copy, so a screen reader does not read it twice.
+   */
+  @Input() descriptionDrawn = false;
 
   constructor(
     public cds: ComponentDataService,
     userPreferencesService: UserPreferencesService,
     private readonly destroyRef: DestroyRef,
+    // Optional, so a spec can build the component without a view.
+    @Optional() private readonly elementRef: ElementRef<HTMLElement> | null = null,
+    @Optional() private readonly translate: TranslateService | null = null,
+    @Optional() private readonly globalSettings: GlobalSettingsContextService | null = null,
   ) {
     this.userPreferencesService = userPreferencesService;
   }
@@ -50,10 +79,45 @@ export class CedarComponentHeaderComponent implements OnInit {
   }
 
   /**
+   * Describe an element's panel header with the element's description. A field's description is
+   * tied to its controls by the presentation that draws them.
+   */
+  ngAfterViewChecked(): void {
+    const host = this.elementRef?.nativeElement;
+    const heading = this.disclosure === null ? null : host?.closest('mat-expansion-panel-header');
+    const text = host?.querySelector(`[id="${this.descriptionId}"]`);
+    this.describedHeading.set(text ? this.descriptionId : null, heading ? [heading] : []);
+  }
+
+  ngOnDestroy(): void {
+    this.describedHeading.clear();
+  }
+
+  /**
    * Whether the element this header belongs to is expanded, or null for a header that does not
    * open and close. The panel header is the control; the chevron only shows its state.
    */
   @Input() disclosure: boolean | null = null;
+
+  /** The language the template declares for the label and description, as a `lang` tag, or null. */
+  get textLanguage(): string | null {
+    return textLanguageOf(this.component);
+  }
+
+  /**
+   * The `lang` CEE's own text takes inside the marked label: CEE's language where the template
+   * declares one for the label, and none otherwise, since it then takes CEE's language from the root.
+   */
+  get uiLanguageMark(): string | null {
+    return this.textLanguage !== null && this.translate && this.globalSettings
+      ? uiLanguageOf(this.translate, this.globalSettings)
+      : null;
+  }
+
+  /** Whether the help and property marks take focus, which a mark inside an element's panel header cannot. */
+  get focusableMarks(): boolean {
+    return this.disclosure === null;
+  }
 
   @Input({ required: true }) set componentToRender(componentToRender: CedarComponent) {
     this.component = componentToRender;

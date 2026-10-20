@@ -1,10 +1,22 @@
-import { ElementRef, Injectable, OnDestroy } from '@angular/core';
+import { ElementRef, Injectable, OnDestroy, Optional } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
+import { merge, Subscription } from 'rxjs';
+import { markLanguage, uiLanguageOf } from '../a11y/language-tag';
+import { GlobalSettingsContextService } from './global-settings-context.service';
 
 interface DescriptionEntry {
   element: HTMLElement;
   references: number;
   owned: boolean;
 }
+
+/**
+ * Marks a tooltip's host whose text the page already holds as text a screen reader reads.
+ *
+ * A field's help mark shows its description as a tooltip, and the description is also in visually
+ * hidden text beside the mark. Described by the tooltip too, the mark would have it read twice.
+ */
+export const TOOLTIP_TEXT_IN_PAGE = 'data-cee-tooltip-text-in-page';
 
 /** Keeps CDK aria-describedby messages inside one CEE shadow root. */
 @Injectable()
@@ -16,11 +28,26 @@ export class CedarAriaDescriber implements OnDestroy {
   private readonly hostReferences = new Map<Element, Set<string>>();
   private container: HTMLDivElement | null = null;
   private nextMessageId = 0;
+  private readonly languageChanges: Subscription | undefined;
 
-  constructor(private readonly wrapper: ElementRef<HTMLElement>) {}
+  constructor(
+    private readonly wrapper: ElementRef<HTMLElement>,
+    @Optional() private readonly translate: TranslateService | null = null,
+    @Optional() private readonly globals: GlobalSettingsContextService | null = null,
+  ) {
+    // Tooltip text is CEE's, and its container sits beside the element's root rather than inside it.
+    this.languageChanges = translate
+      ? merge(translate.onLangChange, translate.onTranslationChange).subscribe(() => this.markLanguage())
+      : undefined;
+  }
 
   describe(hostElement: Element, message: string | HTMLElement, role?: string): void {
-    if (!hostElement || !message) {
+    if (
+      !hostElement ||
+      !message ||
+      CedarAriaDescriber.restatesName(hostElement, message) ||
+      hostElement.hasAttribute(TOOLTIP_TEXT_IN_PAGE)
+    ) {
       return;
     }
 
@@ -88,6 +115,7 @@ export class CedarAriaDescriber implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.languageChanges?.unsubscribe();
     for (const [host, ids] of this.hostReferences) {
       this.writeReferenceIds(
         host,
@@ -112,7 +140,14 @@ export class CedarAriaDescriber implements OnDestroy {
     this.container.classList.add('cdk-describedby-message-container', 'cdk-visually-hidden');
     this.container.style.visibility = 'hidden';
     shadowRoot.appendChild(this.container);
+    this.markLanguage();
     return this.container;
+  }
+
+  private markLanguage(): void {
+    if (this.container && this.translate && this.globals) {
+      markLanguage(this.container, uiLanguageOf(this.translate, this.globals));
+    }
   }
 
   private removeEmptyContainer(): void {
@@ -120,6 +155,20 @@ export class CedarAriaDescriber implements OnDestroy {
       this.container.remove();
       this.container = null;
     }
+  }
+
+  /**
+   * Whether a text message only repeats what the name the host already has says, as CDK's own
+   * describer skips a message equal to the name.
+   *
+   * An icon button's tooltip is usually its `aria-label`, so describing it made a screen reader say
+   * the name twice. It also put Material's English paginator labels into a container marked with the
+   * form's language. A property mark is named "Property IRI:" followed by the IRI its tooltip shows,
+   * so a name that contains the message repeats it too.
+   */
+  private static restatesName(hostElement: Element, message: string | HTMLElement): boolean {
+    const label = hostElement.getAttribute('aria-label');
+    return typeof message === 'string' && label !== null && label.trim().includes(message.trim());
   }
 
   private referenceIds(element: Element): string[] {

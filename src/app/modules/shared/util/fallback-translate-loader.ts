@@ -35,6 +35,7 @@ export class FallbackTranslateLoader implements TranslateLoader {
         tap({
           next: () => {
             this.messageHandlerService.traceGroup('language', 'External language map loaded.');
+            this.globalSettingsContextService.recordMapLanguage(lang, lang);
           },
         }),
         catchError(() => {
@@ -54,6 +55,7 @@ export class FallbackTranslateLoader implements TranslateLoader {
   getBuiltInVersion(lang: string): Observable<TranslationObject> {
     if (Object.hasOwn(this.fallback, lang)) {
       this.messageHandlerService.traceGroup('language', 'Using built-in language map for "' + lang + '"');
+      this.globalSettingsContextService.recordMapLanguage(lang, lang);
       return of(this.fallback[lang]);
     } else {
       const defaultLanguage = GlobalSettingsContextService.DEFAULT_LANGUAGE;
@@ -65,6 +67,8 @@ export class FallbackTranslateLoader implements TranslateLoader {
           defaultLanguage +
           '"',
       );
+      // The text shown is English, so that is the language its `lang` attribute names.
+      this.globalSettingsContextService.recordMapLanguage(lang, defaultLanguage);
       return of(this.fallback[defaultLanguage]);
     }
   }

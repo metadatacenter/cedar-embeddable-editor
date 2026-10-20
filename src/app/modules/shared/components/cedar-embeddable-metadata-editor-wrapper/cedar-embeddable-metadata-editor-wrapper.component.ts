@@ -40,7 +40,8 @@ import * as fallbackMapEN from '../../../../../assets/i18n-cee/en.json';
 import * as fallbackMapHU from '../../../../../assets/i18n-cee/hu.json';
 import { Overlay, OverlayContainer, OverlayPositionBuilder } from '@angular/cdk/overlay';
 import { CedarOverlayContainer } from '../../service/cedar-overlay-container.service';
-import { AriaDescriber } from '@angular/cdk/a11y';
+import { CedarLiveRegion } from '../../service/cedar-live-region.service';
+import { AriaDescriber, LIVE_ANNOUNCER_ELEMENT_TOKEN, LiveAnnouncer } from '@angular/cdk/a11y';
 import { CedarAriaDescriber } from '../../service/cedar-aria-describer.service';
 import { CeeConfig } from '../../util/config-reader';
 import { Template } from 'cedar-model-typescript-library';
@@ -49,6 +50,7 @@ import { RenderSchedulerService } from '../../service/render-scheduler.service';
 import { ArtifactInputCoordinator } from '../../util/artifact-input-coordinator';
 import { WrapperConfigCoordinator } from '../../util/wrapper-config-coordinator';
 import { FieldRevealService } from '../../service/field-reveal.service';
+import { uiLanguageOf } from '../../a11y/language-tag';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor-wrapper',
@@ -58,6 +60,13 @@ import { FieldRevealService } from '../../service/field-reveal.service';
   providers: [
     { provide: AriaDescriber, useClass: CedarAriaDescriber },
     { provide: OverlayContainer, useClass: CedarOverlayContainer },
+    CedarLiveRegion,
+    {
+      provide: LIVE_ANNOUNCER_ELEMENT_TOKEN,
+      useFactory: (region: CedarLiveRegion) => region.element,
+      deps: [CedarLiveRegion],
+    },
+    LiveAnnouncer,
     OverlayPositionBuilder,
     Overlay,
     ActiveComponentRegistryService,
@@ -127,6 +136,11 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
   get innerConfig(): CeeConfig | null {
     return this.configuration.config;
+  }
+
+  /** The language of CEE's own text, marked on the root so that a screen reader speaks it as such. */
+  get uiLanguage(): string | null {
+    return uiLanguageOf(this.translateService, this.globalSettingsContextService);
   }
 
   get templateJson(): CeeJsonObject | null {

@@ -22,7 +22,7 @@
 import { describe, expect, it } from 'vitest';
 import { CedarBuilders, ControlledTermOntologyBuilder, Iri } from 'cedar-model-typescript-library';
 import type { InstanceNode } from '@cee/models/instance-node.model';
-import { FieldKind } from '../src/axes';
+import { FIELD_KINDS, FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { emptyNode, instanceWith, linkNode, literalNode, termNode, linkValue, templateIdOf } from '../src/values';
@@ -151,5 +151,44 @@ describe('a labelless controlled term satisfies a requirement', () => {
 
     expect(driver.qualityReport.requiredFieldValueCount).toBe(1);
     expect(driver.qualityReport.nonNullRequiredFieldValueCount).toBe(1);
+  });
+});
+
+/**
+ * The language a text value is tagged with, which a read-only form marks on the value it shows.
+ *
+ * The tag arrives as JSON-LD's `@language` and is the reader's to keep. These hold CEE's part:
+ * only plain text carries one, and a list shows one only where every entry agrees.
+ */
+describe('the language a text value carries', () => {
+  const TEXT = FIELD_KINDS.find((kind) => kind.key === 'text')!;
+
+  const read = (node: unknown): InstanceNode | null => {
+    const template = buildTemplate({ name: 'ivn_language', children: [{ kind: TEXT, name: 'f' }] });
+    const driver = new CeeDriver(template, {
+      instance: { ...instanceWith(templateIdOf(template), {}, INSTANCE_IRI), _f: node },
+    });
+    return driver.extract.values['_f'] ?? null;
+  };
+
+  it('is read from a tagged text literal, and is absent from an untagged one', () => {
+    expect(InstanceValueNode.language(read({ '@value': 'Guten Tag', '@language': 'de' }))).toBe('de');
+    expect(InstanceValueNode.language(read(literalNode('Hello')))).toBeNull();
+  });
+
+  it('is never read from a typed literal, an IRI or nothing', () => {
+    expect(InstanceValueNode.language(read(literalNode('3', 'xsd:int')))).toBeNull();
+    expect(InstanceValueNode.language(read(linkNode('https://x/1')))).toBeNull();
+    expect(InstanceValueNode.language(null)).toBeNull();
+  });
+
+  it('is shared by a list only where every entry carries the same one', () => {
+    const german = read({ '@value': 'eins', '@language': 'de' });
+    const french = read({ '@value': 'un', '@language': 'fr' });
+    const untagged = read(literalNode('one'));
+    expect(InstanceValueNode.sharedLanguage([german, read({ '@value': 'zwei', '@language': 'de' })])).toBe('de');
+    expect(InstanceValueNode.sharedLanguage([german, french])).toBeNull();
+    expect(InstanceValueNode.sharedLanguage([german, untagged])).toBeNull();
+    expect(InstanceValueNode.sharedLanguage([])).toBeNull();
   });
 });

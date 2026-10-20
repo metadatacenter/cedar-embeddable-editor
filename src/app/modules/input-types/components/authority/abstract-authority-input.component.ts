@@ -1,5 +1,17 @@
 import { LookupContext } from '../../../shared/util/lookup-context';
-import { AfterViewInit, Directive, Input, OnInit, ViewChild } from '@angular/core';
+import {
+  AfterViewChecked,
+  AfterViewInit,
+  Directive,
+  ElementRef,
+  Input,
+  OnInit,
+  QueryList,
+  ViewChild,
+  ViewChildren,
+  inject,
+} from '@angular/core';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ErrorStateMatcher, MatOptionSelectionChange } from '@angular/material/core';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
@@ -19,6 +31,7 @@ import { InputType } from '../../../shared/models/input-type.model';
 import { narrowByQuery } from '../../../shared/util/authority-narrowing';
 import { catchLookupFailure } from '../../../shared/util/lookup-failure';
 import { holdsConstraintError } from '../../edited-field-error-state-matcher';
+import { WidgetMessage } from '../../../shared/a11y/message-links';
 
 export class AuthorityErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null): boolean {
@@ -51,7 +64,10 @@ export class AuthorityErrorStateMatcher implements ErrorStateMatcher {
  * detail panels, but the search and lifecycle rules still live here once.
  */
 @Directive()
-export abstract class AbstractAuthorityInputComponent extends CedarUIDirective implements OnInit, AfterViewInit {
+export abstract class AbstractAuthorityInputComponent
+  extends CedarUIDirective
+  implements OnInit, AfterViewInit, AfterViewChecked
+{
   /**
    * Undefined until the view exists, and for good in read-only mode — the
    * autocomplete input the trigger reads sits behind an `@if` on it. ORCID and
@@ -59,6 +75,15 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
    * `!readOnlyMode` guard, which is the same fact stated less directly.
    */
   @ViewChild('autoCompleteInput', { static: false, read: MatAutocompleteTrigger }) trigger?: MatAutocompleteTrigger;
+  /**
+   * What the lookup came to when it found nothing or failed, while the list shows it.
+   *
+   * The notice is a disabled option, which the list's keyboard handling passes over, so it is
+   * announced when it appears and describes the box for as long as the list is open.
+   */
+  readonly lookupMessage = new WidgetMessage(inject(LiveAnnouncer, { optional: true }));
+  @ViewChildren('lookupNotice', { read: ElementRef }) private lookupNotices?: QueryList<ElementRef<HTMLElement>>;
+  @ViewChild('autoCompleteInput', { read: ElementRef }) private lookupBox?: ElementRef<HTMLInputElement>;
   @Input({ required: true }) handlerContext!: HandlerContext;
   @Input({ required: true }) set componentToRender(componentToRender: FieldComponent) {
     this.component = componentToRender;
@@ -198,6 +223,11 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
       ),
       takeUntilDestroyed(this.destroyRef),
     );
+  }
+
+  ngAfterViewChecked(): void {
+    const notice = this.trigger?.panelOpen ? (this.lookupNotices?.first?.nativeElement ?? null) : null;
+    this.lookupMessage.check(notice, this.lookupBox ? [this.lookupBox.nativeElement] : []);
   }
 
   ngAfterViewInit(): void {

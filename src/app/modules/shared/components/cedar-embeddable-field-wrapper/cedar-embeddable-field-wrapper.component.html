@@ -2,6 +2,7 @@
 <div
   class="cedar-embeddable-field-root"
   [class.cee-read-only]="handlerContext.readOnlyMode"
+  [attr.lang]="uiLanguage"
   (change)="suppressNativeChange($event)"
 >
   <!-- A new artifact needs fresh controls, including their initialization-time validators. -->

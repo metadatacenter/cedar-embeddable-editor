@@ -1,5 +1,9 @@
 @if (!readOnlyMode) {
-  <div class="cee-time-picker" role="group" attr.aria-label="{{ 'Generic.Time' | translate }}">
+  <div
+    class="cee-time-picker"
+    role="group"
+    attr.aria-label="{{ 'Generic.TimeFor' | translate: { label: fieldLabel } }}"
+  >
     <div class="cee-time-input-shell">
       <input
         spellcheck="false"

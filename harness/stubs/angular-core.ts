@@ -77,10 +77,7 @@ export interface AfterRenderRef {
   destroy(): void;
 }
 
-export const afterNextRender = (
-  _callback: () => void,
-  _options?: { injector?: Injector },
-): AfterRenderRef => {
+export const afterNextRender = (_callback: () => void, _options?: { injector?: Injector }): AfterRenderRef => {
   throw new Error('The headless harness cannot schedule Angular render work.');
 };
 
@@ -94,7 +91,7 @@ export const afterNextRender = (
  * let a test drift into depending on Angular without saying so. Throwing means
  * the day that happens, a test says which call it was.
  */
-export const inject = <T>(token: abstract new (...args: any[]) => T): T => {
+export const inject = <T>(token: abstract new (...args: any[]) => T, _options?: { optional?: boolean }): T => {
   throw new Error(
     `The harness has no Angular injector: inject(${token?.name ?? 'unknown'}) was called. ` +
       'Domain code must be constructible with plain `new`.',

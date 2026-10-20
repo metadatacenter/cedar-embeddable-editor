@@ -1,8 +1,25 @@
-<form class="form-container" [formGroup]="options">
+<!--
+  The options form a group named by the field, so each is announced as an answer to it. The group's name
+  and its options are the template's text, in the language it declares for it. CEE's own text inside the
+  group states CEE's language.
+-->
+<form
+  class="form-container"
+  [formGroup]="options"
+  role="group"
+  [attr.aria-label]="fieldLabel"
+  [attr.lang]="textLanguage"
+>
+  <!--
+    An option is a value, in the language the field declares for its values, and otherwise in the
+    language of the template's text. An option carrying CEE's own default mark is left in CEE's
+    language, since the mark is part of its name.
+  -->
   @for (choice of component.choiceInfo.choices; track choice) {
     <div>
       <mat-checkbox
         color="primary"
+        [attr.lang]="handlerContext.statesSpecification && choice.selectedByDefault ? uiLanguageMark : optionLanguage"
         (input)="inputChanged($event)"
         [tabIndex]="readOnlyMode ? -1 : 0"
         [attr.aria-disabled]="readOnlyMode ? true : null"
@@ -21,6 +38,8 @@
     the same reason.
   -->
   @if (showsRequiredError) {
-    <mat-error class="mat-error align-start">{{ 'Validation.SelectAtLeastOne' | translate }}</mat-error>
+    <mat-error #requiredError [id]="requiredMessage.id" class="mat-error align-start" [attr.lang]="uiLanguageMark">{{
+      'Validation.SelectAtLeastOne' | translate
+    }}</mat-error>
   }
 </form>

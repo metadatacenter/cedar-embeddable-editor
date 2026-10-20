@@ -88,6 +88,7 @@ different destinations worth having.
         type="text"
         [placeholder]="readOnlyMode ? '' : ('Generic.Filter' | translate)"
         #autoCompleteInput="matAutocompleteTrigger"
+        #lookupInput
         [formControl]="inputValueControl"
         [errorStateMatcher]="errorStateMatcher"
         [matAutocomplete]="auto"
@@ -104,12 +105,22 @@ different destinations worth having.
         -->
         @let terms = filteredOptions | async;
         @if (loading) {
+          <!--
+            The spinner is for the eye, and the option says in words what it shows, as an authority
+            field's does on screen. Material makes a spinner focusable, which an option may not contain.
+          -->
           <mat-option disabled>
-            <mat-progress-spinner mode="indeterminate" diameter="24"></mat-progress-spinner>
+            <mat-progress-spinner
+              mode="indeterminate"
+              diameter="24"
+              aria-hidden="true"
+              [attr.tabindex]="null"
+            ></mat-progress-spinner>
+            <span class="cdk-visually-hidden">{{ 'Generic.Searching' | translate }}</span>
           </mat-option>
         }
         @if (lookupFailed && !loading) {
-          <mat-option disabled class="lookup-failed">
+          <mat-option #lookupNotice [id]="lookupMessage.id" disabled class="lookup-failed">
             {{ 'Error.LookupFailed' | translate }}
           </mat-option>
         }
@@ -121,7 +132,7 @@ different destinations worth having.
           serving reaches this, and said nothing at all.
         -->
         @if (!readOnlyMode && !loading && !lookupFailed && terms !== null && terms.length === 0) {
-          <mat-option disabled>
+          <mat-option #lookupNotice [id]="lookupMessage.id" disabled>
             {{ (hasQuery ? 'Error.NoResults' : 'Error.NoTermsAvailable') | translate }}
           </mat-option>
         }
@@ -160,13 +171,13 @@ different destinations worth having.
           mat-icon-button
           attr.aria-label="{{ 'Generic.Clear' | translate }}"
           matTooltip="{{ 'Generic.Clear' | translate }}"
-          (click)="clearValue()"
+          (click)="clearValue(); lookupInput.focus()"
         >
           <mat-icon cedarIcon="close"></mat-icon>
         </button>
       }
       @if (inputValueControl.getError('required') && !readOnlyMode && !quietEmptyPreview(inputValueControl.value)) {
-        <mat-error tabindex="0" class="mat-error align-start">{{ 'Validation.Required' | translate }}</mat-error>
+        <mat-error class="mat-error align-start">{{ 'Validation.Required' | translate }}</mat-error>
       }
     </mat-form-field>
     @if (justCleared) {

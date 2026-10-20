@@ -1,6 +1,32 @@
-<h1 class="section-break-header">
+<!--
+  The heading is named by its label alone, so the help mark inside it does not join the heading's
+  name. The mark shows the description as a tooltip, on hover and on keyboard focus. Material hides an
+  icon that states no `aria-hidden` of its own, and this one is a Tab stop, so the binding removes the
+  attribute. The description itself is in the visually hidden text after the heading, so the tooltip
+  does not describe the mark as well.
+
+  The heading and the description are the template's text, in the language it declares for it. The
+  mark's name is CEE's, so it states CEE's language inside the marked heading.
+-->
+<h1
+  class="section-break-header"
+  [attr.aria-label]="cds.getRenderingLabelForComponent(component)"
+  [attr.lang]="textLanguage"
+>
   {{ cds.getRenderingLabelForComponent(component) }}
   @if (hasHelpText && !readOnlyMode) {
-    <mat-icon cedarIcon="help" matTooltip="{{ component.labelInfo.description }}" class="icon-help"></mat-icon>
+    <mat-icon
+      cedarIcon="help"
+      matTooltip="{{ component.labelInfo.description }}"
+      tabindex="0"
+      [attr.aria-hidden]="null"
+      [attr.aria-label]="'Generic.Description' | translate"
+      [attr.lang]="uiLanguageMark"
+      data-cee-tooltip-text-in-page
+      class="icon-help"
+    ></mat-icon>
   }
 </h1>
+@if (hasHelpText && !readOnlyMode) {
+  <span class="cdk-visually-hidden" [attr.lang]="textLanguage">{{ component.labelInfo.description }}</span>
+}

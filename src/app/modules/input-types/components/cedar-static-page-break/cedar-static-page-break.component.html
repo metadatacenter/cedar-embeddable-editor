@@ -3,9 +3,14 @@
   <div class="pager-chips">
     <mat-chip-listbox [hideSingleSelectionIndicator]="true" [attr.aria-label]="'Generic.Page' | translate">
       @for (pageNumber of pageBreakPaginatorService.allPageIndices(); track pageNumber) {
+        <!--
+          Selection rather than a click turns the page, because Material's chip selects on Enter
+          and Space without dispatching one.
+        -->
         <mat-chip-option
           [selected]="pageNumber === pageBreakPaginatorService.currentPageBreakIndex"
-          (click)="pageBreakPaginatorService.setPageNumberAndGet(pageNumber)"
+          (selectionChange)="pageChipSelected($event, pageNumber)"
+          (keydown)="moveChipFocus($event)"
           selectable="true"
           >{{ pageNumber + 1 }}</mat-chip-option
         >
@@ -14,6 +19,7 @@
   </div>
   <div class="page-break-pager">
     <mat-paginator
+      [attr.lang]="materialLanguage"
       [length]="pageBreakPaginatorService.numPages()"
       [hidePageSize]="true"
       [pageSize]="1"

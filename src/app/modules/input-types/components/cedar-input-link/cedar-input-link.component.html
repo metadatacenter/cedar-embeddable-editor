@@ -18,6 +18,7 @@
     <input
       spellcheck="false"
       autocomplete="off"
+      #valueBox
       matInput
       [errorStateMatcher]="previewErrorStateMatcher"
       type="text"
@@ -32,7 +33,7 @@
         matSuffix
         mat-icon-button
         attr.aria-label="{{ 'Generic.Clear' | translate }}"
-        (click)="clearValue()"
+        (click)="clearValue(); valueBox.focus()"
       >
         <mat-icon cedarIcon="close"></mat-icon>
       </button>

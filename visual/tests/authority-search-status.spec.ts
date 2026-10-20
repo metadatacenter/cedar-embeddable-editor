@@ -23,9 +23,9 @@ for (const property of [
     const field = page.locator('cedar-embeddable-field');
     await field.locator('input').first().fill('Unmatched example');
     await expect(field.getByText('Searching…', { exact: true })).toBeVisible();
-    await expect(field.getByText('No results found', { exact: true })).toHaveCount(0);
+    await expect(field.getByRole('option', { name: 'No results found', exact: true })).toHaveCount(0);
     release();
-    await expect(field.getByText('No results found', { exact: true })).toBeVisible();
+    await expect(field.getByRole('option', { name: 'No results found', exact: true })).toBeVisible();
     await expect(field.getByText('Searching…', { exact: true })).toHaveCount(0);
   });
 }

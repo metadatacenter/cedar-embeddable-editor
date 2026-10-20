@@ -2,8 +2,9 @@
   @if (facts.length > 0 || optionLabels) {
     <span class="cee-spec-box-facts">
       @if (optionLabels) {
-        <span class="cee-spec-box-fact cee-spec-box-options">
-          <em class="cee-spec-box-keyword">{{ 'Spec.Keyword.Values' | translate }}</em>
+        <!-- The labels are the field's values, in their language. The lead-in word is CEE's. -->
+        <span class="cee-spec-box-fact cee-spec-box-options" [attr.lang]="optionLanguage">
+          <em class="cee-spec-box-keyword" [attr.lang]="uiLanguageMark">{{ 'Spec.Keyword.Values' | translate }}</em>
           {{ optionLabels }}
         </span>
       }

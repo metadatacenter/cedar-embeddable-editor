@@ -5,12 +5,22 @@
     </span>
   }
 
+  <!--
+    The label is the template's text, in the language it declares for it. The required mark's name is
+    CEE's, so it states CEE's language inside the marked label.
+  -->
   <span class="title" [class.field-title]="fieldToDescribe">
-    <span class="title-label">
+    <span class="title-label" [attr.lang]="textLanguage">
       {{ cds.getRenderingLabelForComponent(component) }}
       @if (shouldRenderRequiredMark) {
         <span>
-          <sup class="required-mark" role="img" attr.aria-label="{{ 'Generic.Required' | translate }}"><b>*</b></sup>
+          <sup
+            class="required-mark"
+            role="img"
+            attr.aria-label="{{ 'Generic.Required' | translate }}"
+            [attr.lang]="uiLanguageMark"
+            ><b>*</b></sup
+          >
         </span>
       }
     </span>
@@ -39,13 +49,23 @@
         <mat-icon class="disclosure-icon" [class.expanded]="disclosure" cedarIcon="chevron-down"></mat-icon>
       </span>
     }
-    <!-- A pointer's view of the description, which the visually hidden text below gives a screen reader. -->
+    <!--
+      Both marks show their text as a tooltip. A field's marks are Tab stops, so keyboard focus shows
+      the tooltip as a pointer does. An element's are not: they sit inside its panel header, which is
+      a button, and a screen reader cannot reach a control inside a button. Material hides an icon
+      that states no `aria-hidden` of its own, so a focusable help mark binds the attribute away. The
+      mark is named for what it holds. The description itself is in the visually hidden text below,
+      so the tooltip does not describe the mark as well.
+    -->
     @if (!readOnlyMode && component.labelInfo.description) {
       <mat-icon
         cedarIcon="help"
         matTooltip="{{ component.labelInfo.description }}"
         matTooltipPosition="right"
-        aria-hidden="true"
+        [attr.tabindex]="focusableMarks ? 0 : null"
+        [attr.aria-hidden]="focusableMarks ? null : 'true'"
+        [attr.aria-label]="focusableMarks ? ('Generic.Description' | translate) : null"
+        data-cee-tooltip-text-in-page
         class="icon-help icon-questionmark"
         inline="false"
       ></mat-icon>
@@ -57,6 +77,7 @@
         role="img"
         [matTooltip]="component.propertyIri"
         matTooltipPosition="above"
+        [attr.tabindex]="focusableMarks ? 0 : null"
         [attr.aria-label]="'Generic.PropertyIri' | translate: { iri: component.propertyIri }"
         [attr.data-property-iri]="component.propertyIri"
       >
@@ -65,7 +86,18 @@
     }
   </span>
 
-  <span id="Description of {{ cds.getRenderingLabelForComponent(component) }}" class="cdk-visually-hidden">{{
-    component.labelInfo.description
-  }}</span>
+  <!--
+    A field's controls are described by this text, and an element's panel header is too. Inside that
+    header the text would also join the header's name, so it is hidden there and reaches the header
+    only as its description. Read-only, a field draws its description as a paragraph below instead.
+  -->
+  @if (component.labelInfo.description && !descriptionDrawn) {
+    <span
+      [id]="descriptionId"
+      class="cdk-visually-hidden cee-description"
+      [attr.aria-hidden]="disclosure === null ? null : 'true'"
+      [attr.lang]="textLanguage"
+      >{{ component.labelInfo.description }}</span
+    >
+  }
 </div>

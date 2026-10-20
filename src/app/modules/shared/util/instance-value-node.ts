@@ -78,6 +78,21 @@ export class InstanceValueNode {
     return undefined;
   }
 
+  /**
+   * The language tag a text literal carries, or null where it carries none.
+   *
+   * Only plain text can carry one. A typed literal and an IRI cannot.
+   */
+  static language(node: InstanceNode | null | undefined): string | null {
+    return node instanceof InstanceDataStringAtom ? node.language : null;
+  }
+
+  /** The language every node in a list shares, or null where they carry none or differ. */
+  static sharedLanguage(nodes: readonly (InstanceNode | null | undefined)[]): string | null {
+    const languages = new Set(nodes.map((node) => InstanceValueNode.language(node)));
+    return languages.size === 1 ? [...languages][0] : null;
+  }
+
   /** True when this node holds a literal, however empty. */
   static isLiteral(node: InstanceNode | null | undefined): boolean {
     return node instanceof InstanceDataStringAtom || node instanceof InstanceDataTypedAtom;

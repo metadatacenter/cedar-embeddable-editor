@@ -9,7 +9,7 @@
       [placeholder]="dateNotation | translate"
       [matDatepicker]="dp"
       [formControl]="dateMonthYear"
-      attr.aria-label="{{ 'Generic.SelectYear' | translate }}"
+      attr.aria-label="{{ 'Generic.SelectYearFor' | translate: { label: fieldLabel } }}"
     />
     <!--
       No requirement of its own. The year template alone used to carry one, with a
@@ -18,13 +18,14 @@
       same requirement once, for the whole row.
     -->
     @if (!readOnlyMode) {
-      <mat-datepicker-toggle matSuffix [for]="dp"
+      <mat-datepicker-toggle matSuffix [for]="dp" [attr.lang]="materialLanguage"
         ><mat-icon matDatepickerToggleIcon cedarIcon="field-date"></mat-icon
       ></mat-datepicker-toggle>
     }
     <mat-datepicker
       #dp
       (yearSelected)="chosenYearHandler($event, dp)"
+      (opened)="calendarOpened()"
       (closed)="datepickerClosed()"
       [restoreFocus]="false"
       startView="multi-year"
@@ -43,10 +44,10 @@
       [placeholder]="dateNotation | translate"
       [matDatepicker]="dp"
       [formControl]="dateMonthYear"
-      attr.aria-label="{{ 'Generic.SelectYearAndMonth' | translate }}"
+      attr.aria-label="{{ 'Generic.SelectYearAndMonthFor' | translate: { label: fieldLabel } }}"
     />
     @if (!readOnlyMode) {
-      <mat-datepicker-toggle matSuffix [for]="dp"
+      <mat-datepicker-toggle matSuffix [for]="dp" [attr.lang]="materialLanguage"
         ><mat-icon matDatepickerToggleIcon cedarIcon="field-date"></mat-icon
       ></mat-datepicker-toggle>
     }
@@ -54,6 +55,7 @@
       #dp
       (yearSelected)="chosenYearHandler($event, dp)"
       (monthSelected)="chosenMonthHandler($event, dp)"
+      (opened)="calendarOpened()"
       (closed)="datepickerClosed()"
       [restoreFocus]="false"
       startView="multi-year"
@@ -73,16 +75,20 @@
       [matDatepicker]="dp"
       [formControl]="dateMonthYear"
       (dateChange)="chosenDateHandler($event)"
-      attr.aria-label="{{ 'Generic.SelectDate' | translate }}"
+      attr.aria-label="{{ 'Generic.SelectDateFor' | translate: { label: fieldLabel } }}"
     />
     @if (!readOnlyMode) {
-      <mat-datepicker-toggle matSuffix [for]="dp"
+      <mat-datepicker-toggle matSuffix [for]="dp" [attr.lang]="materialLanguage"
         ><mat-icon matDatepickerToggleIcon cedarIcon="field-date"></mat-icon
       ></mat-datepicker-toggle>
     }
     <!-- `(dateChange)` above is what carries the chosen date. `(opened)` emits
-    nothing, so binding the same handler to it passed `undefined` and the body
-    never ran; removed rather than left looking live. -->
-    <mat-datepicker #dp (closed)="datepickerClosed()" [restoreFocus]="false"></mat-datepicker>
+    nothing, so it carries no date: it only prepares the calendar for assistive technology. -->
+    <mat-datepicker
+      #dp
+      (opened)="calendarOpened()"
+      (closed)="datepickerClosed()"
+      [restoreFocus]="false"
+    ></mat-datepicker>
   </mat-form-field>
 }

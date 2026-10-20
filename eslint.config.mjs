@@ -102,7 +102,10 @@ export default tseslint.config(
   },
   {
     files: ['**/*.html'],
-    extends: [...angular.configs.templateRecommended],
+    // The accessibility rules catch what a template can state wrongly on its own: an image with no
+    // text alternative, a click with no key, a handler on something focus cannot reach. CED uses the
+    // same preset. A deliberate exception is disabled on its line with the reason beside it.
+    extends: [...angular.configs.templateRecommended, ...angular.configs.templateAccessibility],
     rules: {
       /*
        * On, because the migration it asks for is done: 203 sites across 33

@@ -8,7 +8,15 @@
       [formControl]="selectedChoiceInputControl"
       style="display: none"
     />
-    <mat-radio-group [formControl]="selectedChoiceInputControl">
+    <!--
+      The group's name and its options are the template's text, in the language it declares for it. CEE's
+      own text inside the group states CEE's language.
+    -->
+    <mat-radio-group
+      [formControl]="selectedChoiceInputControl"
+      [attr.aria-label]="fieldLabel"
+      [attr.lang]="textLanguage"
+    >
       @for (choice of component.choiceInfo.choices; track choice) {
         <div class="choice-option-row">
           <!--
@@ -18,9 +26,17 @@
             says which of the two the template picked without a second lookup. Only where the group
             is standing in for the specification: with an instance behind it, the selected option is
             an answer, and calling it the default would misdescribe it.
+
+            An option is a value, in the language the field declares for its values, and otherwise in the
+            language of the template's text. An option carrying the default mark is left in CEE's
+            language, since the mark is part of its name.
           -->
           <mat-radio-button
+            #option
             color="primary"
+            [attr.lang]="
+              handlerContext.statesSpecification && choice.selectedByDefault ? uiLanguageMark : optionLanguage
+            "
             [value]="choice.label"
             (change)="inputChanged($event)"
             [tabIndex]="readOnlyMode ? -1 : 0"
@@ -35,9 +51,10 @@
               class="choice-clear-button"
               type="button"
               mat-icon-button
+              [attr.lang]="uiLanguageMark"
               [matTooltip]="'Generic.Clear' | translate"
               attr.aria-label="{{ 'Generic.Clear' | translate }}"
-              (click)="clearValue()"
+              (click)="clearValue(); option.focus()"
             >
               <mat-icon cedarIcon="close"></mat-icon>
             </button>

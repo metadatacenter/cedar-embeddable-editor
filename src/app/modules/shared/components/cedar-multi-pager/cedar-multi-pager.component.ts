@@ -5,8 +5,10 @@ import {
   Input,
   OnDestroy,
   OnInit,
+  Optional,
   ViewEncapsulation,
 } from '@angular/core';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MultiComponent } from '../../models/component/multi-component.model';
 import { PageEvent } from '@angular/material/paginator';
@@ -19,6 +21,10 @@ import { MessageHandlerService } from '../../service/message-handler.service';
 import { PageBreakPaginatorService } from '../../service/page-break-paginator.service';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 import { RenderSchedulerService } from '../../service/render-scheduler.service';
+import { MATERIAL_TEXT_LANGUAGE } from '../../a11y/language-tag';
+import { moveChipFocus } from '../../a11y/chip-listbox-keys';
+import { announceChange } from '../../a11y/message-links';
+import { renderingLabelOf } from '../../service/component-data.service';
 
 @Component({
   selector: 'app-cedar-multi-pager',
@@ -51,6 +57,8 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy {
   pageNumbers: number[] = [];
   showPageSizeOptions = false;
   hidePageSize = true;
+  /** The paginator's labels, tooltips and range are Material's English. */
+  readonly materialLanguage = MATERIAL_TEXT_LANGUAGE;
 
   constructor(
     activeComponentRegistry: ActiveComponentRegistryService,
@@ -59,6 +67,9 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy {
     userPreferencesService: UserPreferencesService,
     private renderScheduler: RenderSchedulerService,
     private readonly destroyRef: DestroyRef,
+    // The element's own announcer, which speaks through the live region in its shadow root. Optional,
+    // so a spec can build the pager without one.
+    @Optional() private readonly announcer: LiveAnnouncer | null = null,
   ) {
     this.activeComponentRegistry = activeComponentRegistry;
     this.translateService = translateService;
@@ -118,6 +129,8 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy {
     this.handlerContext.setCurrentIndex(this.component, this.firstIndex);
     this.computeLastIndex();
     this.updatePageNumbers();
+    // The occurrence on screen changed with the page, and the chips do not say so.
+    this.announce('Multi.InstanceShown', this.firstIndex + 1);
     this.scheduleViewSync();
   }
 
@@ -157,29 +170,7 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy {
   }
 
   chipKeydown(event: KeyboardEvent): void {
-    if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
-    if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
-    const target = (event.target as HTMLElement).closest<HTMLElement>('[role="option"]');
-    const list = target?.closest('mat-chip-listbox');
-    if (!target || !list) return;
-    const options = Array.from(list.querySelectorAll<HTMLElement>('[role="option"]')).filter(
-      (option) => option.getAttribute('aria-disabled') !== 'true',
-    );
-    const index = options.indexOf(target);
-    if (index < 0) return;
-    // Material 22 discovers chip focus through document.activeElement, which is the CEE host
-    // outside its shadow root. Follow the actual event target using the control's public roles.
-    const rtl = getComputedStyle(list).direction === 'rtl';
-    const delta = event.key === 'ArrowUp' || event.key === (rtl ? 'ArrowRight' : 'ArrowLeft') ? -1 : 1;
-    const next =
-      event.key === 'Home'
-        ? 0
-        : event.key === 'End'
-          ? options.length - 1
-          : Math.max(0, Math.min(options.length - 1, index + delta));
-    event.preventDefault();
-    event.stopPropagation();
-    options[next].focus();
+    moveChipFocus(event);
   }
 
   chipClicked(chipIdx: number): void {
@@ -201,20 +192,24 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy {
   }
 
   clickedAdd(): void {
-    this.handlerContext.addMultiInstance(this.component);
+    const added = this.handlerContext.addMultiInstance(this.component);
     this.recomputeNumbers();
+    if (added) this.announce('Multi.InstanceAdded');
     this.scheduleViewSync();
   }
 
   clickedCopy(): void {
-    this.handlerContext.copyMultiInstance(this.component);
+    const added = this.handlerContext.copyMultiInstance(this.component);
     this.recomputeNumbers();
+    if (added) this.announce('Multi.InstanceCopied');
     this.scheduleViewSync();
   }
 
   clickedDelete(): void {
+    const deleted = (this.currentMultiInfo?.currentIndex ?? 0) + 1;
     if (!this.handlerContext.deleteMultiInstance(this.component)) return;
     this.recomputeNumbers();
+    this.announce('Multi.InstanceDeleted', deleted);
     this.scheduleAfterRender(() => {
       this.activeComponentRegistry.deleteCurrentValue(this.component);
       if ((this.currentMultiInfo?.currentCount ?? 0) > 0) {
@@ -264,6 +259,21 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy {
 
   getInstanceCount(): number {
     return this.currentMultiInfo?.currentCount ?? 0;
+  }
+
+  /**
+   * Say what an add, copy, delete or page turn did, which nothing on screen announces: the
+   * occurrence it concerns, by number, and how many there are now. Focus stays where it is.
+   */
+  private announce(key: string, number = (this.currentMultiInfo?.currentIndex ?? 0) + 1): void {
+    announceChange(
+      this.announcer,
+      this.translateService.instant(key, {
+        label: renderingLabelOf(this.component),
+        number,
+        count: this.getInstanceCount(),
+      }),
+    );
   }
 
   private scheduleViewSync(): void {
