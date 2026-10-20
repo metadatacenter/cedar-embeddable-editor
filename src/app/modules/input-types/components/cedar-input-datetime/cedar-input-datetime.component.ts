@@ -33,7 +33,7 @@ import {
   CedarTemporalValue,
 } from '../../../shared/util/cedar-temporal-value';
 import { holdsConstraintError } from '../../edited-field-error-state-matcher';
-import { WidgetMessage } from '../../../shared/util/message-links';
+import { WidgetMessage } from '../../../shared/a11y/message-links';
 
 /** A part of a temporal value the user supplies, in the order the controls stand. */
 export type TemporalPart = 'date' | 'time' | 'fraction';

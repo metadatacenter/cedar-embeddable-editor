@@ -42,7 +42,7 @@ import { FallbackTranslateLoaderFactory } from '../../util/fallback-translate-lo
 import { HandlerContext } from '../../util/handler-context';
 import { WidgetConfigCoordinator } from '../../util/widget-config-coordinator';
 import { WrapperConfigCoordinator } from '../../util/wrapper-config-coordinator';
-import { uiLanguageOf } from '../../util/language-tag';
+import { uiLanguageOf } from '../../a11y/language-tag';
 import { isCedarFieldValue, readFieldValue, sameFieldValue, writeFieldValue } from '../../util/cedar-field-value';
 import { templateForField } from '../../util/single-field-template';
 import { decideComponentRender } from '../cedar-component-renderer/component-render-decision';

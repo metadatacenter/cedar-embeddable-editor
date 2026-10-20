@@ -31,7 +31,7 @@ import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.m
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { catchLookupFailure } from '../../../shared/util/lookup-failure';
-import { WidgetMessage } from '../../../shared/util/message-links';
+import { WidgetMessage } from '../../../shared/a11y/message-links';
 import { ErrorStateMatcher, MatOptionSelectionChange } from '@angular/material/core';
 import { Observable, of, timer } from 'rxjs';
 import { distinctUntilChanged, map, scan, startWith, switchMap, finalize } from 'rxjs/operators';

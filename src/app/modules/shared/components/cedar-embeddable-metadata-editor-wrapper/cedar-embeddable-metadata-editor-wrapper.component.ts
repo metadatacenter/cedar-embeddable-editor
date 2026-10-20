@@ -50,7 +50,7 @@ import { RenderSchedulerService } from '../../service/render-scheduler.service';
 import { ArtifactInputCoordinator } from '../../util/artifact-input-coordinator';
 import { WrapperConfigCoordinator } from '../../util/wrapper-config-coordinator';
 import { FieldRevealService } from '../../service/field-reveal.service';
-import { uiLanguageOf } from '../../util/language-tag';
+import { uiLanguageOf } from '../../a11y/language-tag';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor-wrapper',

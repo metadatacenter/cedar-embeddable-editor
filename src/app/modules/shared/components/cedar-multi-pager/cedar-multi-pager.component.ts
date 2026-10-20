@@ -19,8 +19,8 @@ import { MessageHandlerService } from '../../service/message-handler.service';
 import { PageBreakPaginatorService } from '../../service/page-break-paginator.service';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 import { RenderSchedulerService } from '../../service/render-scheduler.service';
-import { MATERIAL_TEXT_LANGUAGE } from '../../util/language-tag';
-import { moveChipFocus } from '../../util/chip-listbox-keys';
+import { MATERIAL_TEXT_LANGUAGE } from '../../a11y/language-tag';
+import { moveChipFocus } from '../../a11y/chip-listbox-keys';
 
 @Component({
   selector: 'app-cedar-multi-pager',

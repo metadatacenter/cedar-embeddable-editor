@@ -16,7 +16,7 @@ import { CustomDateAdapter } from '../../service/date-time/custom-date-adapter';
 import { DateTimeService } from '../../service/date-time/date-time.service';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
-import { MATERIAL_TEXT_LANGUAGE } from '../../util/language-tag';
+import { MATERIAL_TEXT_LANGUAGE } from '../../a11y/language-tag';
 import { PeriodButtonName } from './period-button-name';
 
 @Component({

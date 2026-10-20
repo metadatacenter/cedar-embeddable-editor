@@ -1,7 +1,7 @@
 import { ElementRef, Injectable, OnDestroy, Optional } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { merge, Subscription } from 'rxjs';
-import { markLanguage, uiLanguageOf } from '../util/language-tag';
+import { markLanguage, uiLanguageOf } from '../a11y/language-tag';
 import { GlobalSettingsContextService } from './global-settings-context.service';
 
 /**

@@ -15,7 +15,7 @@ import { ValidationCode } from '../../validation/validation-problem.model';
 import { componentsAlong, occurrencesOnScreen } from '../../util/component-location';
 import { FieldRevealService } from '../../service/field-reveal.service';
 import { AbstractFieldComponent } from '../../models/field/abstract-field-component.model';
-import { DescriptionLink } from '../../util/message-links';
+import { DescriptionLink } from '../../a11y/message-links';
 
 /** Problems applying across a field's entries, located by its containing elements. */
 const LIST_CODES: ReadonlySet<string> = new Set([

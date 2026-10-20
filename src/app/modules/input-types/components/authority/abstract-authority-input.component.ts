@@ -31,7 +31,7 @@ import { InputType } from '../../../shared/models/input-type.model';
 import { narrowByQuery } from '../../../shared/util/authority-narrowing';
 import { catchLookupFailure } from '../../../shared/util/lookup-failure';
 import { holdsConstraintError } from '../../edited-field-error-state-matcher';
-import { WidgetMessage } from '../../../shared/util/message-links';
+import { WidgetMessage } from '../../../shared/a11y/message-links';
 
 export class AuthorityErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null): boolean {

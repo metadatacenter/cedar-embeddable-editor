@@ -1,8 +1,8 @@
 /**
  * What announcing needs of CDK's `LiveAnnouncer`.
  *
- * Stated here rather than imported, so the domain layer this file belongs to stays free of the
- * framework. The element's own announcer is what widgets pass.
+ * Stated here rather than imported, so these helpers can be exercised without Angular. The
+ * element's own announcer is what widgets pass.
  */
 export interface Announcer {
   announce(message: string, politeness: 'polite', duration: number): Promise<void>;

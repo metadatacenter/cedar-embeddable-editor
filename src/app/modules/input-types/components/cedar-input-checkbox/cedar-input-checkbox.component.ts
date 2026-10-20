@@ -18,7 +18,7 @@ import { HandlerContext } from '../../../shared/util/handler-context';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
 import { requireFormArray } from '../../../shared/forms/form-control';
 import { InstanceValueNode } from '../../../shared/util/instance-value-node';
-import { WidgetMessage } from '../../../shared/util/message-links';
+import { WidgetMessage } from '../../../shared/a11y/message-links';
 
 @Component({
   selector: 'app-cedar-input-checkbox',

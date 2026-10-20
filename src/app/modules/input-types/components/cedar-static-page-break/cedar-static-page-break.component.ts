@@ -3,8 +3,8 @@ import { DataContext } from '../../../shared/util/data-context';
 import { MatPaginatorIntl, PageEvent } from '@angular/material/paginator';
 import { MatChipSelectionChange } from '@angular/material/chips';
 import { PageBreakPaginatorService } from '../../../shared/service/page-break-paginator.service';
-import { MATERIAL_TEXT_LANGUAGE } from '../../../shared/util/language-tag';
-import { moveChipFocus } from '../../../shared/util/chip-listbox-keys';
+import { MATERIAL_TEXT_LANGUAGE } from '../../../shared/a11y/language-tag';
+import { moveChipFocus } from '../../../shared/a11y/chip-listbox-keys';
 
 @Injectable()
 export class CustomMatPaginatorIntl extends MatPaginatorIntl {

@@ -6,7 +6,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
 import { CedarComponent } from '../component/cedar-component.model';
-import { languageTag } from '../../util/language-tag';
+import { languageTag } from '../../a11y/language-tag';
 import { renderingLabelOf } from '../../service/component-data.service';
 
 @Directive()
