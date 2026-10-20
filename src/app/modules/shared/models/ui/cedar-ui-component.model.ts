@@ -3,11 +3,13 @@ import { ErrorStateMatcher } from '@angular/material/core';
 import { EditedFieldErrorStateMatcher } from '../../../input-types/edited-field-error-state-matcher';
 import { ChangeDetectorRef, DestroyRef, Directive, inject, OnDestroy, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TranslateService } from '@ngx-translate/core';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
 import { CedarComponent } from '../component/cedar-component.model';
 import { BasicInfo } from '../info/basic-info.model';
-import { languageTag } from '../../a11y/language-tag';
+import { languageTag, textLanguageOf, uiLanguageOf } from '../../a11y/language-tag';
+import { GlobalSettingsContextService } from '../../service/global-settings-context.service';
 import { renderingLabelOf } from '../../service/component-data.service';
 
 @Directive()
@@ -15,6 +17,8 @@ export abstract class CedarUIDirective implements OnInit, OnDestroy {
   protected readonly userPreferencesService = inject(UserPreferencesService);
   protected readonly cdr: ChangeDetectorRef = inject(ChangeDetectorRef);
   private readonly componentRegistry = inject(ActiveComponentRegistryService);
+  private readonly translate = inject(TranslateService, { optional: true });
+  private readonly globalSettings = inject(GlobalSettingsContextService, { optional: true });
   /** Component-scoped teardown signal for subscriptions and delayed UI work. */
   protected readonly destroyRef = inject(DestroyRef);
   abstract component: CedarComponent;
@@ -64,6 +68,34 @@ export abstract class CedarUIDirective implements OnInit, OnDestroy {
    */
   get valueLanguageMark(): string | null {
     return (this.readOnlyMode ? languageTag(this.valueLanguage) : null) ?? this.declaredValueLanguage;
+  }
+
+  /**
+   * The language of the text the template wrote for this component, as a `lang` tag, or null where
+   * none is declared. That text is its label, its description and, for a choice field, its options.
+   */
+  get textLanguage(): string | null {
+    return textLanguageOf(this.component);
+  }
+
+  /**
+   * The `lang` an option of the field is marked with. An option is a value of the field and text
+   * the template wrote, so it takes the language the field declares for its values, and otherwise
+   * the language of the template's text.
+   */
+  get optionLanguage(): string | null {
+    return this.declaredValueLanguage ?? this.textLanguage;
+  }
+
+  /**
+   * The `lang` CEE's own text takes inside an element marked with the template's language. Where the
+   * template declares a language, CEE's text states CEE's language again, since it would otherwise
+   * take the template's. Elsewhere it states none and takes CEE's language from the root.
+   */
+  get uiLanguageMark(): string | null {
+    return this.textLanguage === null || this.translate === null || this.globalSettings === null
+      ? null
+      : uiLanguageOf(this.translate, this.globalSettings);
   }
 
   quietEmptyPreview(value: unknown): boolean {

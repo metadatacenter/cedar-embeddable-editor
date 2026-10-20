@@ -13,6 +13,6 @@
     </span>
   }
   @if (variant === 'description') {
-    <p [id]="descriptionId" class="cee-field-spec-description">{{ description }}</p>
+    <p [id]="descriptionId" class="cee-field-spec-description" [attr.lang]="descriptionLanguage">{{ description }}</p>
   }
 }

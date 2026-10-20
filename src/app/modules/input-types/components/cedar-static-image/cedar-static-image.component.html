@@ -1,6 +1,6 @@
 <mat-card appearance="outlined" class="image-component">
   @if (view.src) {
-    <div role="img" attr.aria-label="{{ altText }}">
+    <div role="img" attr.aria-label="{{ altText }}" [attr.lang]="altTextLanguage">
       <img
         mat-card-image
         [src]="view.src"
@@ -16,7 +16,7 @@
   }
   @if (component.labelInfo.description) {
     <mat-card-content>
-      <p>{{ component.labelInfo.description }}</p>
+      <p [attr.lang]="textLanguage">{{ component.labelInfo.description }}</p>
     </mat-card-content>
   }
 </mat-card>

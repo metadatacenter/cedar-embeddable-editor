@@ -18,6 +18,7 @@ import { CEE_CONFIG_KEY, CeeConfig, configFlag } from '../../util/config-reader'
 import { RenderSchedulerService } from '../../service/render-scheduler.service';
 import { WidgetConfigCoordinator } from '../../util/widget-config-coordinator';
 import { FieldRevealService } from '../../service/field-reveal.service';
+import { textLanguageOf } from '../../a11y/language-tag';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor',
@@ -100,6 +101,11 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
 
   get templateStatus(): string | null {
     return this.parsedTemplate()?.bibo_status?.getYamlValue() ?? null;
+  }
+
+  /** The language the template declares for its title and description, as a `lang` tag, or null. */
+  get templateTextLanguage(): string | null {
+    return textLanguageOf(this.dataContext?.templateRepresentation);
   }
 
   private parsedTemplate(): Template | null {

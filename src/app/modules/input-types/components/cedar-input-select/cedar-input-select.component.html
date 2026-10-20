@@ -11,7 +11,7 @@
         type="text"
         [value]="displayValue"
         readonly
-        [attr.lang]="valueLanguageMark"
+        [attr.lang]="valueLanguageMark ?? textLanguage"
         attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"
       />
     }
@@ -24,11 +24,16 @@
         multiple="{{ component.choiceInfo.multipleChoice }}"
         (selectionChange)="inputChanged()"
         [aria-label]="cds.getRenderingLabelForComponent(component)"
+        [attr.lang]="textLanguage"
       >
-        <!-- The selection and the options are the field's values, in the language it declares for them. -->
-        <mat-select-trigger [attr.lang]="valueLanguageMark">{{ displayValue }}</mat-select-trigger>
+        <!--
+          The control's name is the template's text, in the language it declares for it. The selection
+          and the options are the field's values, in the language it declares for them, and otherwise in
+          the language of the template's text.
+        -->
+        <mat-select-trigger [attr.lang]="optionLanguage">{{ displayValue }}</mat-select-trigger>
         @for (option of dropdownList; track option) {
-          <mat-option #choice [value]="option.id" [attr.lang]="declaredValueLanguage">
+          <mat-option #choice [value]="option.id" [attr.lang]="optionLanguage">
             @if (!component.choiceInfo.multipleChoice) {
               <span class="single-choice-marker" [class.selected]="choice.selected" aria-hidden="true"></span>
             }

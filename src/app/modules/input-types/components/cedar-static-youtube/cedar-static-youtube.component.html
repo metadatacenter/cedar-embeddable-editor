@@ -7,6 +7,7 @@
       [attr.width]="videoWidth"
       [style.aspect-ratio]="videoWidth + ' / ' + videoHeight"
       [attr.title]="videoTitle ?? ('Generic.YoutubeVideo' | translate)"
+      [attr.lang]="videoTitle === null ? null : textLanguage"
       loading="lazy"
       referrerpolicy="strict-origin-when-cross-origin"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -17,7 +18,7 @@
     <p class="video-error" role="alert">{{ contentError.key | translate: contentError.params }}</p>
   }
   @if (component.labelInfo.description) {
-    <mat-card-content>
+    <mat-card-content [attr.lang]="textLanguage">
       {{ component.labelInfo.description }}
     </mat-card-content>
   }

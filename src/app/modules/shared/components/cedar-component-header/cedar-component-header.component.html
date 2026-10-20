@@ -5,12 +5,22 @@
     </span>
   }
 
+  <!--
+    The label is the template's text, in the language it declares for it. The required mark's name is
+    CEE's, so it states CEE's language inside the marked label.
+  -->
   <span class="title" [class.field-title]="fieldToDescribe">
-    <span class="title-label">
+    <span class="title-label" [attr.lang]="textLanguage">
       {{ cds.getRenderingLabelForComponent(component) }}
       @if (shouldRenderRequiredMark) {
         <span>
-          <sup class="required-mark" role="img" attr.aria-label="{{ 'Generic.Required' | translate }}"><b>*</b></sup>
+          <sup
+            class="required-mark"
+            role="img"
+            attr.aria-label="{{ 'Generic.Required' | translate }}"
+            [attr.lang]="uiLanguageMark"
+            ><b>*</b></sup
+          >
         </span>
       }
     </span>
@@ -86,6 +96,7 @@
       [id]="descriptionId"
       class="cdk-visually-hidden cee-description"
       [attr.aria-hidden]="disclosure === null ? null : 'true'"
+      [attr.lang]="textLanguage"
       >{{ component.labelInfo.description }}</span
     >
   }

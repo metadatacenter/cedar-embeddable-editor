@@ -28,9 +28,13 @@
           <span class="cdk-visually-hidden"> {{ 'Generic.OnNpm' | translate }}</span>
         </a>
         <div class="template-title-block">
-          <h1 class="template-label">{{ dataContext.templateRepresentation?.labelInfo?.label }}</h1>
+          <h1 class="template-label" [attr.lang]="templateTextLanguage">
+            {{ dataContext.templateRepresentation?.labelInfo?.label }}
+          </h1>
           @if (dataContext.templateRepresentation?.labelInfo?.description && showTemplateDescription) {
-            <p class="template-description">{{ dataContext.templateRepresentation?.labelInfo?.description }}</p>
+            <p class="template-description" [attr.lang]="templateTextLanguage">
+              {{ dataContext.templateRepresentation?.labelInfo?.description }}
+            </p>
           }
         </div>
         @if (templateVersion || templateStatus) {
@@ -94,7 +98,9 @@
     <!--  </mat-card-header>-->
     <mat-card-content class="template-content">
       @if (previewMode && showTemplateDescription && dataContext.templateRepresentation?.labelInfo?.description) {
-        <p class="template-description">{{ dataContext.templateRepresentation?.labelInfo?.description }}</p>
+        <p class="template-description" [attr.lang]="templateTextLanguage">
+          {{ dataContext.templateRepresentation?.labelInfo?.description }}
+        </p>
       }
       @for (childComponent of pageBreakPaginatorService.getCurrentPage(); track childComponent) {
         @if (!childComponent.hidden) {

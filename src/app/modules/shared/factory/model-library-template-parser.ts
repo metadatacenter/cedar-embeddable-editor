@@ -238,11 +238,13 @@ export class ModelLibraryTemplateParser implements TemplateParser {
     // Kept for the instance side: `InstanceInflater` completes an instance from
     // it, which is how the `@context` stops being CEE's to assemble.
     template.parsed = parsed;
-    ModelLibraryTemplateParser.wrap(parsed, template, []);
+    const language = parsed.language.getValue();
+    ModelLibraryTemplateParser.wrap(parsed, template, [], language);
     ModelLibraryTemplateParser.generatePropertyIris(parsed, template);
 
     template.labelInfo.label = parsed.schema_name;
     template.labelInfo.description = parsed.schema_description;
+    template.labelInfo.language = language;
     template.isBasedOn = parsed.at_id.getValue();
   }
 
@@ -275,7 +277,19 @@ export class ModelLibraryTemplateParser implements TemplateParser {
     }
   }
 
-  private static wrap(container: AbstractContainerArtifact, component: ElementComponent, parentPath: string[]): void {
+  /**
+   * Build the children of a container into a component.
+   *
+   * `language` is the language of the container's text, which its children's labels and
+   * descriptions are written in. A nested element that declares a language of its own passes that
+   * one on instead.
+   */
+  private static wrap(
+    container: AbstractContainerArtifact,
+    component: ElementComponent,
+    parentPath: string[],
+    language: string | null,
+  ): void {
     for (const childInfo of container.getChildrenInfo().children) {
       const name = childInfo.name;
       const child = container.getChild(name);
@@ -298,12 +312,15 @@ export class ModelLibraryTemplateParser implements TemplateParser {
           r as FieldComponent,
         );
         ModelLibraryTemplateParser.extractLabels(field, childInfo, name, r as FieldComponent);
+        r.labelInfo.language = language;
         (r as FieldComponent).basicInfo.valueLanguage = field.language.getValue();
       } else if (childInfo.atType === CedarArtifactType.TEMPLATE_ELEMENT) {
         const element = child as TemplateElement;
         r = isMulti ? new MultiElementComponent() : new SingleElementComponent();
         ModelLibraryTemplateParser.extractLabels(element, childInfo, name, r as FieldComponent);
-        ModelLibraryTemplateParser.wrap(element, r as ElementComponent, myPath);
+        const elementLanguage = element.language.getValue() ?? language;
+        r.labelInfo.language = elementLanguage;
+        ModelLibraryTemplateParser.wrap(element, r as ElementComponent, myPath, elementLanguage);
         ModelLibraryTemplateParser.generatePropertyIris(element, r as AbstractElementComponent);
       } else if (childInfo.atType === CedarArtifactType.STATIC_TEMPLATE_FIELD) {
         const staticField = child as TemplateField;
@@ -328,6 +345,7 @@ export class ModelLibraryTemplateParser implements TemplateParser {
           sfc.contentInfo.content = staticField.content ?? '';
         }
         ModelLibraryTemplateParser.extractLabels(staticField, childInfo, name, sfc);
+        sfc.labelInfo.language = language;
         r = sfc;
       }
 

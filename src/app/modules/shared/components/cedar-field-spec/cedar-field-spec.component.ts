@@ -4,6 +4,7 @@ import { StaticFieldComponent } from '../../models/static/static-field-component
 import { FieldComponent } from '../../models/component/field-component.model';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 import { SpecFact, specHeaderFactsOf, specKeywordOf } from '../../util/field-spec';
+import { textLanguageOf } from '../../a11y/language-tag';
 
 /**
  * A field's specification, for a reader rather than for someone filling the form in.
@@ -66,6 +67,11 @@ export class CedarFieldSpecComponent implements OnInit {
     // time a component holds one: the parser is where that string is named. An empty one is a
     // separate case, and it says as little.
     return description !== null && description !== undefined && description !== '' ? description : null;
+  }
+
+  /** The language the template declares for the description, as a `lang` tag, or null. */
+  get descriptionLanguage(): string | null {
+    return textLanguageOf(this.fieldToDescribe);
   }
 
   /**

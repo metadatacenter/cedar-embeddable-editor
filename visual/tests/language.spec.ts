@@ -1,10 +1,11 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { addAttributeRow, open } from './support/host';
+import { addAttributeRow, hermetic, open } from './support/host';
 
 /**
  * WCAG 3.1.2, Language of Parts: CEE's own text is marked with the language it is shown in, a value
- * an instance tags with `@language` is marked with that tag where CEE shows it as text, and a
- * control holding a value of a field that declares a language for its values is marked with it.
+ * an instance tags with `@language` is marked with that tag where CEE shows it as text, a control
+ * holding a value of a field that declares a language for its values is marked with it, and the text
+ * a template writes is marked with the language the template declares for it.
  *
  * The host page is English. Each element renders into a shadow root, where a `lang` on the root
  * reaches everything the form draws. Overlays and tooltip descriptions sit beside the root rather
@@ -230,4 +231,141 @@ test('the field element marks its editable box with the language its field decla
   await declareLanguages(page, '01-input-types', { _text: 'fr' });
   await open(page, '01-input-types', undefined, undefined, undefined, '&host=field&p=_text');
   await expect(fieldRoot(page).getByRole('textbox', { name: 'text', exact: true })).toHaveAttribute('lang', 'fr');
+});
+
+/**
+ * A template's own language. A template or element states the language of its text with `@language`
+ * in its own `@context`, and the elements showing that text are marked with it: the template's title
+ * and description, each label and description, the section break, rich text, image and video, and a
+ * choice field's name and options. CEE's text inside one of them states CEE's language again. A
+ * control that holds what is typed into it is not marked, and neither is CEE's own text around it.
+ *
+ * `28-template-language` is French, with one element that states nothing and one that states English.
+ * Its `ville` field declares German values and its `taille` list Italian ones.
+ */
+const TEMPLATE_LANGUAGE = '28-template-language';
+
+/** The header label of the component with this name, at the top of its own renderer. */
+const labelOf = (page: Page, name: string): Locator =>
+  inEditor(page, '.title-label').filter({ hasText: new RegExp(`^\\s*${name}\\s*\\*?\\s*$`) });
+
+for (const [preset, ui] of [
+  [undefined, 'en'],
+  ['hu', 'hu'],
+] as const) {
+  test(`a French template's text is marked as French in an ${ui} form, and CEE's text as ${ui}`, async ({ page }) => {
+    await hermetic(page);
+    await open(page, TEMPLATE_LANGUAGE, preset, undefined, undefined, '&f=showTemplateDescription');
+    const editor = page.locator('cedar-embeddable-editor');
+    await expect(editorRoot(page)).toHaveAttribute('lang', ui);
+
+    await expect(inEditor(page, '.template-label')).toHaveAttribute('lang', 'fr');
+    await expect(inEditor(page, '.template-description')).toHaveAttribute('lang', 'fr');
+
+    // A label and its description are the template's. The required mark's name is CEE's.
+    const nom = labelOf(page, 'nom');
+    await expect(nom).toHaveAttribute('lang', 'fr');
+    await expect(nom.locator('sup.required-mark')).toHaveAttribute('lang', ui);
+    await expect(inEditor(page, '.cee-description:text-is("nom property description")')).toHaveAttribute('lang', 'fr');
+    // The box holds what is typed, which the template did not write. A field that declares a language
+    // for its values marks its box with that one, and its label keeps the template's.
+    await expect(editor.getByRole('textbox', { name: 'nom', exact: true })).not.toHaveAttribute('lang', /.*/);
+    await expect(editor.getByRole('textbox', { name: 'ville', exact: true })).toHaveAttribute('lang', 'de');
+    await expect(labelOf(page, 'ville')).toHaveAttribute('lang', 'fr');
+
+    // A choice field's name and options are the template's, and its clear button is CEE's.
+    const couleur = editor.getByRole('radiogroup', { name: 'couleur', exact: true });
+    await expect(couleur).toHaveAttribute('lang', 'fr');
+    for (const option of await couleur.locator('mat-radio-button').all())
+      await expect(option).toHaveAttribute('lang', 'fr');
+    await couleur.getByRole('radio', { name: 'Rouge', exact: true }).check();
+    await expect(couleur.locator('button.choice-clear-button')).toHaveAttribute('lang', ui);
+    const fruits = editor.getByRole('group', { name: 'fruits', exact: true });
+    await expect(fruits).toHaveAttribute('lang', 'fr');
+    for (const option of await fruits.locator('mat-checkbox').all()) await expect(option).toHaveAttribute('lang', 'fr');
+
+    // A list's options take the language it declares for its values, and otherwise the template's.
+    for (const [name, values] of [
+      ['taille', 'it'],
+      ['forme', 'fr'],
+    ] as const) {
+      const select = editor.getByRole('combobox', { name, exact: true });
+      await expect(select).toHaveAttribute('lang', 'fr');
+      await select.click();
+      const options = page.getByRole('listbox', { name }).getByRole('option');
+      expect(await options.count()).toBeGreaterThan(0);
+      for (const option of await options.all()) await expect(option).toHaveAttribute('lang', values);
+      await options.first().click();
+      await expect(select.locator('mat-select-trigger')).toHaveAttribute('lang', values);
+    }
+
+    // Static content is the template's. The help mark's name is CEE's.
+    const heading = editor.getByRole('heading', { name: 'Partie un', exact: true });
+    await expect(heading).toHaveAttribute('lang', 'fr');
+    await expect(heading.locator('mat-icon')).toHaveAttribute('lang', ui);
+    await expect(inEditor(page, 'app-cedar-static-section-break .cdk-visually-hidden')).toHaveAttribute('lang', 'fr');
+    await expect(inEditor(page, 'app-cedar-static-rich-text > div')).toHaveAttribute('lang', 'fr');
+    await expect(inEditor(page, 'app-cedar-static-image [role="img"]')).toHaveAttribute('lang', 'fr');
+    await expect(inEditor(page, 'app-cedar-static-youtube iframe')).toHaveAttribute('lang', 'fr');
+
+    // An element that states nothing holds the template's text. One that states English holds English.
+    for (const [element, child, language] of [
+      ['adresse', 'rue', 'fr'],
+      ['address', 'street', 'en'],
+    ] as const) {
+      await expect(labelOf(page, element)).toHaveAttribute('lang', language);
+      await expect(labelOf(page, child)).toHaveAttribute('lang', language);
+    }
+
+    // CEE's own buttons and messages are in CEE's language, whether inside one of the marked
+    // elements or not. Emptying a required box and a required group shows a message for each.
+    const box = editor.getByRole('textbox', { name: 'nom', exact: true });
+    await box.fill('x');
+    await box.fill('');
+    const pomme = fruits.getByRole('checkbox', { name: 'Pomme', exact: true });
+    await pomme.check();
+    await pomme.uncheck();
+    await expect(inEditor(page, 'mat-error')).toHaveCount(2);
+    await expect(fruits.locator('mat-error')).toHaveAttribute('lang', ui);
+    const languages = await inEditor(page, 'button, mat-error').evaluateAll((elements) =>
+      elements.map((element) => element.closest('[lang]')?.getAttribute('lang')),
+    );
+    expect(languages.length).toBeGreaterThan(3);
+    expect(new Set(languages)).toEqual(new Set([ui]));
+  });
+}
+
+test("a French template's read-only descriptions and option lists are marked as French", async ({ page }) => {
+  await hermetic(page);
+  await open(page, TEMPLATE_LANGUAGE, 'hu', undefined, undefined, '&f=readOnlyMode');
+  const description = inEditor(page, '.cee-field-spec-description:text-is("nom property description")');
+  await expect(description).toHaveAttribute('lang', 'fr');
+  // A list read with nothing filled in states its options, in the language of its values.
+  for (const [name, values] of [
+    ['taille', 'it'],
+    ['forme', 'fr'],
+  ] as const) {
+    const options = inEditor(
+      page,
+      `app-cedar-component-renderer:has(.title-label:text-is("${name}")) .cee-spec-box-options`,
+    );
+    await expect(options).toHaveAttribute('lang', values);
+    await expect(options.locator('em')).toHaveAttribute('lang', 'hu');
+  }
+});
+
+test('a template that declares no language leaves its text in the form language', async ({ page }) => {
+  await open(page, '01-input-types', 'hu', undefined, undefined, '&f=showTemplateDescription');
+  await expect(inEditor(page, '.template-label')).not.toHaveAttribute('lang', /.*/);
+  await expect(inEditor(page, '.template-description')).not.toHaveAttribute('lang', /.*/);
+  const labels = inEditor(page, '.title-label, sup.required-mark');
+  expect(await labels.count()).toBeGreaterThan(1);
+  for (const label of await labels.all()) await expect(label).not.toHaveAttribute('lang', /.*/);
+});
+
+test("the field element marks no label, because a field's own language is that of its values", async ({ page }) => {
+  await declareLanguages(page, '01-input-types', { _text: 'fr' });
+  await open(page, '01-input-types', 'readonly', undefined, undefined, '&host=field&p=_text');
+  await expect(fieldRoot(page).locator('.title-label')).toBeVisible();
+  await expect(fieldRoot(page).locator('.title-label')).not.toHaveAttribute('lang', /.*/);
 });

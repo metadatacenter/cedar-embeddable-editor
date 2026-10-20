@@ -1,4 +1,5 @@
 import { DestroyRef } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 import { describe, expect, it } from 'vitest';
 import { MultiElementComponent } from '../../models/element/multi-element-component.model';
@@ -9,6 +10,7 @@ import { InputType } from '../../models/input-type.model';
 import { StaticFieldComponent } from '../../models/static/static-field-component.model';
 import { CedarTemplate } from '../../models/template/cedar-template.model';
 import { ComponentDataService } from '../../service/component-data.service';
+import { GlobalSettingsContextService } from '../../service/global-settings-context.service';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 import { CedarComponentHeaderComponent } from './cedar-component-header.component';
 
@@ -209,6 +211,38 @@ describe('CedarComponentHeaderComponent', () => {
       header.componentToRender = singleField(InputType.text);
 
       expect(header.multiComponent).toBeNull();
+    });
+  });
+
+  describe('the language of the label', () => {
+    const headerIn = (uiLanguage: string): CedarComponentHeaderComponent =>
+      new CedarComponentHeaderComponent(
+        new ComponentDataService(),
+        { readOnlyMode$: of(false) } as unknown as UserPreferencesService,
+        { destroyed: false, onDestroy: () => () => undefined } as unknown as DestroyRef,
+        null,
+        { currentLang: () => uiLanguage } as unknown as TranslateService,
+        new GlobalSettingsContextService(),
+      );
+
+    it("is the template's where it declares one, and CEE's own text inside the label states CEE's", () => {
+      const header = headerIn('hu');
+      const field = singleField(InputType.text, true);
+      field.labelInfo.language = 'fr';
+
+      header.componentToRender = field;
+
+      expect(header.textLanguage).toBe('fr');
+      expect(header.uiLanguageMark).toBe('hu');
+    });
+
+    it('is not stated where the template declares none', () => {
+      const header = headerIn('hu');
+
+      header.componentToRender = singleField(InputType.text, true);
+
+      expect(header.textLanguage).toBeNull();
+      expect(header.uiLanguageMark).toBeNull();
     });
   });
 

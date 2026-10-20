@@ -1392,3 +1392,92 @@ const writeRaw = (name, document) => {
     }),
   );
 }
+
+/**
+ * 28. A template that declares the language of its own text.
+ *
+ * A template or element states it with `@language` in its own `@context`, as the Java library and the
+ * designers write it. This library's JSON writer puts a container's language in the instance schema's
+ * `@context` instead, where its reader does not look, so the language is set on the document written.
+ *
+ * The template is French. One element states nothing and so holds French text too, and one states
+ * English. One field and one list declare a language for their values, which their values take and
+ * their labels do not. Not in FIXTURES: what it adds is attributes, which no screenshot shows.
+ */
+{
+  const opts = (m, labels) => (b) => labels.reduce((acc, label) => acc[m](label, false), b);
+  const nom = field('nom', () => CedarBuilders.textFieldBuilder());
+  const ville = field('ville', () => CedarBuilders.textFieldBuilder());
+  const couleur = field(
+    'couleur',
+    () => CedarBuilders.radioFieldBuilder(),
+    opts('addRadioOption', ['Rouge', 'Vert']),
+  );
+  const fruits = field(
+    'fruits',
+    () => CedarBuilders.checkboxFieldBuilder(),
+    opts('addCheckboxOption', ['Pomme', 'Poire']),
+  );
+  const taille = field(
+    'taille',
+    () => CedarBuilders.singleChoiceListFieldBuilder(),
+    opts('addListOption', ['Piccolo', 'Grande']),
+  );
+  const forme = field(
+    'forme',
+    () => CedarBuilders.singleChoiceListFieldBuilder(),
+    opts('addListOption', ['Rond', 'Carré']),
+  );
+  const section = field(
+    'section',
+    () => CedarBuilders.sectionBreakFieldBuilder(),
+    (b) => b.withSchemaName('Partie un').withSchemaDescription('Les questions générales'),
+  );
+  const note = field(
+    'note',
+    () => CedarBuilders.richTextFieldBuilder(),
+    (b) => opt(b, 'withContent', '<p>Un texte <strong>riche</strong>.</p>'),
+  );
+  const svg = "<svg xmlns='http://www.w3.org/2000/svg' width='40' height='20'><rect width='40' height='20'/></svg>";
+  const image = field(
+    'image',
+    () => CedarBuilders.imageFieldBuilder(),
+    (b) => opt(b, 'withContent', `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`),
+  );
+  const video = field(
+    'video',
+    () => CedarBuilders.youtubeFieldBuilder(),
+    (b) => opt(b, 'withVideoId', 'https://www.youtube.com/watch?v=1NBYWOKo9qo'),
+  );
+  const rue = field('rue', () => CedarBuilders.textFieldBuilder());
+  const adresse = common(CedarBuilders.templateElementBuilder(), 'adresse', 'template-elements')
+    .addChild(rue, deploy(rue, 'rue'))
+    .build();
+  const street = field('street', () => CedarBuilders.textFieldBuilder());
+  const address = common(CedarBuilders.templateElementBuilder(), 'address', 'template-elements')
+    .addChild(street, deploy(street, 'street'))
+    .build();
+
+  let tb = common(CedarBuilders.templateBuilder(), 'Questionnaire', 'templates').withSchemaDescription(
+    'Un modèle écrit en français',
+  );
+  tb = tb.addChild(nom, deploy(nom, 'nom', { required: true }));
+  tb = tb.addChild(ville, deploy(ville, 'ville'));
+  tb = tb.addChild(couleur, deploy(couleur, 'couleur'));
+  tb = tb.addChild(fruits, deploy(fruits, 'fruits', { required: true }));
+  tb = tb.addChild(taille, deploy(taille, 'taille'));
+  tb = tb.addChild(forme, deploy(forme, 'forme'));
+  tb = tb.addChild(section, section.createDeploymentBuilder('_section').build());
+  tb = tb.addChild(note, deploy(note, 'note'));
+  tb = tb.addChild(image, deploy(image, 'image'));
+  tb = tb.addChild(video, deploy(video, 'video'));
+  tb = tb.addChild(adresse, deploy(adresse, 'adresse'));
+  tb = tb.addChild(address, deploy(address, 'address'));
+
+  const json = CedarWriters.json().getStrict().getTemplateWriter().getAsJsonNode(tb.build());
+  json['@context']['@language'] = 'fr';
+  json.properties._address['@context']['@language'] = 'en';
+  json.properties._ville['@context']['@language'] = 'de';
+  json.properties._taille['@context']['@language'] = 'it';
+  writeRaw('28-template-language', json);
+}

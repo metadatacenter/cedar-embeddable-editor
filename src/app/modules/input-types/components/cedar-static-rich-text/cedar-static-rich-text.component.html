@@ -4,5 +4,7 @@
   the parser closes the outer paragraph at the first block child and reparents the
   rest as siblings. The rendering survived that, but nothing asserting on structure
   could, which matters now that the sanitizer's output is under test.
+
+  The content is the template's text, in the language it declares for it.
 -->
-<div [innerHTML]="component.contentInfo.content || '' | keepHtml"></div>
+<div [attr.lang]="textLanguage" [innerHTML]="component.contentInfo.content || '' | keepHtml"></div>

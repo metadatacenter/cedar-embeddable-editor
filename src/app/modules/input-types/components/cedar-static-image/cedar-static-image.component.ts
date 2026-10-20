@@ -54,12 +54,21 @@ export class CedarStaticImageComponent extends CedarUIDirective {
    * readers both take as a deliberate "ignore this".
    */
   get altText(): string {
+    return this.authoredAltText ?? 'Image';
+  }
+
+  /** The alternative text's language, which is the template's where the template wrote the text. */
+  get altTextLanguage(): string | null {
+    return this.authoredAltText === null ? null : this.textLanguage;
+  }
+
+  private get authoredAltText(): string | null {
     return (
       this.component?.labelInfo?.description ||
       this.component?.labelInfo?.label ||
       this.component?.labelInfo?.preferredLabel ||
       this.component?.name ||
-      'Image'
+      null
     );
   }
 

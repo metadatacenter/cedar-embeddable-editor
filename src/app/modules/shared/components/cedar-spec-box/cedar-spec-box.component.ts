@@ -1,4 +1,7 @@
-import { ChangeDetectionStrategy, Component, Input, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, Input, ViewEncapsulation } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
+import { languageTag, textLanguageOf, uiLanguageOf } from '../../a11y/language-tag';
+import { GlobalSettingsContextService } from '../../service/global-settings-context.service';
 import { FieldComponent } from '../../models/component/field-component.model';
 import { bioPortalSourceLink, bioPortalTermLink } from '../../util/bioportal-term-link';
 import {
@@ -35,6 +38,9 @@ import {
   standalone: false,
 })
 export class CedarSpecBoxComponent {
+  private readonly translate = inject(TranslateService, { optional: true });
+  private readonly globalSettings = inject(GlobalSettingsContextService, { optional: true });
+
   @Input({ required: true }) fieldToDescribe!: FieldComponent;
 
   /** Value-shape facts, kept structured so their lead-in words can be styled independently. */
@@ -56,6 +62,24 @@ export class CedarSpecBoxComponent {
     return specOptionsOf(this.fieldToDescribe)
       .map((option) => option.label)
       .join(' · ');
+  }
+
+  /**
+   * The language of the option labels, which are the field's values and the template's text: the
+   * language the field declares for its values, and otherwise the language of the template's text.
+   */
+  get optionLanguage(): string | null {
+    return languageTag(this.fieldToDescribe.basicInfo.valueLanguage) ?? textLanguageOf(this.fieldToDescribe);
+  }
+
+  /**
+   * The `lang` the lead-in word takes inside the marked options: CEE's language where the options
+   * have a language of their own, and none otherwise, since it then takes CEE's language from the root.
+   */
+  get uiLanguageMark(): string | null {
+    return this.optionLanguage === null || this.translate === null || this.globalSettings === null
+      ? null
+      : uiLanguageOf(this.translate, this.globalSettings);
   }
 
   /** The declared default when it is a term, which can be linked, rather than text, which cannot. */

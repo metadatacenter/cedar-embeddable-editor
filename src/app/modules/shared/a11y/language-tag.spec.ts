@@ -1,6 +1,7 @@
 import { TranslateService } from '@ngx-translate/core';
 import { GlobalSettingsContextService } from '../service/global-settings-context.service';
-import { languageTag, uiLanguageOf } from './language-tag';
+import { LabelInfo } from '../models/info/label-info.model';
+import { languageTag, textLanguageOf, uiLanguageOf } from './language-tag';
 
 describe('languageTag', () => {
   it('canonicalizes a tag and spells a map name as one', () => {
@@ -14,6 +15,26 @@ describe('languageTag', () => {
     expect(languageTag(undefined)).toBeNull();
     expect(languageTag('  ')).toBeNull();
     expect(languageTag('not a tag')).toBeNull();
+  });
+});
+
+describe('textLanguageOf', () => {
+  const declaring = (language: string | null): { labelInfo: LabelInfo } => {
+    const labelInfo = new LabelInfo();
+    labelInfo.language = language;
+    return { labelInfo };
+  };
+
+  it('reads the language declared for the text as a tag', () => {
+    expect(textLanguageOf(declaring('fr'))).toBe('fr');
+    expect(textLanguageOf(declaring('de_ch'))).toBe('de-CH');
+  });
+
+  it('asserts nothing where no language or a malformed one is declared', () => {
+    expect(textLanguageOf(declaring(null))).toBeNull();
+    expect(textLanguageOf(declaring('not a tag'))).toBeNull();
+    expect(textLanguageOf(null)).toBeNull();
+    expect(textLanguageOf({})).toBeNull();
   });
 });
 

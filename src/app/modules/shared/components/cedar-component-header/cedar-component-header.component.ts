@@ -11,6 +11,7 @@ import {
   ViewEncapsulation,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TranslateService } from '@ngx-translate/core';
 import { CedarComponent } from '../../models/component/cedar-component.model';
 import { ComponentDataService } from '../../service/component-data.service';
 import { MultiComponent } from '../../models/component/multi-component.model';
@@ -23,6 +24,8 @@ import { InputType } from '../../models/input-type.model';
 import { fieldTypeIcon } from '../../util/field-type-icon';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 import { DescriptionLink } from '../../a11y/message-links';
+import { textLanguageOf, uiLanguageOf } from '../../a11y/language-tag';
+import { GlobalSettingsContextService } from '../../service/global-settings-context.service';
 
 @Component({
   selector: 'app-cedar-component-header',
@@ -64,6 +67,8 @@ export class CedarComponentHeaderComponent implements OnInit, AfterViewChecked, 
     private readonly destroyRef: DestroyRef,
     // Optional, so a spec can build the component without a view.
     @Optional() private readonly elementRef: ElementRef<HTMLElement> | null = null,
+    @Optional() private readonly translate: TranslateService | null = null,
+    @Optional() private readonly globalSettings: GlobalSettingsContextService | null = null,
   ) {
     this.userPreferencesService = userPreferencesService;
   }
@@ -93,6 +98,21 @@ export class CedarComponentHeaderComponent implements OnInit, AfterViewChecked, 
    * open and close. The panel header is the control; the chevron only shows its state.
    */
   @Input() disclosure: boolean | null = null;
+
+  /** The language the template declares for the label and description, as a `lang` tag, or null. */
+  get textLanguage(): string | null {
+    return textLanguageOf(this.component);
+  }
+
+  /**
+   * The `lang` CEE's own text takes inside the marked label: CEE's language where the template
+   * declares one for the label, and none otherwise, since it then takes CEE's language from the root.
+   */
+  get uiLanguageMark(): string | null {
+    return this.textLanguage !== null && this.translate && this.globalSettings
+      ? uiLanguageOf(this.translate, this.globalSettings)
+      : null;
+  }
 
   /** Whether the help and property marks take focus, which a mark inside an element's panel header cannot. */
   get focusableMarks(): boolean {

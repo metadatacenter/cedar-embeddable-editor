@@ -1,5 +1,6 @@
 import { TranslateService } from '@ngx-translate/core';
 import { GlobalSettingsContextService } from '../service/global-settings-context.service';
+import { LabelInfo } from '../models/info/label-info.model';
 
 /**
  * A language as an HTML `lang` attribute takes it, or null where there is none to state.
@@ -18,6 +19,17 @@ export function languageTag(value: string | null | undefined): string | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * The language of the text a template wrote for a component, as a `lang` tag, or null where none
+ * is declared or the declared tag is not well formed.
+ *
+ * That text is a component's label, description and options. Where it is declared, each element
+ * that shows only that text is marked with it. CEE's own text beside it keeps CEE's language.
+ */
+export function textLanguageOf(component: { readonly labelInfo?: LabelInfo | null } | null | undefined): string | null {
+  return languageTag(component?.labelInfo?.language);
 }
 
 /**
