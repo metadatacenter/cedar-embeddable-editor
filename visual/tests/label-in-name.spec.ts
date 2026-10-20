@@ -118,7 +118,7 @@ test('the choice groups are named by their field', async ({ page }) => {
   await expect(checkboxes.getByRole('checkbox')).toHaveCount(2);
 });
 
-test('the spinner a term lookup shows meanwhile says that it is searching', async ({ page }) => {
+test('the option a term lookup shows meanwhile says that it is searching', async ({ page }) => {
   let release!: () => void;
   const pending = new Promise<void>((resolve) => {
     release = resolve;
@@ -130,6 +130,7 @@ test('the spinner a term lookup shows meanwhile says that it is searching', asyn
   await open(page, '04-controlled-terms');
   await page.locator('cedar-embeddable-editor').getByRole('combobox', { name: 'organism', exact: true }).fill('Homo');
   await passDebounceWindow(page);
-  await expect(page.getByRole('option').getByRole('progressbar', { name: 'Searching…', exact: true })).toBeVisible();
+  await expect(page.getByRole('option', { name: 'Searching…', exact: true })).toBeVisible();
+  await expect(page.getByRole('option').locator('mat-progress-spinner')).toBeVisible();
   release();
 });

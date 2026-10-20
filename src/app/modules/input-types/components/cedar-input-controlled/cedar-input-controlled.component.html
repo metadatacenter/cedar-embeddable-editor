@@ -105,12 +105,18 @@ different destinations worth having.
         -->
         @let terms = filteredOptions | async;
         @if (loading) {
+          <!--
+            The spinner is for the eye, and the option says in words what it shows, as an authority
+            field's does on screen. Material makes a spinner focusable, which an option may not contain.
+          -->
           <mat-option disabled>
             <mat-progress-spinner
               mode="indeterminate"
               diameter="24"
-              [attr.aria-label]="'Generic.Searching' | translate"
+              aria-hidden="true"
+              [attr.tabindex]="null"
             ></mat-progress-spinner>
+            <span class="cdk-visually-hidden">{{ 'Generic.Searching' | translate }}</span>
           </mat-option>
         }
         @if (lookupFailed && !loading) {
