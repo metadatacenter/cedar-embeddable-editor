@@ -4,13 +4,14 @@ import { open, passDebounceWindow } from './support/host';
 
 /**
  * WCAG 4.1.3, Status Messages, and 3.3.1, Error Identification, for the messages CEE draws outside
- * a Material form field.
+ * a Material form field, and for the changes to the form an action makes.
  *
  * Material announces the errors inside a form field through the field's own live region and links
  * them to the control. The rest are CEE's to announce and link: a field's report problems, which
  * sit in a live region of their own present as long as the field is, and a widget's own messages,
  * which the element's live region announces. That region is inside the shadow root, and each
- * message is in the description of the controls it concerns. Nothing here moves focus.
+ * message is in the description of the controls it concerns. The same region says, once, what
+ * adding or deleting an occurrence or turning a page changed. Nothing here moves focus.
  */
 
 /** The live region a widget's own messages are announced through. */
@@ -184,5 +185,101 @@ test.describe("a widget's own messages", () => {
     await expect(page.locator('app-cedar-input-email mat-error')).toBeVisible();
     await expect(email).toHaveAccessibleDescription(/valid email/);
     await expect(liveRegion(page)).toHaveText('');
+  });
+});
+
+type SpeakingWindow = Window & { __ceeSaid?: string[] };
+
+/** Record every message the element's live region says from now on, in order. */
+const listen = (page: Page, host = 'cedar-embeddable-editor'): Promise<void> =>
+  page.locator(host).evaluate((element) => {
+    const region = element.shadowRoot!.querySelector('.cee-live-region')!;
+    const said: string[] = [];
+    (window as SpeakingWindow).__ceeSaid = said;
+    new MutationObserver(() => {
+      const text = region.textContent?.trim();
+      if (text) said.push(text);
+    }).observe(region, { childList: true, characterData: true, subtree: true });
+  });
+
+/**
+ * Assert the region said exactly this, once. CDK's announcer writes a message a tenth of a second
+ * after it is asked to, so a second announcement would arrive well inside the wait.
+ */
+const expectSaidOnce = async (page: Page, message: string): Promise<void> => {
+  const said = () => page.evaluate(() => (window as SpeakingWindow).__ceeSaid ?? []);
+  await expect.poll(said).toEqual([message]);
+  await page.waitForTimeout(500);
+  expect(await said()).toEqual([message]);
+};
+
+test.describe('changes an action makes to the form', () => {
+  const pager = (page: Page): Locator => component(page, 'paged_no_instances').locator('app-cedar-multi-pager');
+
+  test('adding, copying and deleting an occurrence each say which and how many, and focus stays put', async ({
+    page,
+  }) => {
+    await open(page, '12-render-decision');
+    const add = pager(page).getByRole('button', { name: 'Add empty instance here', exact: true });
+    await listen(page);
+    await add.focus();
+    await add.press('Enter');
+    await expectSaidOnce(page, 'paged_no_instances: instance 1 of 1 added');
+    await expect(add).toBeFocused();
+
+    const copy = pager(page).getByRole('button', { name: 'Add copy of this instance', exact: true });
+    await listen(page);
+    await copy.focus();
+    await copy.press('Enter');
+    await expectSaidOnce(page, 'paged_no_instances: copy added as instance 2 of 2');
+    await expect(copy).toBeFocused();
+
+    const remove = pager(page).getByRole('button', { name: 'Delete current', exact: true });
+    await listen(page);
+    await remove.focus();
+    await remove.press('Enter');
+    await expectSaidOnce(page, 'paged_no_instances: instance 2 deleted, 1 left');
+    await expect(remove).toBeFocused();
+  });
+
+  test("an occurrence added to an element is announced in the form's language", async ({ page }) => {
+    await open(page, '03-nested-multi', 'hu');
+    await listen(page);
+    await page
+      .locator('app-cedar-multi-pager')
+      .first()
+      .getByRole('button', { name: 'Üres példány hozzáadása ide', exact: true })
+      .click();
+    await expectSaidOnce(page, 'author: 2. példány hozzáadva, összesen 4');
+  });
+
+  test('turning a page from its chips or its paginator says which page, and focus stays put', async ({ page }) => {
+    await open(page, '05-static-paged');
+    const chips = page.locator('.page-break-paginator-container').getByRole('option');
+    await listen(page);
+    await chips.nth(1).focus();
+    await page.keyboard.press('Enter');
+    await expectSaidOnce(page, 'Page 2 of 2');
+    await expect(chips.nth(1)).toBeFocused();
+
+    const previous = page.locator('.page-break-pager').getByRole('button', { name: 'Previous page' });
+    await listen(page);
+    await previous.focus();
+    await previous.press('Enter');
+    await expectSaidOnce(page, 'Page 1 of 2');
+    await expect(previous).toBeFocused();
+  });
+
+  test("turning a page of a field's occurrences says which occurrence is shown", async ({ page }) => {
+    await open(page, '22-multi-field-values', undefined, '22-multi-field-values-instance');
+    const occurrences = page.locator('app-cedar-multi-pager').first();
+    const add = occurrences.getByRole('button', { name: 'Add empty instance here', exact: true });
+    for (let count = 2; count < 6; count++) await add.click();
+    const next = occurrences.getByRole('button', { name: 'Next page' });
+    await listen(page);
+    await next.focus();
+    await next.press('Enter');
+    await expectSaidOnce(page, 'attribute: instance 6 of 6');
+    await expect(next).toBeFocused();
   });
 });

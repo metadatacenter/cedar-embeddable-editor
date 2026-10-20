@@ -33,6 +33,7 @@
     "CollapseAll": "Mindet bezár",
     "Copy": "Másolás",
     "Page": "Oldal",
+    "PageOf": "Oldal: {{number}} / {{count}}",
     "Name": "név",
     "Value": "érték",
     "AttributeName": "Attribútum név",
@@ -87,7 +88,11 @@
     "AddEmptyAfter": "Üres példány hozzáadása ide",
     "AddCloneAfter": "E példány másolatának hozzáadása",
     "DeleteCurrent": "Aktuális törlése",
-    "AllowsMultiValues": "Több érték is megadható."
+    "AllowsMultiValues": "Több érték is megadható.",
+    "InstanceAdded": "{{label}}: {{number}}. példány hozzáadva, összesen {{count}}",
+    "InstanceCopied": "{{label}}: másolat hozzáadva {{number}}. példányként, összesen {{count}}",
+    "InstanceDeleted": "{{label}}: {{number}}. példány törölve, {{count}} maradt",
+    "InstanceShown": "{{label}}: {{number}}. példány, összesen {{count}}"
   },
   "Error": {
     "LookupFailed": "A keresés sikertelen: a szolgáltatás nem érhető el",

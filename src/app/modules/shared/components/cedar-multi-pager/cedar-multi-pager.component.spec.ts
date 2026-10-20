@@ -1,3 +1,4 @@
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { DestroyRef } from '@angular/core';
 import { PageEvent } from '@angular/material/paginator';
 import { TranslateService } from '@ngx-translate/core';
@@ -62,14 +63,18 @@ describe('CedarMultiPagerComponent', () => {
       deleteCurrentValue: vi.fn(),
     } as unknown as ActiveComponentRegistryService;
 
+    const announcer = { announce: vi.fn(() => Promise.resolve()) };
     const pager = new CedarMultiPagerComponent(
       registry,
-      { instant: (k: string) => k } as unknown as TranslateService,
+      {
+        instant: (k: string, params?: object) => (params ? `${k} ${JSON.stringify(params)}` : k),
+      } as unknown as TranslateService,
       messages,
       { readOnlyMode$: of(false) } as unknown as UserPreferencesService,
       // Runs the sync straight away; the real one waits for Angular to render.
       { schedule: (task: () => void) => (task(), Promise.resolve(true)) } as unknown as RenderSchedulerService,
       { destroyed: false, onDestroy: () => () => undefined } as unknown as DestroyRef,
+      announcer as unknown as LiveAnnouncer,
     );
     pager.handlerContext = handlerContext;
     pager.pageBreakPaginatorService = {} as PageBreakPaginatorService;
@@ -77,7 +82,9 @@ describe('CedarMultiPagerComponent', () => {
     pager.ngOnInit();
 
     const count = (): number => (root.values['author'] as unknown as unknown[]).length;
-    return { pager, field, count, handlerContext };
+    /** What the pager asked the element's live region to say, in order. */
+    const said = (): unknown[][] => announcer.announce.mock.calls;
+    return { pager, field, count, handlerContext, said };
   };
 
   describe('which actions it offers', () => {
@@ -163,6 +170,54 @@ describe('CedarMultiPagerComponent', () => {
       pager.clickedDelete();
 
       expect(count()).toBe(2);
+    });
+  });
+
+  /**
+   * WCAG 4.1.3. An add, copy, delete or page turn changes the form below the pager, which no control
+   * on screen reports, so the pager says what changed, politely and once.
+   */
+  describe('what it says', () => {
+    it('names the added occurrence and the new count', () => {
+      const { pager, said } = makePager({ occurrences: 2, maxItems: 5 });
+
+      pager.clickedAdd();
+
+      expect(said()).toEqual([['Multi.InstanceAdded {"label":"author","number":2,"count":3}', 'polite', 10_000]]);
+    });
+
+    it('names the copy and the new count', () => {
+      const { pager, said } = makePager({ occurrences: 2, maxItems: 5 });
+
+      pager.clickedCopy();
+
+      expect(said()).toEqual([['Multi.InstanceCopied {"label":"author","number":2,"count":3}', 'polite', 10_000]]);
+    });
+
+    it('names the deleted occurrence and how many are left', () => {
+      const { pager, said } = makePager({ occurrences: 3, minItems: 1 });
+
+      pager.clickedDelete();
+
+      expect(said()).toEqual([['Multi.InstanceDeleted {"label":"author","number":1,"count":2}', 'polite', 10_000]]);
+    });
+
+    it('names the occurrence a page turn shows', () => {
+      const { pager, said } = makePager({ occurrences: 12, maxItems: null });
+
+      pager.paginatorChanged({ pageIndex: 2, pageSize: 5, length: 12, previousPageIndex: 0 } as PageEvent);
+
+      expect(said()).toEqual([['Multi.InstanceShown {"label":"author","number":11,"count":12}', 'polite', 10_000]]);
+    });
+
+    it('says nothing when a bound refuses the action', () => {
+      const { pager, said } = makePager({ occurrences: 2, minItems: 2, maxItems: 2 });
+
+      pager.clickedAdd();
+      pager.clickedCopy();
+      pager.clickedDelete();
+
+      expect(said()).toEqual([]);
     });
   });
 

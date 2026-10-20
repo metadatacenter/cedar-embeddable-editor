@@ -64,6 +64,21 @@ export class DescriptionLink {
 }
 
 /**
+ * How long an announcement stays in the region, as long as a select's own. The region is hidden from
+ * sight but not from a screen reader's reading of the page, so a message is not left there.
+ */
+const ANNOUNCEMENT_DURATION = 10_000;
+
+/**
+ * Say once, politely and without moving focus, what an action just changed in the form.
+ *
+ * For a change no control on screen reports, such as an occurrence added or a page turned.
+ */
+export function announceChange(announcer: Announcer | null, message: string): void {
+  void announcer?.announce(message, 'polite', ANNOUNCEMENT_DURATION);
+}
+
+/**
  * Says a message aloud when it appears or changes, without moving focus.
  *
  * Checked after each render with the text the message shows, or nothing while none is drawn. The
@@ -72,11 +87,6 @@ export class DescriptionLink {
  * outside one.
  */
 export class AnnouncedMessage {
-  /**
-   * How long an announcement stays in the region, as long as a select's own. The region is hidden
-   * from sight but not from a screen reader's reading of the page, so a message is not left there.
-   */
-  private static readonly DURATION = 10_000;
   private shown: string | null = null;
 
   constructor(private readonly announcer: Announcer | null) {}
@@ -85,7 +95,7 @@ export class AnnouncedMessage {
     const previous = this.shown;
     this.shown = text;
     if (previous !== null && text !== '' && text !== previous) {
-      void this.announcer?.announce(text, 'polite', AnnouncedMessage.DURATION);
+      announceChange(this.announcer, text);
     }
   }
 }
