@@ -1,12 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
-import { open } from './support/host';
+import { open, passDebounceWindow } from './support/host';
 
 /**
  * WCAG 1.4.10 Reflow, 1.4.4 Resize Text, 1.4.12 Text Spacing and, for placeholders, 1.4.3 Contrast
  * (Minimum). The four CEDAR browser components check these the same way.
  *
  * - Reflow. At 320 CSS px wide, neither the page nor a scroll container of CEE's scrolls
- *   sideways, and every control can be reached.
+ *   sideways, no text is clipped or overlaps other text, and every control can be reached.
  * - Resize. In a 640 by 400 CSS px viewport, which is a 1280 by 800 window at 200% zoom, no text is
  *   clipped or overlaps other text, and every control can be reached.
  * - Text spacing. With WCAG's line, letter, word and paragraph spacing forced on the page and on
@@ -14,9 +14,16 @@ import { open } from './support/host';
  * - Placeholders. Every placeholder clears 4.5:1 against the background it sits on. axe does not
  *   measure placeholder text.
  *
- * Each runs over the input types, choices, authority and temporal fixtures, a nested one and a
- * multi-page one, editable and read only. A finding that cannot be fixed without a visible change is
- * listed in `EXCEPTIONS` with the change it needs.
+ * A placeholder is text too, and since it cannot wrap, a box that is too narrow for it clips it.
+ *
+ * Each check runs over the input types, choices, authority and temporal fixtures, a nested one and a
+ * multi-page one, editable and read only, and over the field element showing one field of each of
+ * the first four. Reflow, resize and text spacing also run over a form with each kind of overlay
+ * open: the date picker's calendar in its month and multi-year views, a select's panel, an
+ * autocomplete's suggestions and the download menu. An overlay is fixed to the viewport, so the page
+ * cannot be scrolled to what it puts outside it, and the viewport clips it as an ancestor that hides
+ * its overflow does. A finding that cannot be fixed without a visible change is listed in
+ * `EXCEPTIONS` with the change it needs.
  */
 
 const FIXTURES = ['01-input-types', '02-choices', '08-authority', '09-temporal', '03-nested-multi', '05-static-paged'];
@@ -34,6 +41,36 @@ type Mode = (typeof MODES)[number];
 const show = (page: Page, fixture: string, mode: Mode): Promise<void> =>
   mode === 'editable' ? open(page, fixture) : open(page, fixture, 'readonly', INSTANCES[fixture]);
 
+/** The field the field element shows from each of the input types, choices, authority and temporal fixtures. */
+const FIELDS = [
+  ['01-input-types', '_text'],
+  ['02-choices', '_radio'],
+  ['08-authority', '_contributor_orcid'],
+  ['09-temporal', '_decimal_seconds'],
+] as const;
+
+/** The field route reports ready before the field renders, so this waits for the field and its fonts. */
+const showField = async (page: Page, fixture: string, property: string, mode: Mode): Promise<void> => {
+  await open(
+    page,
+    fixture,
+    mode === 'editable' ? undefined : 'readonly',
+    undefined,
+    undefined,
+    `&host=field&p=${property}`,
+  );
+  await expect(page.locator('cedar-embeddable-field app-cedar-field-widget').first()).toBeVisible();
+  await page.evaluate(() => document.fonts.ready.then(() => undefined));
+  await page.waitForFunction(() =>
+    document
+      .getAnimations()
+      .every(
+        (animation) =>
+          animation.playState !== 'running' || animation.effect?.getComputedTiming().iterations === Infinity,
+      ),
+  );
+};
+
 const TEXT_SPACING =
   '* { line-height: 1.5 !important; letter-spacing: 0.12em !important; word-spacing: 0.16em !important; } ' +
   'p { margin-bottom: 2em !important; }';
@@ -49,7 +86,20 @@ interface Exception {
 }
 
 /** Findings that need a visible change, each with the change it needs. */
-const EXCEPTIONS: readonly Exception[] = [];
+const EXCEPTIONS: readonly Exception[] = [
+  /*
+   * At 320 CSS px an authority box has 264px for its placeholder, and the PubMed and RRID
+   * instructions need about 271px and 276px, so each loses its last letters. A placeholder is one
+   * line that cannot wrap, and its type and the box's padding are the shared control's.
+   */
+  {
+    check: 'reflow',
+    finding: /^placeholder is clipped: "Start typing (publication name or PubMed ID|research resource name or RRID)"/,
+    needs:
+      'a placeholder that fits a 320 CSS px box: a shorter instruction, or the instruction moved out of the box ' +
+      'into hint text that wraps',
+  },
+];
 
 /**
  * What the page shows that breaks a check, one line per finding.
@@ -91,15 +141,22 @@ function findLayoutProblems(options: { scrolling: boolean; controls: boolean; te
    * Each ancestor, the element first, that cuts off what overflows it, with the box it cuts to. An
    * inline element is skipped, since overflow does not apply to it. A scroll container is skipped
    * too: what it hides can be scrolled to, and one that scrolls sideways is a finding of its own.
+   * Content fixed to the viewport, as an overlay is, cannot be scrolled to either, so the viewport
+   * cuts it off.
    */
-  const clippers = (element: Element): { ancestor: Element; box: Partial<Box> }[] => {
-    const found: { ancestor: Element; box: Partial<Box> }[] = [];
+  const clippers = (element: Element): { ancestor: Element | 'the viewport'; box: Partial<Box> }[] => {
+    const found: { ancestor: Element | 'the viewport'; box: Partial<Box> }[] = [];
     for (
       let ancestor: Element | null = element;
       ancestor && ancestor !== document.documentElement;
       ancestor = parentOf(ancestor)
     ) {
       const style = getComputedStyle(ancestor);
+      if (style.position === 'fixed')
+        found.push({
+          ancestor: 'the viewport',
+          box: { left: 0, right: viewportWidth, top: 0, bottom: document.documentElement.clientHeight },
+        });
       const x = style.overflowX === 'hidden' || style.overflowX === 'clip';
       const y = style.overflowY === 'hidden' || style.overflowY === 'clip';
       if ((!x && !y) || style.display === 'inline' || style.display === 'contents') continue;
@@ -195,14 +252,13 @@ function findLayoutProblems(options: { scrolling: boolean; controls: boolean; te
       const clipper = cutters.find(({ box }) => text.rects.some((rect) => escapes(rect, box)));
       if (clipper) {
         const ellipsis = [text.element, clipper.ancestor].some(
-          (element) => getComputedStyle(element).textOverflow === 'ellipsis',
+          (element) => element instanceof Element && getComputedStyle(element).textOverflow === 'ellipsis',
         );
         // An ellipsis is a clip a reader is told about, and a title or a tooltip gives the rest.
         const elsewhere = text.element.closest('[title], .mat-mdc-tooltip-trigger') !== null;
+        const by = clipper.ancestor instanceof Element ? name(clipper.ancestor) : clipper.ancestor;
         if (!(ellipsis && elsewhere))
-          findings.push(
-            `text is clipped: ${name(text.element)}${ellipsis ? ' behind an ellipsis' : ''} by ${name(clipper.ancestor)}`,
-          );
+          findings.push(`text is clipped: ${name(text.element)}${ellipsis ? ' behind an ellipsis' : ''} by ${by}`);
       }
       // Overlap is judged on what is drawn, so text a clip hides cannot overlap anything.
       text.rects = text.rects
@@ -218,13 +274,38 @@ function findLayoutProblems(options: { scrolling: boolean; controls: boolean; te
     const overlap = (a: Box, b: Box): boolean =>
       Math.min(a.right, b.right) - Math.max(a.left, b.left) > 1 &&
       Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1;
+    // An overlay is drawn over the page on purpose, so text it covers is hidden rather than
+    // overlapped. Text is compared with the text of its own layer: the page, or one overlay.
+    const layerOf = (element: Element): Element | null => element.closest('.cdk-overlay-pane');
     for (let i = 0; i < texts.length; i++)
       for (let j = i + 1; j < texts.length; j++) {
         const [a, b] = [texts[i], texts[j]];
         if (a.element.contains(b.element) || b.element.contains(a.element)) continue;
+        if (layerOf(a.element) !== layerOf(b.element)) continue;
         if (a.rects.some((one) => b.rects.some((other) => overlap(one, other))))
           findings.push(`text overlaps: ${name(a.element)} and ${name(b.element)}`);
       }
+
+    // A placeholder is text as well, and a box cuts off what does not fit on its one line. It is
+    // measured as a line of text set in the placeholder's own style, against the box's content width.
+    for (const box of root.querySelectorAll<HTMLInputElement>('input[placeholder]')) {
+      if (!box.placeholder.trim() || box.value !== '' || !shown(box)) continue;
+      const placeholder = getComputedStyle(box, '::placeholder');
+      const line = document.createElement('span');
+      for (const property of ['font', 'letter-spacing', 'word-spacing', 'text-transform'])
+        line.style.setProperty(property, placeholder.getPropertyValue(property));
+      Object.assign(line.style, { position: 'absolute', visibility: 'hidden', whiteSpace: 'pre' });
+      line.textContent = box.placeholder;
+      box.parentElement!.appendChild(line);
+      const needed = line.getBoundingClientRect().width;
+      line.remove();
+      const style = getComputedStyle(box);
+      const available = box.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+      if (needed > available + 1)
+        findings.push(
+          `placeholder is clipped: "${box.placeholder}" needs ${Math.ceil(needed)}px of ${Math.floor(available)}px`,
+        );
+    }
   }
 
   return findings;
@@ -232,7 +313,7 @@ function findLayoutProblems(options: { scrolling: boolean; controls: boolean; te
 
 /** Placeholders below 4.5:1 on what they sit on. Runs in the page. */
 function findFaintPlaceholders(): string[] {
-  const root = document.querySelector('cedar-embeddable-editor')!.shadowRoot!;
+  const root = document.querySelector('cedar-embeddable-editor, cedar-embeddable-field')!.shadowRoot!;
   const parse = (color: string): number[] => (color.match(/[\d.]+/g) ?? ['0', '0', '0', '0']).map(Number);
   const luminance = ([r, g, b]: number[]): number => {
     const linear = [r, g, b].map((channel) => {
@@ -287,45 +368,146 @@ const settle = (page: Page): Promise<void> =>
     () => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))),
   );
 
+/** Force WCAG's text spacing on the page and on every shadow root, and let the layout settle. */
+const forceTextSpacing = async (page: Page): Promise<void> => {
+  await page.evaluate((css) => {
+    const roots: (Document | ShadowRoot)[] = [document];
+    for (const root of roots)
+      for (const element of root.querySelectorAll('*')) if (element.shadowRoot) roots.push(element.shadowRoot);
+    for (const root of roots) {
+      const style = document.createElement('style');
+      style.textContent = css;
+      (root instanceof Document ? root.head : root).appendChild(style);
+    }
+  }, TEXT_SPACING);
+  await settle(page);
+};
+
+/** The first three checks, each in the viewport it is made in, over what `show` puts on the page. */
+const CHECKS: readonly {
+  readonly check: Exclude<Check, 'placeholder'>;
+  readonly title: string;
+  readonly viewport: { readonly width: number; readonly height: number };
+  readonly options: { readonly scrolling: boolean; readonly controls: boolean; readonly text: boolean };
+}[] = [
+  {
+    check: 'reflow',
+    title: 'reflows at 320 CSS px',
+    viewport: { width: 320, height: 640 },
+    options: { scrolling: true, controls: true, text: true },
+  },
+  {
+    check: 'resize',
+    title: 'holds at 200% zoom',
+    viewport: { width: 640, height: 400 },
+    options: { scrolling: false, controls: true, text: true },
+  },
+  {
+    check: 'text spacing',
+    title: 'keeps its text whole under WCAG text spacing',
+    viewport: { width: 1280, height: 900 },
+    options: { scrolling: false, controls: false, text: true },
+  },
+];
+
+const checkLayout = (title: string, show: (page: Page) => Promise<void>): void => {
+  for (const { check, title: checking, viewport, options } of CHECKS)
+    test(`${title} ${checking}`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await show(page);
+      if (check === 'text spacing') await forceTextSpacing(page);
+      const findings = await page.evaluate(findLayoutProblems, options);
+      expect(unexplained(check, findings)).toEqual([]);
+    });
+
+  test(`${title} placeholders clear 4.5:1`, async ({ page }) => {
+    await show(page);
+    expect(unexplained('placeholder', await page.evaluate(findFaintPlaceholders))).toEqual([]);
+  });
+};
+
 for (const fixture of FIXTURES)
-  for (const mode of MODES) {
-    test(`${fixture} ${mode} reflows at 320 CSS px`, async ({ page }) => {
-      await page.setViewportSize({ width: 320, height: 640 });
-      await show(page, fixture, mode);
-      const findings = await page.evaluate(findLayoutProblems, { scrolling: true, controls: true, text: false });
-      expect(unexplained('reflow', findings)).toEqual([]);
-    });
+  for (const mode of MODES) checkLayout(`${fixture} ${mode}`, (page) => show(page, fixture, mode));
 
-    test(`${fixture} ${mode} holds at 200% zoom`, async ({ page }) => {
-      await page.setViewportSize({ width: 640, height: 400 });
-      await show(page, fixture, mode);
-      const findings = await page.evaluate(findLayoutProblems, { scrolling: false, controls: true, text: true });
-      expect(unexplained('resize', findings)).toEqual([]);
-    });
+for (const [fixture, property] of FIELDS)
+  for (const mode of MODES)
+    checkLayout(`the field element showing ${fixture} ${property} ${mode}`, (page) =>
+      showField(page, fixture, property, mode),
+    );
 
-    test(`${fixture} ${mode} keeps its text whole under WCAG text spacing`, async ({ page }) => {
-      await page.setViewportSize({ width: 1280, height: 900 });
-      await show(page, fixture, mode);
-      await page.evaluate((css) => {
-        const roots: (Document | ShadowRoot)[] = [document];
-        for (const root of roots)
-          for (const element of root.querySelectorAll('*')) if (element.shadowRoot) roots.push(element.shadowRoot);
-        for (const root of roots) {
-          const style = document.createElement('style');
-          style.textContent = css;
-          (root instanceof Document ? root.head : root).appendChild(style);
-        }
-      }, TEXT_SPACING);
-      await settle(page);
-      const findings = await page.evaluate(findLayoutProblems, { scrolling: false, controls: false, text: true });
-      expect(unexplained('text spacing', findings)).toEqual([]);
-    });
+/** An authority answers a search with two suggestions, the second with a name long enough to wrap. */
+const answerSearches = async (page: Page): Promise<void> => {
+  await page.route('**/ext-auth/orcid/search**', (route) =>
+    route.fulfill({
+      json: {
+        found: true,
+        results: {
+          'https://orcid.org/0000-0002-1825-0097': { name: 'Maria Carberry' },
+          'https://orcid.org/0000-0001-5109-3700': {
+            name: 'Maria Fernanda de los Ángeles Castellanos-Villavicencio de la Torre',
+          },
+        },
+      },
+    }),
+  );
+};
 
-    test(`${fixture} ${mode} placeholders clear 4.5:1`, async ({ page }) => {
-      await show(page, fixture, mode);
-      expect(unexplained('placeholder', await page.evaluate(findFaintPlaceholders))).toEqual([]);
+/** Each kind of overlay CEE opens, with the fixture it opens over and how it is opened. */
+const OVERLAYS: readonly { readonly name: string; readonly show: (page: Page) => Promise<void> }[] = [
+  {
+    name: "the date picker's calendar in its month view",
+    show: async (page) => {
+      await open(page, '09-temporal');
+      await page.locator('app-date-picker').nth(1).getByRole('button', { name: 'Open calendar' }).click();
+      await expect(page.locator('mat-month-view')).toBeVisible();
+    },
+  },
+  {
+    name: "the date picker's calendar in its multi-year view",
+    show: async (page) => {
+      await open(page, '09-temporal');
+      await page.locator('app-date-picker').nth(1).getByRole('button', { name: 'Open calendar' }).click();
+      await page.locator('.mat-calendar-period-button').click();
+      await expect(page.locator('mat-multi-year-view')).toBeVisible();
+    },
+  },
+  {
+    name: "a select's open panel",
+    show: async (page) => {
+      await open(page, '02-choices');
+      await page.getByRole('combobox', { name: 'single_list', exact: true }).click();
+      await expect(page.getByRole('listbox', { name: 'single_list' })).toBeVisible();
+    },
+  },
+  {
+    name: "an autocomplete's suggestions",
+    show: async (page) => {
+      await answerSearches(page);
+      await open(page, '08-authority', 'authority');
+      await page.locator('input[aria-label="contributor_orcid"]').pressSequentially('maria', { delay: 20 });
+      await passDebounceWindow(page);
+      await expect(page.getByRole('option')).toHaveCount(2, { timeout: 5000 });
+    },
+  },
+  {
+    name: 'the download menu',
+    show: async (page) => {
+      await open(page, '01-input-types', undefined, undefined, undefined, '&f=showDownloadMenu');
+      await page.getByRole('button', { name: 'Download', exact: true }).click();
+      await expect(page.getByRole('menuitem').first()).toBeVisible();
+    },
+  },
+];
+
+for (const overlay of OVERLAYS)
+  for (const { check, title, viewport, options } of CHECKS)
+    test(`with ${overlay.name} open, the form ${title}`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await overlay.show(page);
+      if (check === 'text spacing') await forceTextSpacing(page);
+      const findings = await page.evaluate(findLayoutProblems, options);
+      expect(unexplained(check, findings)).toEqual([]);
     });
-  }
 
 /**
  * A PubMed term keeps its title to one line beside its identifier and link-out. At 320 CSS px the

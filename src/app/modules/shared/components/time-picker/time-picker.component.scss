@@ -94,6 +94,33 @@
   width: 1.3em;
 }
 
+/*
+ * Wider tracking widens a placeholder past its box. Under WCAG's text spacing, at 0.12em a letter,
+ * `HH` lost the end of its second H. Where a box can size to what it shows, each width above is
+ * instead a minimum it grows from. At the type's own tracking nothing a box shows needs more than
+ * that minimum, so the clock is drawn as before and grows only when its text does.
+ */
+@supports (field-sizing: content) {
+  .cee-time-segment-hour,
+  .cee-time-segment-minute,
+  .cee-time-segment-second {
+    field-sizing: content;
+    width: auto;
+  }
+
+  .cee-time-segment-hour {
+    min-width: 1.5em;
+  }
+
+  .cee-time-segment-minute {
+    min-width: 1.8em;
+  }
+
+  .cee-time-segment-second {
+    min-width: 1.3em;
+  }
+}
+
 .cee-time-separator {
   line-height: 22px;
   color: tokens.$text-muted;
