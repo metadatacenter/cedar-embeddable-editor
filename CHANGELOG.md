@@ -12,6 +12,7 @@ Aligns with `cedar-model-typescript-library@1.0.21`.
 - Fixes the six accessibility defects an axe-core check against WCAG 2.2 AA found, none of them visible: a field's help icon is hidden from assistive technology because its description is already in the page, the required and property-IRI markers are named images, the empty pager and page-break chip lists are named, and the logo link and the emptied pager's chip are named by the text they show.
 - Marks the editor's and the field element's text with the language it is shown in, and a read-only value with its own language tag. Names temporal, choice and lookup controls by their field's label, announces field problems and lookup notices and links each to the control it concerns, returns focus to the control a clear button empties, and turns the page when Enter or Space selects a page chip. None of this changes what the form shows.
 - Makes a field's help and property marks keyboard stops that show their tooltips on focus, describes each control with its field's description, announces added, copied and deleted occurrences and page turns, marks value controls with the language their field declares, and lets a read-only term's identifier and link-out wrap on a narrow host rather than be cut off.
+- Marks a template's own title, labels, descriptions, options and static text with the language the template or element declares, and lets the clock's hour, minute and second boxes grow under wider text spacing where the browser can size a box to its content.
 
 ## [2.0.25] - 2026-10-19
 
