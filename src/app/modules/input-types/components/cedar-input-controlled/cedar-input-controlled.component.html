@@ -113,7 +113,7 @@ different destinations worth having.
           </mat-option>
         }
         @if (lookupFailed && !loading) {
-          <mat-option disabled class="lookup-failed">
+          <mat-option #lookupNotice [id]="lookupMessage.id" disabled class="lookup-failed">
             {{ 'Error.LookupFailed' | translate }}
           </mat-option>
         }
@@ -125,7 +125,7 @@ different destinations worth having.
           serving reaches this, and said nothing at all.
         -->
         @if (!readOnlyMode && !loading && !lookupFailed && terms !== null && terms.length === 0) {
-          <mat-option disabled>
+          <mat-option #lookupNotice [id]="lookupMessage.id" disabled>
             {{ (hasQuery ? 'Error.NoResults' : 'Error.NoTermsAvailable') | translate }}
           </mat-option>
         }

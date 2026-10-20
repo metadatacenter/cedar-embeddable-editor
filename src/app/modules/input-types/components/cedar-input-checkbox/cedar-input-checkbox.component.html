@@ -22,6 +22,8 @@
     the same reason.
   -->
   @if (showsRequiredError) {
-    <mat-error class="mat-error align-start">{{ 'Validation.SelectAtLeastOne' | translate }}</mat-error>
+    <mat-error #requiredError [id]="requiredMessage.id" class="mat-error align-start">{{
+      'Validation.SelectAtLeastOne' | translate
+    }}</mat-error>
   }
 </form>

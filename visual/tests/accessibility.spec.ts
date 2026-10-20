@@ -126,6 +126,6 @@ test('an authority search under way, and one that found nothing', async ({ page 
   await expect(field.getByText('Searching…', { exact: true })).toBeVisible();
   await expectAccessible(page, 'authority search under way');
   release();
-  await expect(field.getByText('No results found', { exact: true })).toBeVisible();
+  await expect(field.getByRole('option', { name: 'No results found', exact: true })).toBeVisible();
   await expectAccessible(page, 'authority search that found nothing');
 });

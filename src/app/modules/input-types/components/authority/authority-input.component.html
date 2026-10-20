@@ -90,7 +90,7 @@ genuinely theirs.
           </mat-option>
         }
         @if (lookupFailed && !loadingOptions) {
-          <mat-option disabled class="lookup-failed">
+          <mat-option #lookupNotice [id]="lookupMessage.id" disabled class="lookup-failed">
             {{ 'Error.LookupFailed' | translate }}
           </mat-option>
         }
@@ -100,7 +100,7 @@ genuinely theirs.
           (inputValueControl.value?.trim()?.length ?? 0) > 0 &&
           (terms?.length ?? 0) === 0
         ) {
-          <mat-option disabled>{{ 'Error.NoResults' | translate }}</mat-option>
+          <mat-option #lookupNotice [id]="lookupMessage.id" disabled>{{ 'Error.NoResults' | translate }}</mat-option>
         }
         @for (option of terms; track option) {
           <!--

@@ -1,4 +1,15 @@
-import { Component, Input, OnInit, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
+import {
+  AfterViewChecked,
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  Input,
+  OnInit,
+  ViewChild,
+  ViewEncapsulation,
+  inject,
+} from '@angular/core';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
@@ -7,6 +18,7 @@ import { HandlerContext } from '../../../shared/util/handler-context';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
 import { requireFormArray } from '../../../shared/forms/form-control';
 import { InstanceValueNode } from '../../../shared/util/instance-value-node';
+import { WidgetMessage } from '../../../shared/util/message-links';
 
 @Component({
   selector: 'app-cedar-input-checkbox',
@@ -16,13 +28,17 @@ import { InstanceValueNode } from '../../../shared/util/instance-value-node';
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
-export class CedarInputCheckboxComponent extends CedarUIDirective implements OnInit {
+export class CedarInputCheckboxComponent extends CedarUIDirective implements OnInit, AfterViewChecked {
   /** The control holding the selection, named once because the validator asks for it too. */
   private static readonly SELECTION = 'checkedChoices';
 
   component!: FieldComponent;
   options: FormGroup;
   @Input({ required: true }) handlerContext!: HandlerContext;
+  /** The required error, which describes every option and is announced when it appears. */
+  readonly requiredMessage = new WidgetMessage(inject(LiveAnnouncer, { optional: true }));
+  @ViewChild('requiredError', { read: ElementRef }) private requiredError?: ElementRef<HTMLElement>;
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef, { optional: true });
 
   constructor(
     fb: FormBuilder,
@@ -96,6 +112,18 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
 
   protected override revealedControls(): AbstractControl[] {
     return [this.options];
+  }
+
+  ngAfterViewChecked(): void {
+    this.requiredMessage.check(
+      this.requiredError?.nativeElement ?? null,
+      this.host?.nativeElement.querySelectorAll('input[type="checkbox"]') ?? [],
+    );
+  }
+
+  override ngOnDestroy(): void {
+    super.ngOnDestroy();
+    this.requiredMessage.clear();
   }
 
   /**

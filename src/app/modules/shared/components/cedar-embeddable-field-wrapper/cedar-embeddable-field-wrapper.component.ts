@@ -9,7 +9,7 @@ import {
   ViewEncapsulation,
 } from '@angular/core';
 import { Overlay, OverlayContainer, OverlayPositionBuilder } from '@angular/cdk/overlay';
-import { AriaDescriber } from '@angular/cdk/a11y';
+import { AriaDescriber, LIVE_ANNOUNCER_ELEMENT_TOKEN, LiveAnnouncer } from '@angular/cdk/a11y';
 import { HttpClient } from '@angular/common/http';
 import { TranslateLoader, TranslateService, provideChildTranslateService } from '@ngx-translate/core';
 import type { JsonNode } from 'cedar-model-typescript-library';
@@ -27,6 +27,7 @@ import { CedarComponent } from '../../models/component/cedar-component.model';
 import { FieldComponent } from '../../models/component/field-component.model';
 import { CedarAriaDescriber } from '../../service/cedar-aria-describer.service';
 import { CedarOverlayContainer } from '../../service/cedar-overlay-container.service';
+import { CedarLiveRegion } from '../../service/cedar-live-region.service';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
 import { ControlledFieldDataService } from '../../service/controlled-field-data.service';
 import { ExternalAuthorityLookupService } from '../../service/external-authority-lookup.service';
@@ -85,6 +86,13 @@ interface FieldRuntime {
   providers: [
     { provide: AriaDescriber, useClass: CedarAriaDescriber },
     { provide: OverlayContainer, useClass: CedarOverlayContainer },
+    CedarLiveRegion,
+    {
+      provide: LIVE_ANNOUNCER_ELEMENT_TOKEN,
+      useFactory: (region: CedarLiveRegion) => region.element,
+      deps: [CedarLiveRegion],
+    },
+    LiveAnnouncer,
     OverlayPositionBuilder,
     Overlay,
     ActiveComponentRegistryService,

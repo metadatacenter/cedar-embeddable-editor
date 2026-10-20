@@ -1,12 +1,18 @@
 import {
+  AfterViewChecked,
   AfterViewInit,
   Component,
+  ElementRef,
   HostListener,
   inject,
   Input,
+  OnDestroy,
+  QueryList,
+  ViewChildren,
   ViewEncapsulation,
   ChangeDetectionStrategy,
 } from '@angular/core';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { AbstractControl, FormControl, Validators } from '@angular/forms';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
@@ -25,6 +31,7 @@ import {
   CedarTemporalValue,
 } from '../../../shared/util/cedar-temporal-value';
 import { holdsConstraintError } from '../../edited-field-error-state-matcher';
+import { WidgetMessage } from '../../../shared/util/message-links';
 
 /** A part of a temporal value the user supplies, in the order the controls stand. */
 export type TemporalPart = 'date' | 'time' | 'fraction';
@@ -37,7 +44,10 @@ export type TemporalPart = 'date' | 'time' | 'fraction';
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
-export class CedarInputDatetimeComponent extends CedarUIDirective implements AfterViewInit {
+export class CedarInputDatetimeComponent
+  extends CedarUIDirective
+  implements AfterViewInit, AfterViewChecked, OnDestroy
+{
   component!: FieldComponent;
 
   timePickerTime: Date | null;
@@ -96,6 +106,16 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
   /** The display-label rule, which names this control the way the form labels it. */
   readonly cds = inject(ComponentDataService);
 
+  /**
+   * The row's error, which describes each of its controls and is announced when it appears.
+   *
+   * It stands outside any form field, since it speaks for the whole row, so neither the linking nor
+   * the announcing comes from Material. The row shows one error at a time.
+   */
+  readonly errorMessage = new WidgetMessage(inject(LiveAnnouncer, { optional: true }));
+  @ViewChildren('temporalError', { read: ElementRef }) private temporalErrors?: QueryList<ElementRef<HTMLElement>>;
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef, { optional: true });
+
   @Input({ required: true }) handlerContext!: HandlerContext;
 
   constructor(private activeComponentRegistry: ActiveComponentRegistryService) {
@@ -106,6 +126,18 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
 
   ngAfterViewInit(): void {
     this.cdr.detectChanges();
+  }
+
+  ngAfterViewChecked(): void {
+    this.errorMessage.check(
+      this.temporalErrors?.first?.nativeElement ?? null,
+      this.host?.nativeElement.querySelectorAll('input, mat-select') ?? [],
+    );
+  }
+
+  override ngOnDestroy(): void {
+    super.ngOnDestroy();
+    this.errorMessage.clear();
   }
 
   @Input({ required: true }) set componentToRender(componentToRender: FieldComponent) {

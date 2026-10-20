@@ -40,7 +40,8 @@ import * as fallbackMapEN from '../../../../../assets/i18n-cee/en.json';
 import * as fallbackMapHU from '../../../../../assets/i18n-cee/hu.json';
 import { Overlay, OverlayContainer, OverlayPositionBuilder } from '@angular/cdk/overlay';
 import { CedarOverlayContainer } from '../../service/cedar-overlay-container.service';
-import { AriaDescriber } from '@angular/cdk/a11y';
+import { CedarLiveRegion } from '../../service/cedar-live-region.service';
+import { AriaDescriber, LIVE_ANNOUNCER_ELEMENT_TOKEN, LiveAnnouncer } from '@angular/cdk/a11y';
 import { CedarAriaDescriber } from '../../service/cedar-aria-describer.service';
 import { CeeConfig } from '../../util/config-reader';
 import { Template } from 'cedar-model-typescript-library';
@@ -59,6 +60,13 @@ import { uiLanguageOf } from '../../util/language-tag';
   providers: [
     { provide: AriaDescriber, useClass: CedarAriaDescriber },
     { provide: OverlayContainer, useClass: CedarOverlayContainer },
+    CedarLiveRegion,
+    {
+      provide: LIVE_ANNOUNCER_ELEMENT_TOKEN,
+      useFactory: (region: CedarLiveRegion) => region.element,
+      deps: [CedarLiveRegion],
+    },
+    LiveAnnouncer,
     OverlayPositionBuilder,
     Overlay,
     ActiveComponentRegistryService,

@@ -103,13 +103,13 @@
   }
 
   @if (missingPart; as part) {
-    <mat-error class="mat-error align-start cee-temporal-error">
+    <mat-error #temporalError [id]="errorMessage.id" class="mat-error align-start cee-temporal-error">
       {{ missingPartKeys[part] | translate }}
     </mat-error>
   }
   @if (showsValidationMessage) {
     @let message = validationMessage();
-    <mat-error class="mat-error align-start cee-temporal-error">
+    <mat-error #temporalError [id]="errorMessage.id" class="mat-error align-start cee-temporal-error">
       {{ message.key | translate: message.params }}
     </mat-error>
   }
