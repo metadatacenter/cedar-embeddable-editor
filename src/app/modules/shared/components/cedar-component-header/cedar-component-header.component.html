@@ -10,7 +10,7 @@
       {{ cds.getRenderingLabelForComponent(component) }}
       @if (shouldRenderRequiredMark) {
         <span>
-          <sup class="required-mark" attr.aria-label="{{ 'Generic.Required' | translate }}"><b>*</b></sup>
+          <sup class="required-mark" role="img" attr.aria-label="{{ 'Generic.Required' | translate }}"><b>*</b></sup>
         </span>
       }
     </span>
@@ -39,15 +39,14 @@
         <mat-icon class="disclosure-icon" [class.expanded]="disclosure" cedarIcon="chevron-down"></mat-icon>
       </span>
     }
+    <!-- A pointer's view of the description, which the visually hidden text below gives a screen reader. -->
     @if (!readOnlyMode && component.labelInfo.description) {
       <mat-icon
         cedarIcon="help"
         matTooltip="{{ component.labelInfo.description }}"
         matTooltipPosition="right"
-        aria-hidden="false"
-        aria-labelledby="description"
+        aria-hidden="true"
         class="icon-help icon-questionmark"
-        role="tooltip"
         inline="false"
       ></mat-icon>
     }
@@ -55,6 +54,7 @@
     @if (component.propertyIri) {
       <span
         class="property-iri"
+        role="img"
         [matTooltip]="component.propertyIri"
         matTooltipPosition="above"
         [attr.aria-label]="'Generic.PropertyIri' | translate: { iri: component.propertyIri }"

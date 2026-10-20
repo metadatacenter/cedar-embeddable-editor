@@ -42,7 +42,11 @@
         label sat 21px from the left edge and 9px from the right.
       -->
       @if (getInstanceCount() < 1) {
-        <mat-chip-listbox [tabIndex]="0" [hideSingleSelectionIndicator]="true">
+        <mat-chip-listbox
+          [tabIndex]="0"
+          [hideSingleSelectionIndicator]="true"
+          attr.aria-label="{{ 'Multi.AllowsMultiValues' | translate }}"
+        >
           <mat-chip-option selectable="false" disabled="true" aria-label="{{ 'Multi.NoValuesYet' | translate }}">{{
             'Multi.NoInstancesYet' | translate
           }}</mat-chip-option>
