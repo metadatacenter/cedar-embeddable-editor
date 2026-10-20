@@ -27,6 +27,9 @@ import { SpecFact, specHeaderFactsOf, specKeywordOf } from '../../util/field-spe
   standalone: false,
 })
 export class CedarFieldSpecComponent implements OnInit {
+  private static nextId = 0;
+  /** The id of the description paragraph, which describes the field's controls. Unique within the page. */
+  readonly descriptionId = `cee-field-spec-description-${CedarFieldSpecComponent.nextId++}`;
   @Input({ required: true }) fieldToDescribe!: FieldComponent | StaticFieldComponent;
 
   /**

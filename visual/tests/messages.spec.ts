@@ -53,8 +53,9 @@ test.describe('report problems', () => {
     for (const radio of await component(page, 'answer').getByRole('radio').all())
       await expect(radio).toHaveAccessibleDescription(notOption);
     await expect(component(page, 'region').getByRole('combobox')).toHaveAccessibleDescription(notOption);
+    // Beside the field's own description, which describes its controls too.
     await expect(component(page, 'contributor').getByRole('textbox')).toHaveAccessibleDescription(
-      'The stored identifier is not a valid IRI.',
+      'The stored identifier is not a valid IRI. contributor property description',
     );
   });
 
@@ -74,7 +75,7 @@ test.describe('report problems', () => {
     expect(await problems.getAttribute('id'), 'the same region, not a new one').toBe(id);
     expect(await focused(page)).toBe(before);
     await expect(component(page, 'aliases').getByRole('textbox')).toHaveAccessibleDescription(
-      'Warning: At least 3 entries are required.',
+      'Warning: At least 3 entries are required. aliases property description',
     );
   });
 
@@ -111,7 +112,7 @@ test.describe("a widget's own messages", () => {
 
     await agree.click();
     await expect(group.locator('mat-error')).toHaveCount(0);
-    await expect(agree).toHaveAccessibleDescription('');
+    await expect(agree).toHaveAccessibleDescription('consent property description');
   });
 
   test("a temporal row announces the part still missing and links it to the row's controls", async ({ page }) => {
@@ -140,12 +141,14 @@ test.describe("a widget's own messages", () => {
     const failed = page.getByRole('option', { name: 'Search failed: the service could not be reached', exact: true });
     await expect(failed).toBeVisible();
     await expect(liveRegion(page)).toHaveText('Search failed: the service could not be reached');
-    await expect(input).toHaveAccessibleDescription('Search failed: the service could not be reached');
+    await expect(input).toHaveAccessibleDescription(
+      'contributor_orcid property description Search failed: the service could not be reached',
+    );
     expect(await focused(page)).toBe('INPUT contributor_orcid');
 
     await input.press('Escape');
     await expect(failed).toHaveCount(0);
-    await expect(input).toHaveAccessibleDescription('');
+    await expect(input).toHaveAccessibleDescription('contributor_orcid property description');
   });
 
   test('a failed term search is announced and describes the box', async ({ page }) => {
@@ -156,7 +159,9 @@ test.describe("a widget's own messages", () => {
     await passDebounceWindow(page);
     await expect(page.getByRole('option', { name: /^Search failed/ })).toBeVisible();
     await expect(liveRegion(page)).toHaveText('Search failed: the service could not be reached');
-    await expect(input).toHaveAccessibleDescription('Search failed: the service could not be reached');
+    await expect(input).toHaveAccessibleDescription(
+      'organism property description Search failed: the service could not be reached',
+    );
   });
 
   test("an authority search that finds nothing says so through the field element's own region", async ({ page }) => {

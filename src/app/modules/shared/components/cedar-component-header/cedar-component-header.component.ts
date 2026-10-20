@@ -1,4 +1,15 @@
-import { Component, DestroyRef, Input, OnInit, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
+import {
+  AfterViewChecked,
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  ElementRef,
+  Input,
+  OnDestroy,
+  OnInit,
+  Optional,
+  ViewEncapsulation,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CedarComponent } from '../../models/component/cedar-component.model';
 import { ComponentDataService } from '../../service/component-data.service';
@@ -11,6 +22,7 @@ import { StaticFieldComponent } from '../../models/static/static-field-component
 import { InputType } from '../../models/input-type.model';
 import { fieldTypeIcon } from '../../util/field-type-icon';
 import { UserPreferencesService } from '../../service/user-preferences.service';
+import { DescriptionLink } from '../../a11y/message-links';
 
 @Component({
   selector: 'app-cedar-component-header',
@@ -20,7 +32,7 @@ import { UserPreferencesService } from '../../service/user-preferences.service';
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
-export class CedarComponentHeaderComponent implements OnInit {
+export class CedarComponentHeaderComponent implements OnInit, AfterViewChecked, OnDestroy {
   private static nextId = 0;
   /** The id of the visually hidden text holding the description. Unique within the page. */
   readonly descriptionId = `cee-description-${CedarComponentHeaderComponent.nextId++}`;
@@ -38,11 +50,20 @@ export class CedarComponentHeaderComponent implements OnInit {
    */
   fieldToDescribe: FieldComponent | null = null;
   userPreferencesService: UserPreferencesService;
+  private readonly describedHeading = new DescriptionLink();
+
+  /**
+   * Whether the description is drawn as text below this header, which read-only fields do. The header
+   * then leaves out its own visually hidden copy, so a screen reader does not read it twice.
+   */
+  @Input() descriptionDrawn = false;
 
   constructor(
     public cds: ComponentDataService,
     userPreferencesService: UserPreferencesService,
     private readonly destroyRef: DestroyRef,
+    // Optional, so a spec can build the component without a view.
+    @Optional() private readonly elementRef: ElementRef<HTMLElement> | null = null,
   ) {
     this.userPreferencesService = userPreferencesService;
   }
@@ -50,6 +71,21 @@ export class CedarComponentHeaderComponent implements OnInit {
     this.userPreferencesService.readOnlyMode$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((mode) => {
       this.readOnlyMode = mode;
     });
+  }
+
+  /**
+   * Describe an element's panel header with the element's description. A field's description is
+   * tied to its controls by the presentation that draws them.
+   */
+  ngAfterViewChecked(): void {
+    const host = this.elementRef?.nativeElement;
+    const heading = this.disclosure === null ? null : host?.closest('mat-expansion-panel-header');
+    const text = host?.querySelector(`[id="${this.descriptionId}"]`);
+    this.describedHeading.set(text ? this.descriptionId : null, heading ? [heading] : []);
+  }
+
+  ngOnDestroy(): void {
+    this.describedHeading.clear();
   }
 
   /**

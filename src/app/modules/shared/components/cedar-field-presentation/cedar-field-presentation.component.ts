@@ -1,9 +1,28 @@
 import { componentsAlong, occurrencesOnScreen } from '../../util/component-location';
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import {
+  AfterViewChecked,
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  Input,
+  OnDestroy,
+  Optional,
+} from '@angular/core';
 import { CedarComponent } from '../../models/component/cedar-component.model';
 import { HandlerContext } from '../../util/handler-context';
 import { decideFieldWidget, FieldWidgetDecision } from '../cedar-component-renderer/component-render-decision';
 import { fieldTypeIcon } from '../../util/field-type-icon';
+import { DescriptionLink, FIELD_CONTROLS } from '../../a11y/message-links';
+import { FieldComponent } from '../../models/component/field-component.model';
+import { StaticFieldComponent } from '../../models/static/static-field-component.model';
+
+/**
+ * Where a field's description is in the page: the visually hidden text in its header while editing,
+ * or the paragraph read-only rendering draws below the header. At most one of the two is drawn.
+ */
+const DESCRIPTION_TEXT =
+  ':scope > app-cedar-component-header .cee-description, ' +
+  ':scope > .child-component-content > app-cedar-field-spec .cee-field-spec-description';
 
 /** The shared field label, description and value/specification, in CEE and read-only CEF. */
 @Component({
@@ -13,7 +32,8 @@ import { fieldTypeIcon } from '../../util/field-type-icon';
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
-export class CedarFieldPresentationComponent {
+export class CedarFieldPresentationComponent implements AfterViewChecked, OnDestroy {
+  private readonly description = new DescriptionLink();
   @Input({ required: true }) handlerContext!: HandlerContext;
   @Input() showContent = true;
   @Input() showHeader = true;
@@ -21,9 +41,46 @@ export class CedarFieldPresentationComponent {
   component!: CedarComponent;
   decision: FieldWidgetDecision = { kind: 'none' };
 
+  // Optional, so a spec can build the component without a view.
+  constructor(@Optional() private readonly elementRef: ElementRef<HTMLElement> | null = null) {}
+
   @Input({ required: true }) set componentToRender(component: CedarComponent) {
     this.component = component;
     this.decision = decideFieldWidget(component);
+  }
+
+  /** The component, where it can state its description as a paragraph below its header, or null. */
+  get describedBelow(): FieldComponent | StaticFieldComponent | null {
+    const decision = this.decision;
+    return decision.kind === 'field' ||
+      (decision.kind === 'static' && decision.renderer !== 'image' && decision.renderer !== 'youtube')
+      ? decision.component
+      : null;
+  }
+
+  /**
+   * Whether the description is drawn as that paragraph, which only read-only rendering does. The
+   * header then leaves out its visually hidden copy, which a screen reader would read as well.
+   */
+  get descriptionDrawn(): boolean {
+    return this.showContent && this.describedBelow !== null && this.handlerContext.readOnlyMode;
+  }
+
+  /**
+   * Tie the description to the widget's controls, beside whatever else describes them.
+   *
+   * Read after each render, because a widget draws a different control as its value or its mode
+   * changes, and a control drawn afresh carries none of the ids its predecessor did.
+   */
+  ngAfterViewChecked(): void {
+    const host = this.elementRef?.nativeElement;
+    const text = host?.querySelector(DESCRIPTION_TEXT);
+    const widget = host?.querySelector(':scope > .child-component-content > app-cedar-field-widget');
+    this.description.set(text?.id || null, widget ? [...widget.querySelectorAll(FIELD_CONTROLS)] : []);
+  }
+
+  ngOnDestroy(): void {
+    this.description.clear();
   }
 
   get inputType(): string | null {

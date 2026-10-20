@@ -8,6 +8,12 @@ export interface Announcer {
   announce(message: string, politeness: 'polite', duration: number): Promise<void>;
 }
 
+/**
+ * The controls in a field's widget, which what is said about the field describes: its problems and
+ * its description. A widget's buttons act on the value rather than hold it, so they are left out.
+ */
+export const FIELD_CONTROLS = 'input, textarea, mat-select';
+
 const idsOf = (element: Element): string[] =>
   (element.getAttribute('aria-describedby') ?? '').split(/\s+/).filter(Boolean);
 

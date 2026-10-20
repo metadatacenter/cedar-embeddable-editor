@@ -76,5 +76,17 @@
     }
   </span>
 
-  <span [id]="descriptionId" class="cdk-visually-hidden cee-description">{{ component.labelInfo.description }}</span>
+  <!--
+    A field's controls are described by this text, and an element's panel header is too. Inside that
+    header the text would also join the header's name, so it is hidden there and reaches the header
+    only as its description. Read-only, a field draws its description as a paragraph below instead.
+  -->
+  @if (component.labelInfo.description && !descriptionDrawn) {
+    <span
+      [id]="descriptionId"
+      class="cdk-visually-hidden cee-description"
+      [attr.aria-hidden]="disclosure === null ? null : 'true'"
+      >{{ component.labelInfo.description }}</span
+    >
+  }
 </div>

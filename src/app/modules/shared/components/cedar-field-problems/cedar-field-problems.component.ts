@@ -15,7 +15,7 @@ import { ValidationCode } from '../../validation/validation-problem.model';
 import { componentsAlong, occurrencesOnScreen } from '../../util/component-location';
 import { FieldRevealService } from '../../service/field-reveal.service';
 import { AbstractFieldComponent } from '../../models/field/abstract-field-component.model';
-import { DescriptionLink } from '../../a11y/message-links';
+import { DescriptionLink, FIELD_CONTROLS } from '../../a11y/message-links';
 
 /** Problems applying across a field's entries, located by its containing elements. */
 const LIST_CODES: ReadonlySet<string> = new Set([
@@ -23,9 +23,6 @@ const LIST_CODES: ReadonlySet<string> = new Set([
   ValidationCode.maxItems,
   ValidationCode.templateConstraint,
 ]);
-
-/** The controls of a field's widget that a problem with the field describes. */
-const FIELD_CONTROLS = 'input, textarea, mat-select';
 
 /**
  * The report's problems with this field or element, in the entries on screen.
