@@ -2,6 +2,7 @@ import { CountKeyPipe } from '../shared/pipe/count-key.pipe';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { EditedFieldErrorStateMatcher } from './edited-field-error-state-matcher';
 import { CedarIconDirective } from '../shared/directives/cedar-icon.directive';
+import { CedarTooltipLanguageDirective } from '../shared/directives/tooltip-language.directive';
 import { ControlDensityDirective } from '../shared/directives/control-density.directive';
 import { SpecPlaceholderPipe } from '../shared/pipe/spec-placeholder.pipe';
 import { CedarTermLinkComponent } from '../shared/components/cedar-term-link/cedar-term-link.component';
@@ -66,6 +67,7 @@ import { CedarInputDoiComponent } from './components/cedar-input-doi/cedar-input
 @NgModule({
   imports: [
     CedarIconDirective,
+    CedarTooltipLanguageDirective,
     ControlDensityDirective,
     CommonModule,
     MatAutocompleteModule,

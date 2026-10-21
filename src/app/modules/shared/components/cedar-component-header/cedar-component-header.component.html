@@ -62,6 +62,7 @@
         cedarIcon="help"
         matTooltip="{{ component.labelInfo.description }}"
         matTooltipPosition="right"
+        [cedarTooltipLanguage]="textLanguage"
         [attr.tabindex]="focusableMarks ? 0 : null"
         [attr.aria-hidden]="focusableMarks ? null : 'true'"
         [attr.aria-label]="focusableMarks ? ('Generic.Description' | translate) : null"

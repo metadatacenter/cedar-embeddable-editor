@@ -339,6 +339,51 @@ for (const [preset, ui] of [
   });
 }
 
+/** A field's title row, by the label it carries. */
+const headerOf = (page: Page, label: string): Locator =>
+  page.locator('app-cedar-component-header').filter({ has: page.locator('.title-label', { hasText: label }) });
+
+/** The language a tooltip showing this text is in, and whether its pane states one itself. */
+const tooltipLanguage = async (page: Page, text: string): Promise<{ lang: string | null; marked: boolean }> => {
+  const surface = page.locator('.mat-mdc-tooltip-surface').filter({ hasText: text });
+  await expect(surface).toBeVisible();
+  return surface.evaluate((element) => ({
+    lang: element.closest('[lang]')?.getAttribute('lang') ?? null,
+    marked: element.closest('.cdk-overlay-pane')?.hasAttribute('lang') ?? false,
+  }));
+};
+
+/**
+ * A description tooltip shows the template's text, and Material draws it in the overlay container,
+ * which carries CEE's language. It is marked with the template's language when it opens, whether a
+ * pointer rests on its mark or the keyboard reaches it.
+ */
+test("a French template's description tooltips are marked as French in a Hungarian form", async ({ page }) => {
+  await hermetic(page);
+  await open(page, TEMPLATE_LANGUAGE, 'hu');
+
+  await headerOf(page, 'nom').locator('mat-icon.icon-help').hover();
+  expect(await tooltipLanguage(page, 'nom property description')).toEqual({ lang: 'fr', marked: true });
+  await expect(inEditor(page, '.cee-overlay-container')).toHaveAttribute('lang', 'hu');
+
+  await page.getByRole('heading', { name: 'Partie un', exact: true }).locator('mat-icon').hover();
+  expect(await tooltipLanguage(page, 'Les questions générales')).toEqual({ lang: 'fr', marked: true });
+
+  // From the keyboard, the help mark of the field after `nom` shows its description on focus.
+  await page.mouse.move(0, 0);
+  await page.locator('cedar-embeddable-editor').getByRole('textbox', { name: 'nom', exact: true }).focus();
+  const help = headerOf(page, 'ville').getByRole('img', { name: 'Leírás', exact: true });
+  await page.keyboard.press('Tab');
+  await expect(help).toBeFocused();
+  expect(await tooltipLanguage(page, 'ville property description')).toEqual({ lang: 'fr', marked: true });
+});
+
+test("a template that declares no language leaves its description tooltips in CEE's", async ({ page }) => {
+  await open(page, '01-input-types', 'hu');
+  await headerOf(page, 'textarea').locator('mat-icon.icon-help').hover();
+  expect(await tooltipLanguage(page, 'textarea property description')).toEqual({ lang: 'hu', marked: false });
+});
+
 test("a French template's read-only descriptions and option lists are marked as French", async ({ page }) => {
   await hermetic(page);
   await open(page, TEMPLATE_LANGUAGE, 'hu', undefined, undefined, '&f=readOnlyMode');
