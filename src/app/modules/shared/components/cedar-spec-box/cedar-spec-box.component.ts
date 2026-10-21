@@ -86,10 +86,14 @@ export class CedarSpecBoxComponent {
 
   /**
    * The `lang` a fact is marked with. A default the template wrote as text is a value of the field,
-   * in the language of its values and otherwise of the template's text, as the options are. Every
-   * other fact is CEE's text and takes CEE's language from the root.
+   * in the language of its values and otherwise of the template's text, as the options are. A unit of
+   * measure is the template's text, in the language it declares for it. Every other fact is CEE's
+   * text and takes CEE's language from the root.
    */
   languageOf(fact: SpecFact): string | null {
+    if (fact.key === SpecFactKey.unitOfMeasure) {
+      return textLanguageOf(this.fieldToDescribe);
+    }
     return fact.key === SpecFactKey.defaultValue && specDefaultIsText(this.fieldToDescribe)
       ? this.optionLanguage
       : null;

@@ -1,12 +1,14 @@
 import { Injector, runInInjectionContext } from '@angular/core';
+import { InstanceDataStringAtom } from 'cedar-model-typescript-library';
 import { CedarFieldProblemsComponent } from './cedar-field-problems.component';
 import { FieldRevealService } from '../../service/field-reveal.service';
 import { SingleFieldComponent } from '../../models/field/single-field-component.model';
 import { HandlerContext } from '../../util/handler-context';
 import { ValidationProblem } from '../../validation/validation-problem.model';
+import { LABEL_SLOT } from '../../a11y/joined-name';
 
 describe('field report notice visibility', () => {
-  const setup = (code: string, inputType = 'radio') => {
+  const setup = (code: string, inputType = 'radio', stored: InstanceDataStringAtom | null = null) => {
     let revealed = false;
     const injector = Injector.create({
       providers: [{ provide: FieldRevealService, useValue: { wasRevealed: () => revealed } }],
@@ -25,9 +27,11 @@ describe('field report notice visibility', () => {
       },
       validation: { draftFor: () => null },
       multiInstanceObjectService: {},
+      getDataObjectNodeByPath: () => stored,
     } as unknown as HandlerContext;
     return {
       component,
+      field,
       reveal: () => {
         revealed = true;
       },
@@ -44,6 +48,45 @@ describe('field report notice visibility', () => {
         category: 'constraint',
       },
     ]);
+  });
+
+  describe('a quoted stored value', () => {
+    const tagged = (language: string | null): InstanceDataStringAtom =>
+      Object.assign(new InstanceDataStringAtom('Maybe'), { language });
+
+    it('is marked with the tag the stored value carries', () => {
+      const { component, field } = setup('choiceMembership', 'radio', tagged('de'));
+      field.basicInfo.valueLanguage = 'fr';
+
+      expect(component.notices[0].quoted).toEqual({
+        text: 'Maybe',
+        language: 'de',
+        params: { value: LABEL_SLOT },
+      });
+    });
+
+    it('is marked with the language its field declares where the value carries no tag', () => {
+      const { component, field } = setup('choiceMembership', 'radio', tagged(null));
+      field.basicInfo.valueLanguage = 'fr_CA';
+
+      expect(component.notices[0].quoted?.language).toBe('fr-CA');
+    });
+
+    it('is not split from the sentence where neither states a language', () => {
+      const { component } = setup('choiceMembership', 'radio', tagged('not a tag'));
+
+      expect(component.notices[0].quoted).toBeUndefined();
+    });
+
+    it("finds CEE's words on either side of it in the translation", () => {
+      const { component } = setup('choiceMembership');
+
+      expect(component.split(`„${LABEL_SLOT}” nem szerepel a mező választási lehetőségei között.`)).toEqual({
+        before: '„',
+        after: '” nem szerepel a mező választási lehetőségei között.',
+        labelled: true,
+      });
+    });
   });
 
   it('keeps incomplete entries quiet until revealed and all notices absent in read-only mode', () => {

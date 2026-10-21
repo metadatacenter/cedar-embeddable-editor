@@ -631,6 +631,83 @@ for (const declared of ['fr', null] as const)
     );
   });
 
+/**
+ * A problem notice can quote a stored value inside CEE's sentence, as "„Maybe” nem szerepel a mező
+ * választási lehetőségei között." does. The value is marked with the tag it carries, and otherwise
+ * with the language its field declares for its values. The sentence stays in CEE's language, and the
+ * notice reads the same text, in its live region and as the description of the field's controls.
+ */
+test("a quoted stored value is marked with its own language inside CEE's sentence", async ({ page }) => {
+  await page.route('**/fixtures/26-stored-problems-instance.json', async (route) => {
+    const instance = await (await route.fetch()).json();
+    instance._answer['@language'] = 'de';
+    await route.fulfill({ json: instance });
+  });
+  await declareLanguages(page, '26-stored-problems', { _region: 'fr', _answer: 'it' });
+  await open(page, '26-stored-problems', 'hu', '26-stored-problems-instance');
+  for (const [field, value, language] of [
+    ['answer', 'Maybe', 'de'],
+    ['region', 'Elsewhere', 'fr'],
+  ] as const) {
+    const message = `„${value}” nem szerepel a mező választási lehetőségei között.`;
+    const renderer = inEditor(page, `app-cedar-component-renderer:has(.title-label:text-is("${field}"))`);
+    const problems = renderer.locator('app-cedar-field-problems');
+    await expect(problems).toHaveText(message);
+    await expect(problems).toHaveAttribute('aria-live', 'polite');
+    const quoted = problems.locator('mat-error span[lang]');
+    await expect(quoted).toHaveText(value);
+    await expect(quoted).toHaveAttribute('lang', language);
+    expect(await quoted.evaluate((element) => element.parentElement!.closest('[lang]')?.getAttribute('lang'))).toBe(
+      'hu',
+    );
+    const control = renderer.getByRole(field === 'answer' ? 'radio' : 'combobox').first();
+    await expect(control).toHaveAccessibleDescription(new RegExp(`^${message}`));
+  }
+});
+
+test('a quoted stored value that states no language is said as one text', async ({ page }) => {
+  await open(page, '26-stored-problems', 'hu', '26-stored-problems-instance');
+  const problems = inEditor(page, 'app-cedar-component-renderer:has(.title-label:text-is("answer"))').locator(
+    'app-cedar-field-problems',
+  );
+  await expect(problems).toHaveText('„Maybe” nem szerepel a mező választási lehetőségei között.');
+  await expect(problems.locator('[lang]')).toHaveCount(0);
+});
+
+/**
+ * A numeric field's unit of measure is the template's text. It is drawn beside the box while editing
+ * and stated in the box read only, after CEE's lead-in word.
+ */
+for (const declared of ['fr', null] as const)
+  test(`a unit of measure takes ${declared === null ? 'no' : "the template's"} language`, async ({ page }) => {
+    await page.route('**/fixtures/01-input-types.json', async (route) => {
+      const template = await (await route.fetch()).json();
+      if (declared !== null) template['@context']['@language'] = declared;
+      template.properties._numeric._valueConstraints.unitOfMeasure = 'mètres';
+      await route.fulfill({ json: template });
+    });
+    await open(page, '01-input-types', 'hu');
+    const suffix = inEditor(page, '.cee-numeric-unit');
+    await expect(suffix).toHaveText('mètres');
+    if (declared === null) await expect(suffix).not.toHaveAttribute('lang', /.*/);
+    else await expect(suffix).toHaveAttribute('lang', declared);
+    await expect(page.locator('cedar-embeddable-editor').locator('app-cedar-input-numeric input')).not.toHaveAttribute(
+      'lang',
+      /.*/,
+    );
+
+    await open(page, '01-input-types', 'hu', undefined, undefined, '&f=readOnlyMode');
+    const unit = inEditor(page, '.cee-spec-box-fact').filter({ hasText: 'mètres' });
+    await expect(unit).toHaveText('egység: mètres');
+    if (declared === null) {
+      await expect(unit).not.toHaveAttribute('lang', /.*/);
+      await expect(unit.locator('em')).not.toHaveAttribute('lang', /.*/);
+    } else {
+      await expect(unit).toHaveAttribute('lang', declared);
+      await expect(unit.locator('em')).toHaveAttribute('lang', 'hu');
+    }
+  });
+
 test('a template that declares no language leaves its text in the form language', async ({ page }) => {
   await open(page, '01-input-types', 'hu', undefined, undefined, '&f=showTemplateDescription');
   await expect(inEditor(page, '.template-label')).not.toHaveAttribute('lang', /.*/);
