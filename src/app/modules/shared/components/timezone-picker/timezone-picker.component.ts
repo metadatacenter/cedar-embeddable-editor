@@ -94,6 +94,8 @@ export class TimezonePickerComponent implements OnInit, OnChanges, ControlValueA
   @Input() customPlaceholderText = 'Timezone unspecified';
   /** The label of the field the offset belongs to, which the select's name begins with. */
   @Input() fieldLabel = '';
+  /** The language the template declares for that label, or null where it declares none. */
+  @Input() labelLanguage: string | null = null;
   readonly labelId = `cee-utc-offset-label-${TimezonePickerComponent.nextLabelId++}`;
 
   readonly form = new FormGroup({

@@ -12,14 +12,14 @@
 >
   <!--
     An option is a value, in the language the field declares for its values, and otherwise in the
-    language of the template's text. An option carrying CEE's own default mark is left in CEE's
-    language, since the mark is part of its name.
+    language of the template's text. The mark that says an option is the default is CEE's own text, in
+    CEE's language.
   -->
   @for (choice of component.choiceInfo.choices; track choice) {
     <div>
       <mat-checkbox
         color="primary"
-        [attr.lang]="handlerContext.statesSpecification && choice.selectedByDefault ? uiLanguageMark : optionLanguage"
+        [attr.lang]="optionLanguage"
         (input)="inputChanged($event)"
         [tabIndex]="readOnlyMode ? -1 : 0"
         [attr.aria-disabled]="readOnlyMode ? true : null"
@@ -27,7 +27,9 @@
         [value]="choice.label"
         >{{ choice.label }}
         @if (handlerContext.statesSpecification && choice.selectedByDefault) {
-          <span class="choice-default-mark">{{ 'Spec.DefaultMark' | translate }}</span>
+          <span class="choice-default-mark" [attr.lang]="uiLanguageMarkInOption">{{
+            'Spec.DefaultMark' | translate
+          }}</span>
         }
       </mat-checkbox>
     </div>

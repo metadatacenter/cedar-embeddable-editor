@@ -167,8 +167,24 @@ export class CedarAriaDescriber implements OnDestroy {
    * so a name that contains the message repeats it too.
    */
   private static restatesName(hostElement: Element, message: string | HTMLElement): boolean {
-    const label = hostElement.getAttribute('aria-label');
+    const label = CedarAriaDescriber.nameOf(hostElement);
     return typeof message === 'string' && label !== null && label.trim().includes(message.trim());
+  }
+
+  /**
+   * The name a host is given: the text of the elements its `aria-labelledby` refers to, which takes
+   * precedence, or else its `aria-label`, or null where it is given neither.
+   *
+   * A name that joins a label to CEE's words is given as text, so that each part can state its
+   * language, and the decimal-seconds box's tooltip repeats the words of such a name.
+   */
+  private static nameOf(hostElement: Element): string | null {
+    const ids = (hostElement.getAttribute('aria-labelledby') ?? '').split(/\s+/).filter(Boolean);
+    const root = hostElement.getRootNode();
+    if (ids.length > 0 && (root instanceof Document || root instanceof ShadowRoot)) {
+      return ids.map((id) => root.getElementById(id)?.textContent ?? '').join(' ');
+    }
+    return hostElement.getAttribute('aria-label');
   }
 
   private referenceIds(element: Element): string[] {

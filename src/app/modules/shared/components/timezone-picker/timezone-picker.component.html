@@ -34,5 +34,6 @@
       }
     </mat-select>
   </mat-form-field>
-  <span class="cdk-visually-hidden" [id]="labelId">{{ fieldLabel }}</span>
+  <!-- The label is the template's text, in the language it declares for it. What the box shows is CEE's. -->
+  <span class="cdk-visually-hidden" [id]="labelId" [attr.lang]="labelLanguage">{{ fieldLabel }}</span>
 </div>

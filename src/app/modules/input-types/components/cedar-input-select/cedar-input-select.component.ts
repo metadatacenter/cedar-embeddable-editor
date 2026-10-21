@@ -18,6 +18,7 @@ import { HandlerContext } from '../../../shared/util/handler-context';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
 import { holdsConstraintError } from '../../edited-field-error-state-matcher';
+import { markLanguage } from '../../../shared/a11y/language-tag';
 
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null, _form: FormGroupDirective | NgForm | null): boolean {
@@ -168,6 +169,25 @@ export class CedarInputSelectComponent extends CedarUIDirective implements OnIni
         [this.ITEM_TEXT_FIELD]: choice.label,
       };
       this.dropdownList.push(entry);
+    }
+  }
+
+  /**
+   * Mark the open panel with the language of the template's text, which the panel's name is in.
+   *
+   * Material names the panel with the select's name, the field's label, and draws it in the overlay
+   * container, which carries CEE's language. It gives the select no input that reaches the panel, and
+   * its query for the panel has not caught up when it reports the panel open, so the panel is found by
+   * the id Material gives it.
+   */
+  panelOpened(open: boolean): void {
+    const root = this.selectElement?._elementRef.nativeElement.getRootNode();
+    if (!open || !(root instanceof Document || root instanceof ShadowRoot)) {
+      return;
+    }
+    const panel = root.getElementById(`${this.selectElement!.id}-panel`);
+    if (panel !== null) {
+      markLanguage(panel, this.textLanguage);
     }
   }
 

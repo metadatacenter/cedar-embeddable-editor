@@ -28,22 +28,21 @@
             an answer, and calling it the default would misdescribe it.
 
             An option is a value, in the language the field declares for its values, and otherwise in the
-            language of the template's text. An option carrying the default mark is left in CEE's
-            language, since the mark is part of its name.
+            language of the template's text. The default mark is CEE's own text, in CEE's language.
           -->
           <mat-radio-button
             #option
             color="primary"
-            [attr.lang]="
-              handlerContext.statesSpecification && choice.selectedByDefault ? uiLanguageMark : optionLanguage
-            "
+            [attr.lang]="optionLanguage"
             [value]="choice.label"
             (change)="inputChanged($event)"
             [tabIndex]="readOnlyMode ? -1 : 0"
             [attr.aria-disabled]="readOnlyMode ? true : null"
             >{{ choice.label }}
             @if (handlerContext.statesSpecification && choice.selectedByDefault) {
-              <span class="choice-default-mark">{{ 'Spec.DefaultMark' | translate }}</span>
+              <span class="choice-default-mark" [attr.lang]="uiLanguageMarkInOption">{{
+                'Spec.DefaultMark' | translate
+              }}</span>
             }
           </mat-radio-button>
           @if (choice.label === selectedChoiceInputControl.value && !readOnlyMode) {

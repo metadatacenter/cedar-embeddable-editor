@@ -9,7 +9,7 @@
       [placeholder]="dateNotation | translate"
       [matDatepicker]="dp"
       [formControl]="dateMonthYear"
-      attr.aria-label="{{ 'Generic.SelectYearFor' | translate: { label: fieldLabel } }}"
+      [attr.aria-labelledby]="boxName.id"
     />
     <!--
       No requirement of its own. The year template alone used to carry one, with a
@@ -44,7 +44,7 @@
       [placeholder]="dateNotation | translate"
       [matDatepicker]="dp"
       [formControl]="dateMonthYear"
-      attr.aria-label="{{ 'Generic.SelectYearAndMonthFor' | translate: { label: fieldLabel } }}"
+      [attr.aria-labelledby]="boxName.id"
     />
     @if (!readOnlyMode) {
       <mat-datepicker-toggle matSuffix [for]="dp" [attr.lang]="materialLanguage"
@@ -75,7 +75,7 @@
       [matDatepicker]="dp"
       [formControl]="dateMonthYear"
       (dateChange)="chosenDateHandler($event)"
-      attr.aria-label="{{ 'Generic.SelectDateFor' | translate: { label: fieldLabel } }}"
+      [attr.aria-labelledby]="boxName.id"
     />
     @if (!readOnlyMode) {
       <mat-datepicker-toggle matSuffix [for]="dp" [attr.lang]="materialLanguage"
@@ -92,3 +92,8 @@
     ></mat-datepicker>
   </mat-form-field>
 }
+<!--
+  The box's name joins the field's label to CEE's words and states each in its own language. Only one
+  of the three formats is drawn, so one name serves all three.
+-->
+<span appCedarJoinedName #boxName [key]="nameKey" [label]="fieldLabel" [labelLanguage]="labelLanguage"></span>

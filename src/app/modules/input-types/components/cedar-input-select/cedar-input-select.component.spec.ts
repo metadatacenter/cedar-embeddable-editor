@@ -1,10 +1,12 @@
 // @vitest-environment jsdom
-import { ChangeDetectorRef, Injector, runInInjectionContext } from '@angular/core';
+import { ChangeDetectorRef, ElementRef, Injector, runInInjectionContext } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
+import { MatSelect } from '@angular/material/select';
 import { of } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { ChoiceOption } from '../../../shared/models/info/choice-option.model';
+import { LabelInfo } from '../../../shared/models/info/label-info.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
 import { UserPreferencesService } from '../../../shared/service/user-preferences.service';
@@ -19,7 +21,7 @@ describe('CedarInputSelectComponent', () => {
 
   const makeComponent = (
     labels: string[],
-    { multiple = false, maxItems = null as number | null, required = false } = {},
+    { multiple = false, maxItems = null as number | null, required = false, language = null as string | null } = {},
   ): Harness => {
     const registry = {
       registerComponent: vi.fn(),
@@ -42,6 +44,7 @@ describe('CedarInputSelectComponent', () => {
       valueInfo: { requiredValue: required },
       multiInfo: { maxItems },
       basicInfo: {},
+      labelInfo: Object.assign(new LabelInfo(), { language }),
     } as unknown as FieldComponent;
     const written: unknown[] = [];
     component.handlerContext = {
@@ -145,4 +148,30 @@ describe('CedarInputSelectComponent', () => {
       expect(component.inputValueControl.hasError('required')).toBe(expected.length === 0);
     },
   );
+
+  describe('the open panel', () => {
+    /** Open a panel the way Material draws it: in the same root as the select, under the select's id. */
+    const openPanel = (component: CedarInputSelectComponent): HTMLElement => {
+      const root = document.createElement('div').attachShadow({ mode: 'open' });
+      const select = document.createElement('mat-select');
+      const panel = document.createElement('div');
+      panel.id = 'mat-select-3-panel';
+      root.append(select, panel);
+      component.selectElement = { id: 'mat-select-3', _elementRef: new ElementRef(select) } as unknown as MatSelect;
+      component.panelOpened(true);
+      return panel;
+    };
+
+    it("is marked with the language of the template's text, which its name is in", () => {
+      const { component } = makeComponent(['A', 'B'], { language: 'fr' });
+
+      expect(openPanel(component).getAttribute('lang')).toBe('fr');
+    });
+
+    it("states no language where the template declares none, and so takes CEE's from the overlay", () => {
+      const { component } = makeComponent(['A', 'B']);
+
+      expect(openPanel(component).hasAttribute('lang')).toBe(false);
+    });
+  });
 });

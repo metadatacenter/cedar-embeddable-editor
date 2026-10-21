@@ -205,6 +205,8 @@ test("a choice field's options and selection are marked with the language it dec
   // The control keeps the form's language, so its name is read in it.
   await expect(select).not.toHaveAttribute('lang', /.*/);
   await select.click();
+  // The panel is named by the label, and the template declares no language for its text.
+  await expect(page.getByRole('listbox', { name: 'single_list' })).not.toHaveAttribute('lang', /.*/);
   const options = page.getByRole('listbox', { name: 'single_list' }).getByRole('option');
   expect(await options.count()).toBeGreaterThan(0);
   for (const option of await options.all()) await expect(option).toHaveAttribute('lang', 'fr');
@@ -284,7 +286,8 @@ for (const [preset, ui] of [
     await expect(fruits).toHaveAttribute('lang', 'fr');
     for (const option of await fruits.locator('mat-checkbox').all()) await expect(option).toHaveAttribute('lang', 'fr');
 
-    // A list's options take the language it declares for its values, and otherwise the template's.
+    // A list's options take the language it declares for its values, and otherwise the template's. Its
+    // panel is named by its label, and so takes the template's language.
     for (const [name, values] of [
       ['taille', 'it'],
       ['forme', 'fr'],
@@ -292,6 +295,7 @@ for (const [preset, ui] of [
       const select = editor.getByRole('combobox', { name, exact: true });
       await expect(select).toHaveAttribute('lang', 'fr');
       await select.click();
+      await expect(page.getByRole('listbox', { name })).toHaveAttribute('lang', 'fr');
       const options = page.getByRole('listbox', { name }).getByRole('option');
       expect(await options.count()).toBeGreaterThan(0);
       for (const option of await options.all()) await expect(option).toHaveAttribute('lang', values);
@@ -352,6 +356,125 @@ test("a French template's read-only descriptions and option lists are marked as 
     await expect(options).toHaveAttribute('lang', values);
     await expect(options.locator('em')).toHaveAttribute('lang', 'hu');
   }
+});
+
+/** Serve a fixture whose template declares this language for its own text. */
+const declareTemplateLanguage = async (page: Page, fixture: string, language: string): Promise<void> => {
+  await page.route(`**/fixtures/${fixture}.json`, async (route) => {
+    const template = await (await route.fetch()).json();
+    template['@context']['@language'] = language;
+    await route.fulfill({ json: template });
+  });
+};
+
+/**
+ * The text a control's `aria-labelledby` gives it, part by part, with the language each part is in.
+ * The language of the form's root counts, so a part that states none reads as the form's.
+ */
+const languagesInName = (control: Locator): Promise<{ text: string; lang: string | null }[]> =>
+  control.evaluate((element) => {
+    const root = element.getRootNode() as ShadowRoot;
+    const parts: { text: string; lang: string | null }[] = [];
+    for (const id of (element.getAttribute('aria-labelledby') ?? '').split(/\s+/).filter(Boolean)) {
+      const walker = document.createTreeWalker(root.getElementById(id)!, NodeFilter.SHOW_TEXT);
+      for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        const text = (node.textContent ?? '').trim();
+        if (text) parts.push({ text, lang: node.parentElement!.closest('[lang]')?.getAttribute('lang') ?? null });
+      }
+    }
+    return parts;
+  });
+
+/**
+ * A temporal control's name joins its field's label to CEE's words, as `day_only, dátum kiválasztása`
+ * does. The name is given as text, so that the label states the template's language and CEE's words
+ * state CEE's. The time zone select joins the label to what it shows, which is CEE's too, and its
+ * panel takes the select's name.
+ */
+for (const [declared, label] of [
+  ['fr', 'fr'],
+  [null, 'hu'],
+] as const)
+  test(`a name joining a label to CEE's words reads the label as ${label} and the words as hu`, async ({ page }) => {
+    if (declared !== null)
+      for (const fixture of ['09-temporal', '07-timezone', '21-temporal-normalization'])
+        await declareTemplateLanguage(page, fixture, declared);
+    const editor = page.locator('cedar-embeddable-editor');
+    const expectParts = async (control: Locator, field: string): Promise<void> => {
+      await expect(control).toBeVisible();
+      const [first, ...rest] = await languagesInName(control);
+      expect(first).toEqual({ text: field, lang: label });
+      expect(rest.length).toBeGreaterThan(0);
+      for (const part of rest) expect(part.lang).toBe('hu');
+    };
+
+    await open(page, '09-temporal', 'hu');
+    await expect(editorRoot(page)).toHaveAttribute('lang', 'hu');
+    for (const [role, name, field] of [
+      ['textbox', 'year_only, év kiválasztása', 'year_only'],
+      ['textbox', 'day_only, dátum kiválasztása', 'day_only'],
+      ['group', 'to_the_second, idő', 'to_the_second'],
+      ['textbox', 'decimal_seconds, törtmásodpercek megadása', 'decimal_seconds'],
+    ] as const)
+      await expectParts(editor.getByRole(role, { name, exact: true }), field);
+    // A template that declares nothing marks nothing: its label takes the form's language.
+    if (declared === null)
+      await expect(inEditor(page, '.cdk-visually-hidden[aria-hidden="true"] span[lang]')).toHaveCount(0);
+
+    await open(page, '21-temporal-normalization', 'hu');
+    const yearAndMonth = editor.getByRole('textbox', { name: /, év és hónap kiválasztása$/ }).first();
+    const [field] = await languagesInName(yearAndMonth);
+    expect(field.lang).toBe(label);
+
+    await open(page, '07-timezone', 'hu');
+    const offset = editor.getByRole('combobox');
+    await expectParts(offset, 'sampled_at');
+    await offset.click();
+    await expectParts(page.getByRole('listbox'), 'sampled_at');
+  });
+
+/**
+ * An option the template makes its default carries CEE's mark, `(alapérték)` in Hungarian. The option
+ * is the template's text and a value of the field, and the mark inside it is CEE's.
+ */
+test("a default option is marked as the template's text, and its default mark as CEE's", async ({ page }) => {
+  await hermetic(page);
+  await page.route(`**/fixtures/${TEMPLATE_LANGUAGE}.json`, async (route) => {
+    const template = await (await route.fetch()).json();
+    template.properties._couleur._valueConstraints.literals[0].selectedByDefault = true;
+    template.properties._fruits.items._valueConstraints.literals[0].selectedByDefault = true;
+    await route.fulfill({ json: template });
+  });
+  await open(page, TEMPLATE_LANGUAGE, 'hu', undefined, undefined, '&f=readOnlyMode');
+  for (const [group, option, other] of [
+    ['couleur', 'Rouge', 'Vert'],
+    ['fruits', 'Pomme', 'Poire'],
+  ] as const) {
+    const options = inEditor(page, `app-cedar-component-renderer:has(.title-label:text-is("${group}"))`).locator(
+      'mat-radio-button, mat-checkbox',
+    );
+    const chosen = options.filter({ hasText: option });
+    await expect(chosen).toHaveAttribute('lang', 'fr');
+    await expect(chosen.locator('.choice-default-mark')).toHaveText('(alapérték)');
+    await expect(chosen.locator('.choice-default-mark')).toHaveAttribute('lang', 'hu');
+    await expect(options.filter({ hasText: other })).toHaveAttribute('lang', 'fr');
+  }
+});
+
+test("a default option takes the language its field declares, and its default mark keeps CEE's", async ({ page }) => {
+  await declareLanguages(page, '11-choice-default', { _access: 'fr' });
+  await open(page, '11-choice-default', 'hu', undefined, undefined, '&f=readOnlyMode');
+  const limited = inEditor(page, 'mat-radio-button').filter({ hasText: 'Limited' });
+  await expect(limited).toHaveAttribute('lang', 'fr');
+  await expect(limited.locator('.choice-default-mark')).toHaveAttribute('lang', 'hu');
+});
+
+test('a default option of a field and template that declare nothing marks nothing', async ({ page }) => {
+  await open(page, '11-choice-default', 'hu', undefined, undefined, '&f=readOnlyMode');
+  const limited = inEditor(page, 'mat-radio-button').filter({ hasText: 'Limited' });
+  await expect(limited.locator('.choice-default-mark')).toBeVisible();
+  await expect(limited).not.toHaveAttribute('lang', /.*/);
+  await expect(limited.locator('.choice-default-mark')).not.toHaveAttribute('lang', /.*/);
 });
 
 test('a template that declares no language leaves its text in the form language', async ({ page }) => {

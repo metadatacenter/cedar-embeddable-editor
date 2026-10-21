@@ -119,7 +119,7 @@ test.describe("a widget's own messages", () => {
   test("a temporal row announces the part still missing and links it to the row's controls", async ({ page }) => {
     await open(page, '09-temporal');
     const field = page.locator('app-cedar-input-datetime').filter({
-      has: page.locator('input[aria-label$=", select decimal seconds"]'),
+      has: page.getByRole('textbox', { name: /, select decimal seconds$/ }),
     });
     const hour = field.getByRole('textbox', { name: 'Hour', exact: true });
     await hour.fill('14');

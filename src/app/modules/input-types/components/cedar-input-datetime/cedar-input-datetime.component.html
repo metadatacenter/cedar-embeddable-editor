@@ -21,6 +21,7 @@
         (dateChangedEvent)="dateInputChanged($event)"
         [dateMonthYear]="dateMonthYearControl"
         [fieldLabel]="cds.getRenderingLabelForComponent(component)"
+        [labelLanguage]="textLanguage"
         xmlns="http://www.w3.org/1999/html"
       ></app-date-picker>
     </div>
@@ -35,6 +36,7 @@
         [disableMinute]="disableMinute()"
         [showSeconds]="showSeconds()"
         [fieldLabel]="cds.getRenderingLabelForComponent(component)"
+        [labelLanguage]="textLanguage"
       >
       </app-time-picker>
 
@@ -68,11 +70,17 @@
             name="decimalSeconds"
             placeholder="{{ 'Generic.DecimalSecondsPlaceholder' | translate }}"
             matTooltip="{{ 'Generic.DecimalSeconds' | translate }}"
-            attr.aria-label="{{
-              'Generic.SelectDecimalSecondsFor' | translate: { label: cds.getRenderingLabelForComponent(component) }
-            }}"
+            [attr.aria-labelledby]="fractionName.id"
           />
         </mat-form-field>
+        <!-- The box's name joins the field's label to CEE's words and states each in its own language. -->
+        <span
+          appCedarJoinedName
+          #fractionName
+          key="Generic.SelectDecimalSecondsFor"
+          [label]="cds.getRenderingLabelForComponent(component)"
+          [labelLanguage]="textLanguage"
+        ></span>
       }
     </div>
   }
@@ -84,6 +92,7 @@
         (ngModelChange)="timezoneInputChanged($event)"
         customPlaceholderText="{{ 'Generic.SelectUtcOffset' | translate }}"
         [fieldLabel]="cds.getRenderingLabelForComponent(component)"
+        [labelLanguage]="textLanguage"
         [getUserZone]="setDefaultZone"
       ></app-timezone-picker>
     </div>

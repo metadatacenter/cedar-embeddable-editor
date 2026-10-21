@@ -62,6 +62,16 @@ export class DatePickerComponent implements OnInit {
   }
   yearMonthFormat = DatePickerComponent.YEAR_MONTH_FORMAT;
   yearMonthDayFormat = DatePickerComponent.YEAR_MONTH_DAY_FORMAT;
+
+  /** The translation key of the box's name, which says what the box selects. */
+  get nameKey(): string {
+    if (this.dateFormat === DatePickerComponent.YEAR_FORMAT) {
+      return 'Generic.SelectYearFor';
+    }
+    return this.dateFormat === DatePickerComponent.YEAR_MONTH_FORMAT
+      ? 'Generic.SelectYearAndMonthFor'
+      : 'Generic.SelectDateFor';
+  }
   /** The toggle's name and the calendar's text are Material's English. */
   readonly materialLanguage = MATERIAL_TEXT_LANGUAGE;
   private readonly periodButtonName = new PeriodButtonName();
@@ -70,6 +80,8 @@ export class DatePickerComponent implements OnInit {
   @Input() dateFormat = DatePickerComponent.YEAR_FORMAT;
   /** The label of the field the date belongs to, which the box's name begins with. */
   @Input() fieldLabel = '';
+  /** The language the template declares for that label, or null where it declares none. */
+  @Input() labelLanguage: string | null = null;
   @Output() dateChangedEvent = new EventEmitter<Date>();
   private userPreferencesService: UserPreferencesService;
   readOnlyMode = false;
