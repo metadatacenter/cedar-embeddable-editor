@@ -1,10 +1,10 @@
 // One gate, with bounded independent stages. Angular build and coordinator tests
 // share a cache, so they are ordered; screenshots always inspect the built bytes.
 import { spawn } from 'node:child_process';
-import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { performance } from 'node:perf_hooks';
-import { availableParallelism } from 'node:os';
+import { availableParallelism, uptime } from 'node:os';
 
 const budget = Number(process.env.CEDAR_TEST_WORKERS ?? Math.max(1, Math.min(8, Math.floor(availableParallelism() / 2))));
 if (!Number.isInteger(budget) || budget < 1 || budget > 16) {
@@ -36,13 +36,16 @@ let failed = false;
 let retry = null;
 const start = performance.now();
 
-// A frontend build shares one worker budget between the repositories it runs at once, and names it
-// in CEDAR_WORKER_POOL: a directory holding one subdirectory per worker in use. Each stage then takes
-// its workers from the pool, and starts once at least half of its weight is free. Requests wait in
-// the pool's queue under names that sort by arrival, and only the oldest may take workers, so a
-// stage that needs several is not overtaken by every smaller request that arrives after it.
+// Every frontend build on the machine shares one worker budget, and names it in CEDAR_WORKER_POOL:
+// a directory holding one subdirectory per worker in use. Each stage then takes its workers from the
+// pool, and starts once at least half of its weight is free. Requests wait in the pool's queue under
+// names that sort by arrival, and only the oldest may take workers, so a stage that needs several is
+// not overtaken by every smaller request that arrives after it. Each slot and request records its
+// process and the boot that process started in. It is stale once that process has exited, once the
+// machine has restarted since, or after twelve hours, longer than any stage holds a slot.
 const pool = process.env.CEDAR_WORKER_POOL;
 const poolSize = pool ? Number(readFileSync(join(pool, 'size'), 'utf8')) : 0;
+const boot = Math.round(Date.now() / 1000 - uptime());
 const held = new Set();
 let ticket = null;
 
@@ -50,12 +53,18 @@ function alive(pid) {
   try { process.kill(pid, 0); return true; } catch (error) { return error.code !== 'ESRCH'; }
 }
 
-// The oldest request still waiting, dropping those whose process has exited.
+// Whether a process that started in boot `started` can still hold what it took at `since`.
+function holds(pid, started, since) {
+  return Math.abs(started - boot) <= 60 && Date.now() - since <= 12 * 3600 * 1000 && alive(pid);
+}
+
+// The oldest request still waiting, dropping those whose holder is gone.
 function first() {
   const queue = join(pool, 'queue');
   mkdirSync(queue, { recursive: true });
   for (const name of readdirSync(queue).sort()) {
-    if (alive(Number(name.split('-')[1]))) return name;
+    const [arrived, pid, started] = name.split('-').map(Number);
+    if (holds(pid, started, arrived / 1e6)) return name;
     rmSync(join(queue, name), { force: true });
   }
   return null;
@@ -68,18 +77,23 @@ function claim(slot) {
       rmSync(slot, { recursive: true, force: true });
       continue;
     }
-    writeFileSync(join(slot, 'owner'), `${process.pid}\n`);
+    writeFileSync(join(slot, 'owner'), `${process.pid} ${boot}\n`);
     held.add(slot);
     return true;
   }
   return false;
 }
 
-// Whether the process holding a slot has exited. A slot whose owner is still being written is in use.
+// Whether the holder of a slot is gone. A slot whose owner is still being written stays in use for a
+// minute, long enough for any holder to write it.
 function abandoned(slot) {
+  let taken;
+  try { taken = statSync(slot).mtimeMs; } catch { return false; }
   let owner;
-  try { owner = Number(readFileSync(join(slot, 'owner'), 'utf8')); } catch { return false; }
-  return !alive(owner);
+  try { owner = readFileSync(join(slot, 'owner'), 'utf8').trim().split(/\s+/).map(Number); } catch {
+    return Date.now() - taken > 60_000;
+  }
+  return !holds(owner[0], owner[1] ?? boot, taken);
 }
 
 function give(slots) {
@@ -95,7 +109,7 @@ function take(weight) {
   if (!pool) return { count: weight, slots: [] };
   if (!ticket) {
     const arrived = (BigInt(Date.now()) * 1000000n).toString().padStart(20, '0');
-    ticket = `${arrived}-${process.pid}-${Math.random().toString(16).slice(2, 10)}`;
+    ticket = `${arrived}-${process.pid}-${boot}-${Math.random().toString(16).slice(2, 10)}`;
     mkdirSync(join(pool, 'queue'), { recursive: true });
     writeFileSync(join(pool, 'queue', ticket), '');
   }
