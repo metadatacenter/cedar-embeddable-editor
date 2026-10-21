@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { test } from 'node:test';
 
-function gate(mode, workers, fail = '') {
+function gate(mode, workers, fail = '', environment = {}) {
   const directory = mkdtempSync(path.join(tmpdir(), 'cee-gate-'));
   const log = path.join(directory, 'events');
   writeFileSync(path.join(directory, 'npm'), `#!${process.execPath}
@@ -19,7 +19,9 @@ setTimeout(() => { emit('end'); process.exit(script === process.env.GATE_FAIL ? 
   try {
     const result = spawnSync(process.execPath, [fileURLToPath(new URL('./test-gate.mjs', import.meta.url)), mode], {
       encoding: 'utf8', env: { ...process.env, PATH: `${directory}:${process.env.PATH}`,
-        CEDAR_TEST_WORKERS: String(workers), GATE_LOG: log, GATE_FAIL: fail },
+        CEDAR_TEST_WORKERS: String(workers), GATE_LOG: log, GATE_FAIL: fail,
+        // A build runs these tests inside its own pool, which no test may draw on.
+        CEDAR_WORKER_POOL: undefined, ...environment },
     });
     return { result, events: readFileSync(log, 'utf8').trim().split('\n').map(line => JSON.parse(line)) };
   } finally { rmSync(directory, { recursive: true, force: true }); }
@@ -84,4 +86,60 @@ exit 99
       assert.deepEqual(readFileSync(log, 'utf8').trim().split('\n'), ['info', 'run', 'rm']);
     }
   } finally { rmSync(directory, { recursive: true, force: true }); }
+});
+
+function sharedPool(size) {
+  const directory = mkdtempSync(path.join(tmpdir(), 'cee-pool-'));
+  writeFileSync(path.join(directory, 'size'), `${size}\n`);
+  return directory;
+}
+const slots = pool => readdirSync(pool).filter(name => name.startsWith('slot-'));
+
+test("stages stay within the build's shared pool and return every worker", () => {
+  const pool = sharedPool(3);
+  try {
+    const { result, events } = gate('prebuilt', 8, '', { CEDAR_WORKER_POOL: pool });
+    assert.equal(result.status, 0, result.stderr);
+    let active = 0;
+    for (const event of events) {
+      active += (event.event === 'start' ? 1 : -1) * Number(event.workers);
+      assert.ok(active <= 3, `${active} workers from a pool of 3`);
+    }
+    assert.equal(new Set(events.map(event => event.script)).size, 7);
+    assert.deepEqual(slots(pool), []);
+  } finally { rmSync(pool, { recursive: true, force: true }); }
+});
+
+test('a stage waits for workers held elsewhere and takes them back once their holder exits', () => {
+  const pool = sharedPool(2);
+  try {
+    // An orphaned sleep is reaped as soon as it exits, so its slots read as abandoned from then on.
+    const holder = spawnSync('sh', ['-c', 'sleep 0.6 >/dev/null 2>&1 & echo $!'], { encoding: 'utf8' }).stdout;
+    for (const slot of ['slot-0', 'slot-1']) {
+      mkdirSync(path.join(pool, slot));
+      writeFileSync(path.join(pool, slot, 'owner'), holder);
+    }
+    const began = Date.now();
+    const { result, events } = gate('prebuilt', 2, '', { CEDAR_WORKER_POOL: pool });
+    assert.equal(result.status, 0, result.stderr);
+    assert.ok(Date.now() - began >= 500, 'the gate did not wait for the workers held elsewhere');
+    assert.equal(new Set(events.map(event => event.script)).size, 7);
+    assert.deepEqual(slots(pool), []);
+  } finally { rmSync(pool, { recursive: true, force: true }); }
+});
+
+test('a stage waits behind an older request from a process that is still running', () => {
+  const pool = sharedPool(4);
+  try {
+    // An orphaned sleep is reaped as soon as it exits, so its request is dropped from then on.
+    const holder = spawnSync('sh', ['-c', 'sleep 0.6 >/dev/null 2>&1 & echo $!'], { encoding: 'utf8' }).stdout.trim();
+    mkdirSync(path.join(pool, 'queue'));
+    writeFileSync(path.join(pool, 'queue', `${'0'.repeat(20)}-${holder}-older`), '');
+    const began = Date.now();
+    const { result, events } = gate('prebuilt', 2, '', { CEDAR_WORKER_POOL: pool });
+    assert.equal(result.status, 0, result.stderr);
+    assert.ok(Date.now() - began >= 500, 'the gate overtook the older request');
+    assert.equal(new Set(events.map(event => event.script)).size, 7);
+    assert.deepEqual(readdirSync(path.join(pool, 'queue')), []);
+  } finally { rmSync(pool, { recursive: true, force: true }); }
 });
