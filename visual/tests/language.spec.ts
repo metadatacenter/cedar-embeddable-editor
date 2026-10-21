@@ -477,6 +477,115 @@ test('a default option of a field and template that declare nothing marks nothin
   await expect(limited.locator('.choice-default-mark')).not.toHaveAttribute('lang', /.*/);
 });
 
+/**
+ * Read only and empty, a field's box states its default. A default written as text is a value of the
+ * field, in the language of its values and otherwise of the template's text, and its lead-in word is
+ * CEE's. A number states no language.
+ */
+test("a stated default is marked as the field's values, and its lead-in as CEE's", async ({ page }) => {
+  await hermetic(page);
+  await page.route(`**/fixtures/${TEMPLATE_LANGUAGE}.json`, async (route) => {
+    const template = await (await route.fetch()).json();
+    template.properties._nom._valueConstraints.defaultValue = 'Dupont';
+    template.properties._taille._valueConstraints.literals[0].selectedByDefault = true;
+    template.properties._forme._valueConstraints.literals[1].selectedByDefault = true;
+    await route.fulfill({ json: template });
+  });
+  await open(page, TEMPLATE_LANGUAGE, 'hu', undefined, undefined, '&f=readOnlyMode');
+  for (const [value, language] of [
+    ['Dupont', 'fr'],
+    ['Piccolo', 'it'],
+    ['Carré', 'fr'],
+  ] as const) {
+    const fact = inEditor(page, '.cee-spec-box-fact:not(.cee-spec-box-options)').filter({ hasText: value });
+    await expect(fact).toHaveText(`alapérték: ${value}`);
+    await expect(fact).toHaveAttribute('lang', language);
+    await expect(fact.locator('em')).toHaveAttribute('lang', 'hu');
+  }
+});
+
+for (const declared of ['fr', null] as const)
+  test(`a default text takes ${declared === null ? 'no' : "the template's"} language, and a default number none`, async ({
+    page,
+  }) => {
+    await page.route('**/fixtures/01-input-types.json', async (route) => {
+      const template = await (await route.fetch()).json();
+      if (declared !== null) template['@context']['@language'] = declared;
+      template.properties._text._valueConstraints.defaultValue = 'Bonjour';
+      template.properties._numeric._valueConstraints.defaultValue = 42;
+      await route.fulfill({ json: template });
+    });
+    await open(page, '01-input-types', 'hu', undefined, undefined, '&f=readOnlyMode');
+    const text = inEditor(page, '.cee-spec-box-fact').filter({ hasText: 'Bonjour' });
+    const number = inEditor(page, '.cee-spec-box-fact').filter({ hasText: '42' });
+    await expect(number).toHaveText('alapérték: 42');
+    await expect(number).not.toHaveAttribute('lang', /.*/);
+    await expect(number.locator('em')).not.toHaveAttribute('lang', /.*/);
+    if (declared === null) {
+      await expect(text).not.toHaveAttribute('lang', /.*/);
+      await expect(text.locator('em')).not.toHaveAttribute('lang', /.*/);
+    } else {
+      await expect(text).toHaveAttribute('lang', declared);
+      await expect(text.locator('em')).toHaveAttribute('lang', 'hu');
+    }
+  });
+
+/**
+ * An occurrence's announcement names the component by its label, which is the template's text, in a
+ * live region that states CEE's language. The message is written into the region that was there
+ * before it, as markup with the label marked with the template's language and CEE's words in CEE's.
+ * Read aloud it is the same text, said once and politely.
+ */
+for (const declared of ['fr', null] as const)
+  test(`an announcement names an occurrence's ${declared ?? 'undeclared'} label inside a hu region`, async ({
+    page,
+  }) => {
+    if (declared !== null) await declareTemplateLanguage(page, '03-nested-multi', declared);
+    await open(page, '03-nested-multi', 'hu');
+    const region = inEditor(page, '.cee-live-region');
+    await expect(region).toHaveAttribute('aria-live', 'polite');
+    await expect(region).toHaveAttribute('lang', 'hu');
+    await expect(region).toHaveText('');
+    const before = await region.elementHandle();
+    await region.evaluate((element) => {
+      const said: string[] = [];
+      Object.assign(window, { __ceeSaid: said });
+      new MutationObserver(() => {
+        const text = element.textContent?.trim();
+        if (text) said.push(text);
+      }).observe(element, { childList: true, characterData: true, subtree: true });
+    });
+
+    await page
+      .locator('app-cedar-multi-pager')
+      .first()
+      .getByRole('button', { name: 'Üres példány hozzáadása ide', exact: true })
+      .click();
+
+    const message = 'author: 2. példány hozzáadva, összesen 4';
+    const said = () => page.evaluate(() => (window as unknown as { __ceeSaid: string[] }).__ceeSaid);
+    await expect.poll(said).toEqual([message]);
+    await page.waitForTimeout(500);
+    expect(await said()).toEqual([message]);
+    expect(await before!.evaluate((element) => element.isConnected)).toBe(true);
+    await expect(inEditor(page, '.cee-live-region')).toHaveCount(1);
+    await expect(region).toHaveAttribute('aria-live', 'polite');
+    const parts = await region.evaluate((element) =>
+      [...element.childNodes].map((node) => ({
+        text: node.textContent,
+        lang: node instanceof Element ? node.getAttribute('lang') : null,
+      })),
+    );
+    expect(parts).toEqual(
+      declared === null
+        ? [{ text: message, lang: null }]
+        : [
+            { text: 'author', lang: declared },
+            { text: ': 2. példány hozzáadva, összesen 4', lang: null },
+          ],
+    );
+  });
+
 test('a template that declares no language leaves its text in the form language', async ({ page }) => {
   await open(page, '01-input-types', 'hu', undefined, undefined, '&f=showTemplateDescription');
   await expect(inEditor(page, '.template-label')).not.toHaveAttribute('lang', /.*/);

@@ -1,4 +1,4 @@
-import { aroundLabel, LABEL_SLOT } from './joined-name';
+import { aroundLabel, LABEL_SLOT, labelMarkedMarkup } from './joined-name';
 
 describe('aroundLabel', () => {
   it("finds CEE's words after a label that leads the name", () => {
@@ -23,5 +23,23 @@ describe('aroundLabel', () => {
 
   it('shows a label the translation repeats only once', () => {
     expect(aroundLabel(`${LABEL_SLOT}: ${LABEL_SLOT}`)).toEqual({ before: '', after: ': ', labelled: true });
+  });
+});
+
+describe('labelMarkedMarkup', () => {
+  it('marks the label with its language and leaves the words around it to the region', () => {
+    expect(labelMarkedMarkup(`${LABEL_SLOT}: 2. példány hozzáadva, összesen 4`, 'auteur', 'fr')).toBe(
+      '<span lang="fr">auteur</span>: 2. példány hozzáadva, összesen 4',
+    );
+  });
+
+  it('writes the label and the words as text, whatever they hold', () => {
+    expect(labelMarkedMarkup(`<b>${LABEL_SLOT}</b> & more`, 'a <i>"label"</i> & co', 'de-CH')).toBe(
+      '&lt;b&gt;<span lang="de-CH">a &lt;i&gt;&quot;label&quot;&lt;/i&gt; &amp; co</span>&lt;/b&gt; &amp; more',
+    );
+  });
+
+  it('marks nothing where the translation leaves the label out', () => {
+    expect(labelMarkedMarkup('Multi.InstanceAdded', 'auteur', 'fr')).toBe('Multi.InstanceAdded');
   });
 });

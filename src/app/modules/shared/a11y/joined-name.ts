@@ -30,3 +30,21 @@ export function aroundLabel(translated: string): AroundLabel {
     labelled: true,
   };
 }
+
+/** Text written into markup so that it reads as itself. */
+const escapeHtml = (text: string): string =>
+  text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+/**
+ * A translation asked for with `LABEL_SLOT` as its label, as markup with the label in a span marked
+ * with the language it is in. CEE's words around it are left unmarked, to take CEE's language from
+ * the element the markup is written into.
+ *
+ * The markup's text is the translation with the label in its place, so what a screen reader reads is
+ * unchanged apart from the language of the label.
+ */
+export function labelMarkedMarkup(translated: string, label: string, labelLanguage: string): string {
+  const { before, after, labelled } = aroundLabel(translated);
+  const marked = labelled ? `<span lang="${escapeHtml(labelLanguage)}">${escapeHtml(label)}</span>` : '';
+  return `${escapeHtml(before)}${marked}${escapeHtml(after)}`;
+}

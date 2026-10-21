@@ -9,6 +9,7 @@ import {
   ViewEncapsulation,
 } from '@angular/core';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
+import { DomSanitizer } from '@angular/platform-browser';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MultiComponent } from '../../models/component/multi-component.model';
 import { PageEvent } from '@angular/material/paginator';
@@ -21,7 +22,8 @@ import { MessageHandlerService } from '../../service/message-handler.service';
 import { PageBreakPaginatorService } from '../../service/page-break-paginator.service';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 import { RenderSchedulerService } from '../../service/render-scheduler.service';
-import { MATERIAL_TEXT_LANGUAGE } from '../../a11y/language-tag';
+import { MATERIAL_TEXT_LANGUAGE, textLanguageOf } from '../../a11y/language-tag';
+import { LABEL_SLOT, labelMarkedMarkup } from '../../a11y/joined-name';
 import { moveChipFocus } from '../../a11y/chip-listbox-keys';
 import { announceChange } from '../../a11y/message-links';
 import { renderingLabelOf } from '../../service/component-data.service';
@@ -70,6 +72,7 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy {
     // The element's own announcer, which speaks through the live region in its shadow root. Optional,
     // so a spec can build the pager without one.
     @Optional() private readonly announcer: LiveAnnouncer | null = null,
+    @Optional() private readonly sanitizer: DomSanitizer | null = null,
   ) {
     this.activeComponentRegistry = activeComponentRegistry;
     this.translateService = translateService;
@@ -264,15 +267,24 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy {
   /**
    * Say what an add, copy, delete or page turn did, which nothing on screen announces: the
    * occurrence it concerns, by number, and how many there are now. Focus stays where it is.
+   *
+   * The message names the component by its label, which is the template's text, and the live
+   * region states CEE's language. Where the template declares a language for its text, the message
+   * is written as markup with the label marked with that language.
    */
   private announce(key: string, number = (this.currentMultiInfo?.currentIndex ?? 0) + 1): void {
+    const label = renderingLabelOf(this.component);
+    const labelLanguage = textLanguageOf(this.component);
+    const params = { number, count: this.getInstanceCount() };
+    if (labelLanguage === null || this.sanitizer === null) {
+      announceChange(this.announcer, this.translateService.instant(key, { label, ...params }));
+      return;
+    }
+    const translated = this.translateService.instant(key, { label: LABEL_SLOT, ...params });
     announceChange(
       this.announcer,
-      this.translateService.instant(key, {
-        label: renderingLabelOf(this.component),
-        number,
-        count: this.getInstanceCount(),
-      }),
+      // Escaped where it is built, so the label and CEE's words reach the region only as text.
+      this.sanitizer.bypassSecurityTrustHtml(labelMarkedMarkup(translated, label, labelLanguage)),
     );
   }
 

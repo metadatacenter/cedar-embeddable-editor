@@ -285,6 +285,23 @@ export function specDefaultFactsOf(field: FieldComponent): SpecFact[] {
 }
 
 /**
+ * Whether the default `specDefaultFactsOf` states is text in a language: one the template wrote for a
+ * text, paragraph, email or phone field, or the labels of a choice field's default options. A number,
+ * a date or time, a link and a flag are in no language.
+ */
+export function specDefaultIsText(field: FieldComponent): boolean {
+  const declared = field.valueInfo.defaultValue;
+  const inputType = field.basicInfo.inputType;
+  return (
+    typeof declared !== 'number' &&
+    typeof declared !== 'boolean' &&
+    inputType !== InputType.numeric &&
+    inputType !== InputType.temporal &&
+    inputType !== InputType.link
+  );
+}
+
+/**
  * What an acceptable value looks like. Stated inside the control, where the value itself would be:
  * an empty box in read-only says nothing, and this is the one thing that belongs in that space.
  */
