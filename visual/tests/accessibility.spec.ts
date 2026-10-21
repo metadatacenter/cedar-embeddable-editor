@@ -11,19 +11,28 @@ import { addAttributeRow, open, passDebounceWindow } from './support/host';
  * sizes. It cannot decide focus order or what a screen reader announces. The tags are the
  * designer's and the term picker's: WCAG 2.0, 2.1 and 2.2 at levels A and AA. Each template is
  * checked empty, filled with each instance written for it, and read only with and without each
- * instance, at both widths. So is the field element on its own under each presentation preset,
- * comfortable density beside the compact default, searches under way and finished, the open
- * overlays (a calendar in both its views, a select and a menu), and a hovered and a focused
- * control of each kind.
+ * instance, at both widths, the narrow one for the rules that read the layout. So is the field
+ * element on its own under each presentation preset, comfortable density beside the compact
+ * default, searches under way and finished, the open overlays (a calendar in both its views, a
+ * select and a menu), and a hovered and a focused control of each kind.
  */
 const WCAG = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 
 /**
  * WCAG 2.1's Label in Name, criterion 2.5.3: a control's accessible name contains the text it shows,
  * so that speech input reaches it by its visible label. axe-core's rule for it is experimental, and
- * a tag selection leaves experimental rules out, so it runs by name.
+ * a tag selection leaves experimental rules out, so the scan enables it by name beside the tags.
  */
 const LABEL_IN_NAME = 'label-content-name-mismatch';
+
+/**
+ * The rules whose outcome depends on how the page is laid out rather than on its markup. Contrast
+ * reads what is drawn behind each text, target size reads each control's box and its neighbours, and
+ * a region scrolls only when its content overflows. Audited at both widths on 2026-10-20, 239 states
+ * agreed on every other rule, while contrast differed in 21 and target size in one. The narrow run
+ * checks only these rules; the desktop run checks them all.
+ */
+const LAYOUT_RULES = ['color-contrast', 'target-size', 'scrollable-region-focusable'];
 
 /**
  * The rules whose undecided results this gate settles rather than ignores.
@@ -303,15 +312,26 @@ async function expectAccessible(page: Page, state: string): Promise<void> {
       await Promise.all(running.map((animation) => animation.finished.catch(() => undefined)));
     }
   });
-  const { violations: tagged, incomplete } = await new AxeBuilder({ page })
-    .withTags(WCAG)
-    .exclude({ fromShadowDom: ['cedar-embeddable-editor', 'iframe'] })
-    .analyze();
-  const { violations: named } = await new AxeBuilder({ page })
-    .withRules([LABEL_IN_NAME])
-    .exclude({ fromShadowDom: ['cedar-embeddable-editor', 'iframe'] })
-    .analyze();
-  const violations = [...tagged, ...named];
+  const builder = new AxeBuilder({ page }).exclude({ fromShadowDom: ['cedar-embeddable-editor', 'iframe'] });
+  const narrow = test.info().project.name === 'narrow';
+  // axe-core lets a rule enabled by name override the tag selection, so one desktop scan covers both.
+  // The builder's `options` replaces every option set before it, so it comes ahead of `withTags`.
+  const scan = narrow
+    ? await builder.withRules(LAYOUT_RULES).analyze()
+    : await builder
+        .options({ rules: { [LABEL_IN_NAME]: { enabled: true } } })
+        .withTags(WCAG)
+        .analyze();
+  if (!narrow) {
+    // A builder that dropped the rule option would stop checking Label in Name and fail nothing, so
+    // the desktop scan must report the rule.
+    const evaluated = [scan.passes, scan.violations, scan.incomplete, scan.inapplicable].flat();
+    expect(
+      evaluated.some((result) => result.id === LABEL_IN_NAME),
+      `${LABEL_IN_NAME} did not run`,
+    ).toBe(true);
+  }
+  const { violations, incomplete } = scan;
   // A label on an element whose role takes none is ignored by screen readers, decided or not.
   const ignoredLabels = incomplete.filter((result) => result.id === 'aria-prohibited-attr');
   const failures = [...violations, ...ignoredLabels].flatMap((violation) =>
