@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type APIResponse, type Page } from '@playwright/test';
 import { open, passDebounceWindow } from './support/host';
 
 /**
@@ -14,15 +14,19 @@ import { open, passDebounceWindow } from './support/host';
  * - Placeholders. Every placeholder clears 4.5:1 against the background it sits on. axe does not
  *   measure placeholder text.
  *
- * A placeholder is text too, and since it cannot wrap, a box that is too narrow for it clips it.
+ * A placeholder is text too, and since it cannot wrap, a box that is too narrow for it clips it. So
+ * is the value a read-only box shows on its one line.
  *
  * Each check runs over the input types, choices, authority and temporal fixtures, a nested one and a
  * multi-page one, editable and read only, and over the field element showing one field of each of
- * the first four. Reflow, resize and text spacing also run over a form with each kind of overlay
- * open: the date picker's calendar in its month and multi-year views, a select's panel, an
- * autocomplete's suggestions and the download menu. An overlay is fixed to the viewport, so the page
- * cannot be scrolled to what it puts outside it, and the viewport clips it as an ancestor that hides
- * its overflow does. A finding that cannot be fixed without a visible change is listed in
+ * the first four. It also runs over the input types, controlled terms and authority fixtures read
+ * only, each box holding a value too long for one line. Reflow, resize and text spacing also run
+ * over a form with each kind of overlay open: the date picker's calendar in its month and multi-year
+ * views, a select's panel, a multi-select's panel with a long option, the time zone select's panel,
+ * an autocomplete's suggestions, a term lookup's suggestions and its failure notice, the download
+ * menu, and a field's description and property IRI tooltips. An overlay is fixed to the viewport, so
+ * the page cannot be scrolled to what it puts outside it, and the viewport clips it as an ancestor
+ * that hides its overflow does. A finding that cannot be fixed without a visible change is listed in
  * `EXCEPTIONS` with the change it needs.
  */
 
@@ -49,6 +53,46 @@ const FIELDS = [
   ['09-temporal', '_decimal_seconds'],
 ] as const;
 
+/**
+ * Wait until every finite animation on the page has finished, as an overlay's entrance does.
+ *
+ * `document.getAnimations()` leaves out the animations that run in a shadow root, and everything CEE
+ * draws is in one, so each root is asked as well. Measured during a select panel's entrance, its
+ * options were transparent and so went unmeasured, or measured and found wanting, by turns.
+ */
+const animationsDone = (page: Page): Promise<unknown> =>
+  page.waitForFunction(() => {
+    const roots: (Document | ShadowRoot)[] = [document];
+    for (const root of roots)
+      for (const element of root.querySelectorAll('*')) if (element.shadowRoot) roots.push(element.shadowRoot);
+    return roots.every((root) =>
+      root
+        .getAnimations()
+        .every(
+          (animation) =>
+            animation.playState !== 'running' || animation.effect?.getComputedTiming().iterations === Infinity,
+        ),
+    );
+  });
+
+/** Text long enough to wrap in any box CEE draws, with a word too long for a line at 320 CSS px. */
+const LONG_TEXT =
+  'A value written at length, the way a curator describes a sample when the form leaves room for it: ' +
+  'where it was collected, how it was stored and who handled it, ending with an identifier ' +
+  'urn:example:sample:2026-10-21:freezer-04:rack-11:box-07:position-63.';
+
+/** A fixture as Playwright parses it, which a change reaches into by the keys it knows. */
+type Parsed = Awaited<ReturnType<APIResponse['json']>>;
+
+/** Serve a fixture changed by `change`, which is given the parsed JSON. */
+const serveChanged = async (page: Page, fixture: string, change: (json: Parsed) => void): Promise<void> => {
+  await page.route(`**/fixtures/${fixture}.json`, async (route) => {
+    const json = await (await route.fetch()).json();
+    change(json);
+    await route.fulfill({ json });
+  });
+};
+
 /** The field route reports ready before the field renders, so this waits for the field and its fonts. */
 const showField = async (page: Page, fixture: string, property: string, mode: Mode): Promise<void> => {
   await open(
@@ -61,14 +105,7 @@ const showField = async (page: Page, fixture: string, property: string, mode: Mo
   );
   await expect(page.locator('cedar-embeddable-field app-cedar-field-widget').first()).toBeVisible();
   await page.evaluate(() => document.fonts.ready.then(() => undefined));
-  await page.waitForFunction(() =>
-    document
-      .getAnimations()
-      .every(
-        (animation) =>
-          animation.playState !== 'running' || animation.effect?.getComputedTiming().iterations === Infinity,
-      ),
-  );
+  await animationsDone(page);
 };
 
 const TEXT_SPACING =
@@ -99,6 +136,20 @@ const EXCEPTIONS: readonly Exception[] = [
       'a placeholder that fits a 320 CSS px box: a shorter instruction, or the instruction moved out of the box ' +
       'into hint text that wraps',
   },
+  /*
+   * Read only, a text, email or phone value is shown in a one-line box, which cuts off what does not
+   * fit with nothing to say that more follows. A reader reaches the rest only by putting the caret in
+   * the box and moving it. At 320 CSS px a sentence, a long address and a long number are each cut
+   * off, and at 640 and at 1280 under text spacing the sentence still is. A paragraph field's value
+   * already wraps, because its box grows to hold it.
+   */
+  ...(['reflow', 'resize', 'text spacing'] as const).map((check) => ({
+    check,
+    finding: /^value is clipped: the box "(text|email|phone)" /,
+    needs:
+      'a read-only value that wraps onto further lines, as a paragraph value does, rather than one cut off at ' +
+      'the edge of a one-line box',
+  })),
 ];
 
 /**
@@ -143,32 +194,51 @@ function findLayoutProblems(options: { scrolling: boolean; controls: boolean; te
    * too: what it hides can be scrolled to, and one that scrolls sideways is a finding of its own.
    * Content fixed to the viewport, as an overlay is, cannot be scrolled to either, so the viewport
    * cuts it off.
+   *
+   * What a scroll container holds can be scrolled to any place in the container's own box. A box
+   * further out therefore cuts that content off only on a side where it cuts off the container. A
+   * select's panel scrolls, and an option scrolled out of the panel is not cut off by the viewport
+   * unless the panel is.
    */
   const clippers = (element: Element): { ancestor: Element | 'the viewport'; box: Partial<Box> }[] => {
     const found: { ancestor: Element | 'the viewport'; box: Partial<Box> }[] = [];
+    // The box of the nearest scroll container passed so far, in each direction it scrolls.
+    let across: Box | null = null;
+    let down: Box | null = null;
+    const beyond = (box: Partial<Box>): Partial<Box> => ({
+      ...(box.left !== undefined && (across === null || across.left < box.left - 1) ? { left: box.left } : {}),
+      ...(box.right !== undefined && (across === null || across.right > box.right + 1) ? { right: box.right } : {}),
+      ...(box.top !== undefined && (down === null || down.top < box.top - 1) ? { top: box.top } : {}),
+      ...(box.bottom !== undefined && (down === null || down.bottom > box.bottom + 1) ? { bottom: box.bottom } : {}),
+    });
+    const scrolls = (overflow: string): boolean => overflow === 'auto' || overflow === 'scroll';
     for (
       let ancestor: Element | null = element;
       ancestor && ancestor !== document.documentElement;
       ancestor = parentOf(ancestor)
     ) {
       const style = getComputedStyle(ancestor);
-      if (style.position === 'fixed')
-        found.push({
-          ancestor: 'the viewport',
-          box: { left: 0, right: viewportWidth, top: 0, bottom: document.documentElement.clientHeight },
-        });
-      const x = style.overflowX === 'hidden' || style.overflowX === 'clip';
-      const y = style.overflowY === 'hidden' || style.overflowY === 'clip';
-      if ((!x && !y) || style.display === 'inline' || style.display === 'contents') continue;
+      const boxed = style.display !== 'inline' && style.display !== 'contents';
       const frame = ancestor.getBoundingClientRect();
       const left = frame.left + ancestor.clientLeft;
       const top = frame.top + ancestor.clientTop;
+      const inner = { left, top, right: left + ancestor.clientWidth, bottom: top + ancestor.clientHeight };
+      if (boxed && across === null && scrolls(style.overflowX)) across = inner;
+      if (boxed && down === null && scrolls(style.overflowY)) down = inner;
+      if (style.position === 'fixed')
+        found.push({
+          ancestor: 'the viewport',
+          box: beyond({ left: 0, right: viewportWidth, top: 0, bottom: document.documentElement.clientHeight }),
+        });
+      const x = style.overflowX === 'hidden' || style.overflowX === 'clip';
+      const y = style.overflowY === 'hidden' || style.overflowY === 'clip';
+      if ((!x && !y) || !boxed) continue;
       found.push({
         ancestor,
-        box: {
-          ...(x ? { left, right: left + ancestor.clientWidth } : {}),
-          ...(y ? { top, bottom: top + ancestor.clientHeight } : {}),
-        },
+        box: beyond({
+          ...(x ? { left: inner.left, right: inner.right } : {}),
+          ...(y ? { top: inner.top, bottom: inner.bottom } : {}),
+        }),
       });
     }
     return found;
@@ -286,24 +356,50 @@ function findLayoutProblems(options: { scrolling: boolean; controls: boolean; te
           findings.push(`text overlaps: ${name(a.element)} and ${name(b.element)}`);
       }
 
-    // A placeholder is text as well, and a box cuts off what does not fit on its one line. It is
-    // measured as a line of text set in the placeholder's own style, against the box's content width.
-    for (const box of root.querySelectorAll<HTMLInputElement>('input[placeholder]')) {
-      if (!box.placeholder.trim() || box.value !== '' || !shown(box)) continue;
-      const placeholder = getComputedStyle(box, '::placeholder');
+    /**
+     * How wide a box's one line of text is, set in the given style, and how much of the box's width
+     * its content gets. A box cuts off what does not fit on its line.
+     */
+    const lineIn = (box: HTMLInputElement, text: string, style: CSSStyleDeclaration) => {
       const line = document.createElement('span');
       for (const property of ['font', 'letter-spacing', 'word-spacing', 'text-transform'])
-        line.style.setProperty(property, placeholder.getPropertyValue(property));
+        line.style.setProperty(property, style.getPropertyValue(property));
       Object.assign(line.style, { position: 'absolute', visibility: 'hidden', whiteSpace: 'pre' });
-      line.textContent = box.placeholder;
+      line.textContent = text;
       box.parentElement!.appendChild(line);
       const needed = line.getBoundingClientRect().width;
       line.remove();
-      const style = getComputedStyle(box);
-      const available = box.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+      const own = getComputedStyle(box);
+      return { needed, available: box.clientWidth - parseFloat(own.paddingLeft) - parseFloat(own.paddingRight) };
+    };
+
+    // A placeholder is text as well. It is measured in the placeholder's own style.
+    for (const box of root.querySelectorAll<HTMLInputElement>('input[placeholder]')) {
+      if (!box.placeholder.trim() || box.value !== '' || !shown(box)) continue;
+      const { needed, available } = lineIn(box, box.placeholder, getComputedStyle(box, '::placeholder'));
       if (needed > available + 1)
         findings.push(
           `placeholder is clipped: "${box.placeholder}" needs ${Math.ceil(needed)}px of ${Math.floor(available)}px`,
+        );
+    }
+
+    // A read-only box shows a value to be read, and a value longer than the box's line is cut off
+    // with nothing to say so. An editable box is left out: what it holds scrolls with the caret as it
+    // is typed and edited.
+    for (const box of root.querySelectorAll<HTMLInputElement>('input[readonly]')) {
+      if (!box.value.trim() || !shown(box)) continue;
+      const { needed, available } = lineIn(box, box.value, getComputedStyle(box));
+      const label =
+        box.getAttribute('aria-label') ??
+        (box.getAttribute('aria-labelledby') ?? '')
+          .split(/\s+/)
+          .map((id) => (id ? (root.getElementById(id)?.textContent ?? '') : ''))
+          .join(' ')
+          .trim();
+      if (needed > available + 1)
+        findings.push(
+          `value is clipped: the box "${label}" holding "${box.value.slice(0, 40)}" ` +
+            `needs ${Math.ceil(needed)}px of ${Math.floor(available)}px`,
         );
     }
   }
@@ -415,6 +511,7 @@ const checkLayout = (title: string, show: (page: Page) => Promise<void>): void =
     test(`${title} ${checking}`, async ({ page }) => {
       await page.setViewportSize(viewport);
       await show(page);
+      await animationsDone(page);
       if (check === 'text spacing') await forceTextSpacing(page);
       const findings = await page.evaluate(findLayoutProblems, options);
       expect(unexplained(check, findings)).toEqual([]);
@@ -422,6 +519,7 @@ const checkLayout = (title: string, show: (page: Page) => Promise<void>): void =
 
   test(`${title} placeholders clear 4.5:1`, async ({ page }) => {
     await show(page);
+    await animationsDone(page);
     expect(unexplained('placeholder', await page.evaluate(findFaintPlaceholders))).toEqual([]);
   });
 };
@@ -434,6 +532,65 @@ for (const [fixture, property] of FIELDS)
     checkLayout(`the field element showing ${fixture} ${property} ${mode}`, (page) =>
       showField(page, fixture, property, mode),
     );
+
+/**
+ * Read only, a fixture shows the instance written for it, with a value in each box long enough to need
+ * more than one line at 320 CSS px. Most of them need more than one at 1280.
+ */
+const LONG_VALUES: readonly { fixture: string; instance: string; values: Readonly<Record<string, unknown>> }[] = [
+  {
+    fixture: '01-input-types',
+    instance: '01-input-types-instance',
+    values: {
+      _text: { '@value': LONG_TEXT },
+      _textarea: { '@value': LONG_TEXT },
+      _email: { '@value': 'the.curator.who.collected.this.sample@a-departmental-subdomain.example.org' },
+      _phone: { '@value': '+1 650 555 0100 555 0100 555 0100 555 0100' },
+      _link: { '@id': 'https://example.org/samples/2026-10-21/freezer-04/rack-11/box-07/position-63/record' },
+    },
+  },
+  {
+    fixture: '04-controlled-terms',
+    instance: '04-controlled-terms-instance',
+    values: {
+      _organism: {
+        '@id': 'http://purl.obolibrary.org/obo/NCBITaxon_63221',
+        'rdfs:label': 'Homo neanderthalensis, the Neanderthal, known from remains across Europe and western Asia',
+      },
+      _contributor: {
+        '@id': 'https://orcid.org/0000-0002-1825-0097',
+        'rdfs:label': 'Josiah Stinkney Carberry, Professor of Psychoceramics, Brown University',
+      },
+      _institution: [
+        {
+          '@id': 'https://ror.org/00f54p054',
+          'rdfs:label': 'The Board of Trustees of the Leland Stanford Junior University',
+        },
+        { '@id': 'https://ror.org/013meh722', 'rdfs:label': 'The Chancellor, Masters, and Scholars of Cambridge' },
+      ],
+    },
+  },
+  {
+    fixture: '08-authority',
+    instance: '08-authority-instance',
+    values: {
+      _contributor_orcid: {
+        '@id': 'https://orcid.org/0000-0002-1825-0097',
+        'rdfs:label': 'Josiah Stinkney Carberry, Professor of Psychoceramics, Brown University',
+      },
+      _institution_ror: {
+        '@id': 'https://ror.org/00f54p054',
+        'rdfs:label': 'The Board of Trustees of the Leland Stanford Junior University',
+      },
+    },
+  },
+];
+
+for (const { fixture, instance, values } of LONG_VALUES)
+  checkLayout(`${fixture} read only, its values too long for one line,`, async (page) => {
+    await serveChanged(page, instance, (json) => Object.assign(json, values));
+    await open(page, fixture, 'readonly', instance);
+  });
 
 /** An authority answers a search with two suggestions, the second with a name long enough to wrap. */
 const answerSearches = async (page: Page): Promise<void> => {
@@ -449,6 +606,39 @@ const answerSearches = async (page: Page): Promise<void> => {
         },
       },
     }),
+  );
+};
+
+/** One of the textarea field's tooltips, opened as a pointer opens it, by resting on its mark. */
+const showTooltip = async (page: Page, mark: string, text: string): Promise<void> => {
+  await page
+    .locator('.non-iterable-component > app-cedar-component-header')
+    .filter({ has: page.locator('.title-label', { hasText: /^\s*textarea\b/ }) })
+    .locator(mark)
+    .hover();
+  await expect(page.locator('.mat-mdc-tooltip-surface').filter({ hasText: text })).toBeVisible();
+  await animationsDone(page);
+};
+
+/**
+ * A terminology lookup answers with two terms, the second with a label long enough to wrap, or, when
+ * `fails`, fails.
+ */
+const answerLookups = async (page: Page, fails = false): Promise<void> => {
+  await page.route('http://127.0.0.1:9/unused/bioportal/integrated-search', (route) =>
+    fails
+      ? route.abort()
+      : route.fulfill({
+          json: {
+            collection: [
+              ['http://purl.obolibrary.org/obo/NCBITaxon_9606', 'Homo sapiens'],
+              [
+                'http://purl.obolibrary.org/obo/NCBITaxon_63221',
+                'Homo neanderthalensis, the Neanderthal, known from remains across Europe and western Asia',
+              ],
+            ].map(([id, label]) => ({ id, '@id': id, prefLabel: label })),
+          },
+        }),
   );
 };
 
@@ -497,6 +687,68 @@ const OVERLAYS: readonly { readonly name: string; readonly show: (page: Page) =>
       await expect(page.getByRole('menuitem').first()).toBeVisible();
     },
   },
+  {
+    name: "the tooltip of a field's long description",
+    show: async (page) => {
+      await serveChanged(page, '01-input-types', (template) => {
+        template._ui.propertyDescriptions._textarea = LONG_TEXT;
+      });
+      await open(page, '01-input-types');
+      await showTooltip(page, 'mat-icon.icon-help', LONG_TEXT.slice(0, 20));
+    },
+  },
+  {
+    name: "a field's property IRI tooltip",
+    show: async (page) => {
+      await open(page, '01-input-types');
+      await showTooltip(page, '.property-iri', 'https://schema.metadatacenter.org/properties/');
+    },
+  },
+  {
+    name: 'the panel of a multi-select with a long option',
+    show: async (page) => {
+      await serveChanged(page, '02-choices', (template) => {
+        template.properties._multi_list.items._valueConstraints.literals.push({ label: LONG_TEXT.slice(0, 120) });
+      });
+      await open(page, '02-choices');
+      await page.getByRole('combobox', { name: 'multi_list', exact: true }).click();
+      await expect(page.getByRole('listbox', { name: 'multi_list' }).getByRole('option')).toHaveCount(3);
+    },
+  },
+  {
+    name: "the time zone select's panel",
+    show: async (page) => {
+      await open(page, '07-timezone');
+      await page.locator('cedar-embeddable-editor').getByRole('combobox').click();
+      await expect(page.getByRole('option', { name: 'UTC+05:30', exact: true })).toBeVisible();
+    },
+  },
+  {
+    name: "a term lookup's suggestions",
+    show: async (page) => {
+      await answerLookups(page);
+      await open(page, '04-controlled-terms');
+      await page
+        .locator('cedar-embeddable-editor')
+        .getByRole('combobox', { name: 'organism', exact: true })
+        .pressSequentially('Homo', { delay: 20 });
+      await passDebounceWindow(page);
+      await expect(page.getByRole('option', { name: /^Homo neanderthalensis/ }).first()).toBeVisible({ timeout: 5000 });
+    },
+  },
+  {
+    name: "a term lookup's failure notice",
+    show: async (page) => {
+      await answerLookups(page, true);
+      await open(page, '04-controlled-terms');
+      await page
+        .locator('cedar-embeddable-editor')
+        .getByRole('combobox', { name: 'organism', exact: true })
+        .pressSequentially('Homo', { delay: 20 });
+      await passDebounceWindow(page);
+      await expect(page.getByRole('option', { name: /^Search failed/ })).toBeVisible({ timeout: 5000 });
+    },
+  },
 ];
 
 for (const overlay of OVERLAYS)
@@ -504,6 +756,7 @@ for (const overlay of OVERLAYS)
     test(`with ${overlay.name} open, the form ${title}`, async ({ page }) => {
       await page.setViewportSize(viewport);
       await overlay.show(page);
+      await animationsDone(page);
       if (check === 'text spacing') await forceTextSpacing(page);
       const findings = await page.evaluate(findLayoutProblems, options);
       expect(unexplained(check, findings)).toEqual([]);
