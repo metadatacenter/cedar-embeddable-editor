@@ -16,6 +16,7 @@ import {
   SpecFact,
   SpecFactKey,
   specDefaultFactsOf,
+  specDefaultIsText,
   specDefaultTermOf,
   specHeaderFactsOf,
   specOptionsOf,
@@ -439,6 +440,46 @@ describe('a declared default', () => {
         .filter((option) => option.selectedByDefault)
         .map((option) => option.label),
     ).toStrictEqual(['Green']);
+  });
+});
+
+/**
+ * Whether a declared default is text in a language, which the specification box marks with the
+ * language of the field's values. A number, a date, a link and a flag are in none.
+ */
+describe('a default written as text', () => {
+  const declaring = (inputType: string, defaultValue: string | number | boolean | null): FieldComponent => {
+    const field = new SingleFieldComponent();
+    field.basicInfo.inputType = inputType;
+    field.valueInfo.defaultValue = defaultValue;
+    return field;
+  };
+
+  it.each([InputType.text, InputType.textarea, InputType.email, InputType.phoneNumber])(
+    'is the text a %s field declares',
+    (inputType) => {
+      expect(specDefaultIsText(declaring(inputType, 'Dupont'))).toBe(true);
+    },
+  );
+
+  it.each([InputType.list, InputType.radio, InputType.checkbox])(
+    'is the default options of a %s field',
+    (inputType) => {
+      const field = declaring(inputType, null);
+      field.choiceInfo.choices = [new ChoiceOption('Rouge', true), new ChoiceOption('Vert', false)];
+
+      expect(specDefaultIsText(field)).toBe(true);
+    },
+  );
+
+  it.each([
+    [InputType.numeric, 42],
+    [InputType.numeric, '1.250'],
+    [InputType.temporal, '2026-10-21'],
+    [InputType.link, 'https://example.org/sample'],
+    [InputType.text, true],
+  ] as const)('is not a %s field declaring %s', (inputType, defaultValue) => {
+    expect(specDefaultIsText(declaring(inputType, defaultValue))).toBe(false);
   });
 });
 

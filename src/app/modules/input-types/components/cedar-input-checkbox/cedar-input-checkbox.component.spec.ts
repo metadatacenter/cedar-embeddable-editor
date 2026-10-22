@@ -4,7 +4,11 @@ import { of } from 'rxjs';
 import { InstanceDataStringAtom } from 'cedar-model-typescript-library';
 import { describe, expect, it, vi } from 'vitest';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
+import { TranslateService } from '@ngx-translate/core';
+import { BasicInfo } from '../../../shared/models/info/basic-info.model';
 import { ChoiceOption } from '../../../shared/models/info/choice-option.model';
+import { LabelInfo } from '../../../shared/models/info/label-info.model';
+import { GlobalSettingsContextService } from '../../../shared/service/global-settings-context.service';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { UserPreferencesService } from '../../../shared/service/user-preferences.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
@@ -218,5 +222,51 @@ describe('CedarInputCheckboxComponent', () => {
     expect(harness.written).toEqual([]);
     expect(harness.component.isChecked('A')).toBe(true);
     expect(harness.component.isChecked('B')).toBe(false);
+  });
+});
+
+/**
+ * The mark that says an option is the template's default is CEE's text inside the option, and the
+ * option states the language of its values or of the template's text.
+ */
+describe("the default mark's language", () => {
+  const markIn = ({ text = null as string | null, values = null as string | null } = {}): string | null => {
+    const registry = {
+      registerComponent: vi.fn(),
+      unregisterComponent: vi.fn(),
+    } as unknown as ActiveComponentRegistryService;
+    const injector = Injector.create({
+      providers: [
+        { provide: ActiveComponentRegistryService, useValue: registry },
+        { provide: UserPreferencesService, useValue: { readOnlyMode$: of(true) } },
+        { provide: ChangeDetectorRef, useValue: { markForCheck: vi.fn() } },
+        { provide: TranslateService, useValue: { currentLang: () => 'hu' } },
+        { provide: GlobalSettingsContextService, useValue: new GlobalSettingsContextService() },
+      ],
+    });
+    const component = runInInjectionContext(
+      injector,
+      () => new CedarInputCheckboxComponent(new FormBuilder(), registry),
+    );
+    component.component = {
+      path: ['field'],
+      labelInfo: Object.assign(new LabelInfo(), { language: text }),
+      basicInfo: Object.assign(new BasicInfo(), { valueLanguage: values }),
+      choiceInfo: { multipleChoice: true, choices: [new ChoiceOption('Pomme', true)] },
+      valueInfo: { requiredValue: false },
+    } as unknown as FieldComponent;
+    return component.uiLanguageMarkInOption;
+  };
+
+  it("states CEE's language inside an option in the template's language", () => {
+    expect(markIn({ text: 'fr' })).toBe('hu');
+  });
+
+  it("states CEE's language inside an option in the language of its field's values", () => {
+    expect(markIn({ values: 'it' })).toBe('hu');
+  });
+
+  it("states none where the option states none, and so takes CEE's from the root", () => {
+    expect(markIn()).toBeNull();
   });
 });

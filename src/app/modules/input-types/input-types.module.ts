@@ -2,6 +2,7 @@ import { CountKeyPipe } from '../shared/pipe/count-key.pipe';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { EditedFieldErrorStateMatcher } from './edited-field-error-state-matcher';
 import { CedarIconDirective } from '../shared/directives/cedar-icon.directive';
+import { CedarTooltipLanguageDirective } from '../shared/directives/tooltip-language.directive';
 import { ControlDensityDirective } from '../shared/directives/control-density.directive';
 import { SpecPlaceholderPipe } from '../shared/pipe/spec-placeholder.pipe';
 import { CedarTermLinkComponent } from '../shared/components/cedar-term-link/cedar-term-link.component';
@@ -53,6 +54,7 @@ import { SafeHtmlPipe } from '../shared/pipe/safe-html.pipe';
 import { DatePickerComponent } from '../shared/components/date-picker/date-picker.component';
 import { TimezonePickerComponent } from '../shared/components/timezone-picker/timezone-picker.component';
 import { TimePickerComponent } from '../shared/components/time-picker/time-picker.component';
+import { CedarJoinedNameComponent } from '../shared/components/cedar-joined-name/cedar-joined-name.component';
 import { TranslatePipe } from '@ngx-translate/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
@@ -65,6 +67,7 @@ import { CedarInputDoiComponent } from './components/cedar-input-doi/cedar-input
 @NgModule({
   imports: [
     CedarIconDirective,
+    CedarTooltipLanguageDirective,
     ControlDensityDirective,
     CommonModule,
     MatAutocompleteModule,
@@ -117,6 +120,7 @@ import { CedarInputDoiComponent } from './components/cedar-input-doi/cedar-input
     DatePickerComponent,
     TimePickerComponent,
     TimezonePickerComponent,
+    CedarJoinedNameComponent,
     TrustHtmlPipe,
     SafeHtmlPipe,
     CedarInputPfasComponent,

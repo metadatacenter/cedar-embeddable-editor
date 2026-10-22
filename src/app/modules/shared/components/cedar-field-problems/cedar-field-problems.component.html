@@ -3,6 +3,16 @@
     @if (notice.category === 'completeness') {
       {{ 'Validation.Warning' | translate }}
     }
-    {{ notice.key | translate: notice.params }}
+    <!--
+      A stored value quoted in CEE's sentence is in the language it carries or its field declares, and
+      the sentence around it stays in CEE's. The text is the same either way.
+    -->
+    @if (notice.quoted; as quoted) {
+      @let around = split(notice.key | translate: quoted.params);
+      {{ around.before }}<span [attr.lang]="quoted.language">{{ quoted.text }}</span
+      >{{ around.after }}
+    } @else {
+      {{ notice.key | translate: notice.params }}
+    }
   </mat-error>
 }

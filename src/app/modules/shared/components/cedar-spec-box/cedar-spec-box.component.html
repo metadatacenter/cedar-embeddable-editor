@@ -11,12 +11,14 @@
       <!--
         The lead-in word, where the fact has one, comes off `specKeywordOf` rather than out of a
         list of cases here. A case list covered the facts somebody had thought to add to it, which
-        left `pattern` and `default` stating their own name in the value's own type.
+        left `pattern` and `default` stating their own name in the value's own type. A default written
+        as text is in the language of the field's values, a unit is in the template's, and the lead-in
+        word of either is CEE's.
       -->
       @for (fact of facts; track fact.key) {
-        <span class="cee-spec-box-fact">
+        <span class="cee-spec-box-fact" [attr.lang]="languageOf(fact)">
           @if (keywordOf(fact); as keyword) {
-            <em class="cee-spec-box-keyword">{{ keyword | translate }}</em>
+            <em class="cee-spec-box-keyword" [attr.lang]="keywordLanguageOf(fact)">{{ keyword | translate }}</em>
           }
           {{ fact.key | translate: fact.params }}
         </span>

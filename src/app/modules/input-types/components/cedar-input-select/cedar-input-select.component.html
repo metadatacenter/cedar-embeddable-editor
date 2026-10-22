@@ -23,13 +23,14 @@
         [errorStateMatcher]="errorStateMatcher"
         multiple="{{ component.choiceInfo.multipleChoice }}"
         (selectionChange)="inputChanged()"
+        (openedChange)="panelOpened($event)"
         [aria-label]="cds.getRenderingLabelForComponent(component)"
         [attr.lang]="textLanguage"
       >
         <!--
-          The control's name is the template's text, in the language it declares for it. The selection
-          and the options are the field's values, in the language it declares for them, and otherwise in
-          the language of the template's text.
+          The control's name, which its panel takes too, is the template's text, in the language it
+          declares for it. The selection and the options are the field's values, in the language it
+          declares for them, and otherwise in the language of the template's text.
         -->
         <mat-select-trigger [attr.lang]="optionLanguage">{{ displayValue }}</mat-select-trigger>
         @for (option of dropdownList; track option) {

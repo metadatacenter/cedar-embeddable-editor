@@ -1,6 +1,7 @@
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { DestroyRef } from '@angular/core';
 import { PageEvent } from '@angular/material/paginator';
+import { DomSanitizer } from '@angular/platform-browser';
 import { TranslateService } from '@ngx-translate/core';
 import { InstanceDataContainer, TemplateInstance } from 'cedar-model-typescript-library';
 import { of } from 'rxjs';
@@ -31,10 +32,17 @@ import { CedarMultiPagerComponent } from './cedar-multi-pager.component';
  * stay in step.
  */
 describe('CedarMultiPagerComponent', () => {
-  const makePager = ({ minItems = 1, maxItems = null as number | null, occurrences = 1 } = {}) => {
+  const makePager = ({
+    minItems = 1,
+    maxItems = null as number | null,
+    occurrences = 1,
+    language = null as string | null,
+    translate = (k: string, params?: object) => (params ? `${k} ${JSON.stringify(params)}` : k),
+  } = {}) => {
     const field = new MultiFieldComponent();
     field.name = 'author';
     field.path = ['author'];
+    field.labelInfo.language = language;
     field.basicInfo.inputType = InputType.text;
     field.multiInfo.minItems = minItems;
     field.multiInfo.maxItems = maxItems;
@@ -66,15 +74,14 @@ describe('CedarMultiPagerComponent', () => {
     const announcer = { announce: vi.fn(() => Promise.resolve()) };
     const pager = new CedarMultiPagerComponent(
       registry,
-      {
-        instant: (k: string, params?: object) => (params ? `${k} ${JSON.stringify(params)}` : k),
-      } as unknown as TranslateService,
+      { instant: translate } as unknown as TranslateService,
       messages,
       { readOnlyMode$: of(false) } as unknown as UserPreferencesService,
       // Runs the sync straight away; the real one waits for Angular to render.
       { schedule: (task: () => void) => (task(), Promise.resolve(true)) } as unknown as RenderSchedulerService,
       { destroyed: false, onDestroy: () => () => undefined } as unknown as DestroyRef,
       announcer as unknown as LiveAnnouncer,
+      { bypassSecurityTrustHtml: (html: string) => ({ markup: html }) } as unknown as DomSanitizer,
     );
     pager.handlerContext = handlerContext;
     pager.pageBreakPaginatorService = {} as PageBreakPaginatorService;
@@ -208,6 +215,30 @@ describe('CedarMultiPagerComponent', () => {
       pager.paginatorChanged({ pageIndex: 2, pageSize: 5, length: 12, previousPageIndex: 0 } as PageEvent);
 
       expect(said()).toEqual([['Multi.InstanceShown {"label":"author","number":11,"count":12}', 'polite', 10_000]]);
+    });
+
+    /** An added occurrence in the order the Hungarian map words it, with the label in its place. */
+    const translate = (_key: string, params?: object): string => {
+      const { label, number, count } = params as { label: string; number: number; count: number };
+      return `${label}: ${number}. példány hozzáadva, összesen ${count}`;
+    };
+
+    it("marks the label with the template's language, and says the rest as before", () => {
+      const { pager, said } = makePager({ occurrences: 2, maxItems: 5, language: 'fr', translate });
+
+      pager.clickedAdd();
+
+      expect(said()).toEqual([
+        [{ markup: '<span lang="fr">author</span>: 2. példány hozzáadva, összesen 3' }, 'polite', 10_000],
+      ]);
+    });
+
+    it('says plain text where the template declares no language', () => {
+      const { pager, said } = makePager({ occurrences: 2, maxItems: 5, translate });
+
+      pager.clickedAdd();
+
+      expect(said()).toEqual([['author: 2. példány hozzáadva, összesen 3', 'polite', 10_000]]);
     });
 
     it('says nothing when a bound refuses the action', () => {

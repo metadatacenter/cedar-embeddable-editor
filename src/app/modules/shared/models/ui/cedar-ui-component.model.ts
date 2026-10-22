@@ -93,7 +93,21 @@ export abstract class CedarUIDirective implements OnInit, OnDestroy {
    * take the template's. Elsewhere it states none and takes CEE's language from the root.
    */
   get uiLanguageMark(): string | null {
-    return this.textLanguage === null || this.translate === null || this.globalSettings === null
+    return this.textLanguage === null ? null : this.uiLanguage;
+  }
+
+  /**
+   * The `lang` CEE's own text takes inside an option, such as the mark that says an option is the
+   * default. Where the option states a language, CEE's text states CEE's language again. Elsewhere it
+   * states none and takes CEE's language from the root.
+   */
+  get uiLanguageMarkInOption(): string | null {
+    return this.optionLanguage === null ? null : this.uiLanguage;
+  }
+
+  /** The language CEE's own text is in, or null where it cannot be told. */
+  private get uiLanguage(): string | null {
+    return this.translate === null || this.globalSettings === null
       ? null
       : uiLanguageOf(this.translate, this.globalSettings);
   }

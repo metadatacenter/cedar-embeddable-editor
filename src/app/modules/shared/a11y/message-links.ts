@@ -1,11 +1,14 @@
+import type { SafeHtml } from '@angular/platform-browser';
+
 /**
  * What announcing needs of CDK's `LiveAnnouncer`.
  *
  * Stated here rather than imported, so these helpers can be exercised without Angular. The
- * element's own announcer is what widgets pass.
+ * element's own announcer is what widgets pass. A message is text, or markup where parts of it are
+ * in different languages.
  */
 export interface Announcer {
-  announce(message: string, politeness: 'polite', duration: number): Promise<void>;
+  announce(message: string | SafeHtml, politeness: 'polite', duration: number): Promise<void>;
 }
 
 /**
@@ -72,9 +75,11 @@ const ANNOUNCEMENT_DURATION = 10_000;
 /**
  * Say once, politely and without moving focus, what an action just changed in the form.
  *
- * For a change no control on screen reports, such as an occurrence added or a page turned.
+ * For a change no control on screen reports, such as an occurrence added or a page turned. Markup
+ * goes through the same announcer as text, so it is said with the same delay, politeness and
+ * duration, in the same region.
  */
-export function announceChange(announcer: Announcer | null, message: string): void {
+export function announceChange(announcer: Announcer | null, message: string | SafeHtml): void {
   void announcer?.announce(message, 'polite', ANNOUNCEMENT_DURATION);
 }
 

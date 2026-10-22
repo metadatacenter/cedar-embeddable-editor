@@ -14,8 +14,9 @@
       [readonly]="readOnlyMode"
       attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"
     />
+    <!-- The unit is the template's text, in the language it declares for it. The number is in none. -->
     @if (unitOfMeasure) {
-      <span matSuffix class="cee-numeric-unit">{{ unitOfMeasure }}</span>
+      <span matSuffix class="cee-numeric-unit" [attr.lang]="textLanguage">{{ unitOfMeasure }}</span>
     }
     @if (inputValueControl.value && !readOnlyMode) {
       <button

@@ -1,9 +1,5 @@
 @if (!readOnlyMode) {
-  <div
-    class="cee-time-picker"
-    role="group"
-    attr.aria-label="{{ 'Generic.TimeFor' | translate: { label: fieldLabel } }}"
-  >
+  <div class="cee-time-picker" role="group" [attr.aria-labelledby]="groupName.id">
     <div class="cee-time-input-shell">
       <input
         spellcheck="false"
@@ -84,4 +80,6 @@
       </div>
     }
   </div>
+  <!-- The group's name joins the field's label to CEE's words and states each in its own language. -->
+  <span appCedarJoinedName #groupName key="Generic.TimeFor" [label]="fieldLabel" [labelLanguage]="labelLanguage"></span>
 }

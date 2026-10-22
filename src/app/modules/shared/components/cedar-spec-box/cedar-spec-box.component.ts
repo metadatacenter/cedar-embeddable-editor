@@ -6,8 +6,10 @@ import { FieldComponent } from '../../models/component/field-component.model';
 import { bioPortalSourceLink, bioPortalTermLink } from '../../util/bioportal-term-link';
 import {
   SpecFact,
+  SpecFactKey,
   SpecTermSource,
   specDefaultFactsOf,
+  specDefaultIsText,
   specDefaultTermOf,
   specOptionsOf,
   specKeywordOf,
@@ -80,6 +82,26 @@ export class CedarSpecBoxComponent {
     return this.optionLanguage === null || this.translate === null || this.globalSettings === null
       ? null
       : uiLanguageOf(this.translate, this.globalSettings);
+  }
+
+  /**
+   * The `lang` a fact is marked with. A default the template wrote as text is a value of the field,
+   * in the language of its values and otherwise of the template's text, as the options are. A unit of
+   * measure is the template's text, in the language it declares for it. Every other fact is CEE's
+   * text and takes CEE's language from the root.
+   */
+  languageOf(fact: SpecFact): string | null {
+    if (fact.key === SpecFactKey.unitOfMeasure) {
+      return textLanguageOf(this.fieldToDescribe);
+    }
+    return fact.key === SpecFactKey.defaultValue && specDefaultIsText(this.fieldToDescribe)
+      ? this.optionLanguage
+      : null;
+  }
+
+  /** The `lang` a fact's lead-in word takes: CEE's language inside a fact marked with another. */
+  keywordLanguageOf(fact: SpecFact): string | null {
+    return this.languageOf(fact) === null ? null : this.uiLanguageMark;
   }
 
   /** The declared default when it is a term, which can be linked, rather than text, which cannot. */

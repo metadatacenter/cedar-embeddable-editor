@@ -59,6 +59,34 @@ describe('CedarAriaDescriber', () => {
     expect(shadowRoot.querySelector('.cdk-describedby-message-container')).toBeNull();
   });
 
+  it('does not describe a host whose name, given as text it refers to, already contains the message', () => {
+    const box = document.createElement('input');
+    const name = document.createElement('span');
+    name.id = 'fraction-name';
+    name.innerHTML = '<span lang="fr">secondes</span>, select decimal seconds';
+    box.setAttribute('aria-labelledby', 'fraction-name');
+    shadowRoot.append(box, name);
+
+    service.describe(box, 'decimal seconds', 'tooltip');
+
+    expect(box.hasAttribute('aria-describedby')).toBe(false);
+    expect(shadowRoot.querySelector('.cdk-describedby-message-container')).toBeNull();
+  });
+
+  it('reads a name given as text before an aria-label, as a screen reader does', () => {
+    const box = document.createElement('input');
+    const name = document.createElement('span');
+    name.id = 'box-name';
+    name.textContent = 'day, select date';
+    box.setAttribute('aria-labelledby', 'box-name');
+    box.setAttribute('aria-label', 'decimal seconds');
+    shadowRoot.append(box, name);
+
+    service.describe(box, 'decimal seconds', 'tooltip');
+
+    expect(box.getAttribute('aria-describedby')).toBeTruthy();
+  });
+
   it('does not describe a host whose tooltip text the page already holds', () => {
     const mark = document.createElement('mat-icon');
     mark.setAttribute('aria-label', 'Description');
