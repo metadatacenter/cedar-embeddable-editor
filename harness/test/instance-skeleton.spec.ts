@@ -20,7 +20,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { DocumentKey } from '../src/document-keys';
-import { CedarBuilders, NumberType, TemporalType } from 'cedar-model-typescript-library';
+import { CedarBuilders, NumberType, TemporalGranularity, TemporalType } from 'cedar-model-typescript-library';
 import { FIELD_KINDS, repeatingMinimum } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
@@ -155,6 +155,9 @@ describe('the XSD type a numeric or temporal slot declares', () => {
       isStatic: false,
       write: 'value' as const,
       sample: '2026-01-01',
+      // A temporal field has a granularity, and the model library refuses to write one without it.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      configure: (b: unknown) => (b as any).withTemporalGranularity(TemporalGranularity.SECOND),
     };
     const template = buildTemplate({ name: 'sk_tmp_none', children: [{ kind, name: 'f' }] });
     const slot = new CeeDriver(template).metadata._f;
@@ -170,8 +173,9 @@ describe('the XSD type a numeric or temporal slot declares', () => {
       isStatic: false,
       write: 'value' as const,
       sample: '2026-01-01',
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      configure: (b: unknown) => (b as any).withTemporalType(TemporalType.DATE),
+      configure: (b: unknown) =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (b as any).withTemporalType(TemporalType.DATE).withTemporalGranularity(TemporalGranularity.DAY),
     };
     const template = buildTemplate({ name: 'sk_tmp_date', children: [{ kind, name: 'f' }] });
     expect(xsdTypeOf(new CeeDriver(template).emitted._f)).toBe('xsd:date');
