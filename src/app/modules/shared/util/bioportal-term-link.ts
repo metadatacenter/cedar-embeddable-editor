@@ -28,11 +28,37 @@ const BIOPORTAL_ONTOLOGIES = 'https://bioportal.bioontology.org/ontologies/';
 const acronymOf = (controlled: ControlledInfo): string | undefined =>
   controlled.branches[0]?.acronym ?? controlled.classes[0]?.source ?? controlled.ontologies[0]?.acronym;
 
+/**
+ * The ontology a term comes from, by its acronym, when the field's constraints settle it.
+ *
+ * A stored term names no ontology: a default holds an IRI and a label and nothing more. A class
+ * constraint that lists the term says which ontology it is from. Otherwise the term is from the
+ * field's one ontology when every branch, ontology and class names the same acronym and no value set
+ * adds a collection of its own. A field drawing on several leaves it open, and null says so, since a
+ * guess would name the wrong ontology for some of its terms.
+ */
+export const termAcronymOf = (controlled: ControlledInfo, iri: string): string | null => {
+  const listed = controlled.classes.find((entry) => entry.uri === iri)?.source;
+  if (listed) {
+    return listed;
+  }
+  const acronyms = new Set(
+    [
+      ...controlled.branches.map((branch) => branch.acronym),
+      ...controlled.ontologies.map((ontology) => ontology.acronym),
+      ...controlled.classes.map((entry) => entry.source),
+    ].filter((acronym): acronym is string => !!acronym),
+  );
+  return acronyms.size === 1 && controlled.valueSets.length === 0 ? [...acronyms][0] : null;
+};
+
 export const bioPortalTermLink = (controlled: ControlledInfo, iri: string | undefined | null): string | null => {
   if (!iri) {
     return null;
   }
-  const acronym = acronymOf(controlled);
+  // The term's own ontology where the constraints settle it, so a link and the acronym stated beside a
+  // term agree, and otherwise, as before, the first one the field names.
+  const acronym = termAcronymOf(controlled, iri) ?? acronymOf(controlled);
   if (acronym === undefined || acronym === '') {
     return null;
   }

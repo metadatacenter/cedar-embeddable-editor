@@ -5,6 +5,7 @@ import { GlobalSettingsContextService } from '../../service/global-settings-cont
 import { FieldComponent } from '../../models/component/field-component.model';
 import { bioPortalSourceLink, bioPortalTermLink } from '../../util/bioportal-term-link';
 import {
+  SpecDefaultTerm,
   SpecFact,
   SpecFactKey,
   SpecTermSource,
@@ -105,8 +106,14 @@ export class CedarSpecBoxComponent {
   }
 
   /** The declared default when it is a term, which can be linked, rather than text, which cannot. */
-  get defaultTerm(): { readonly label: string; readonly uri: string } | null {
+  get defaultTerm(): SpecDefaultTerm | null {
     return specDefaultTermOf(this.fieldToDescribe);
+  }
+
+  /** The default's ontology acronym, unless its label already ends with it in parentheses. */
+  get defaultTermAcronym(): string | null {
+    const term = this.defaultTerm;
+    return term?.acronym && !term.label.includes('(' + term.acronym + ')') ? term.acronym : null;
   }
 
   /** Where that term can be read about, built the way the field's own value link is. */

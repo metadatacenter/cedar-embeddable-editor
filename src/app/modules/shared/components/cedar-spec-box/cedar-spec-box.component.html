@@ -28,8 +28,14 @@
   @if (defaultTerm) {
     <span class="cee-spec-box-source">
       <span class="cee-spec-box-default-kind">{{ 'Spec.DefaultLabel' | translate }}</span>
+      <!-- The ontology follows the term inside its link, as it follows a branch inside the branch's. -->
       @if (defaultTermLink) {
-        <a class="cee-spec-box-link" [href]="defaultTermLink" target="_blank" rel="noopener">{{ defaultTerm.label }}</a>
+        <a class="cee-spec-box-link" [href]="defaultTermLink" target="_blank" rel="noopener"
+          >{{ defaultTerm.label }}
+          @if (defaultTermAcronym) {
+            ({{ defaultTermAcronym }})
+          }
+        </a>
       } @else {
         <span>{{ defaultTerm.label }}</span>
       }

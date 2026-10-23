@@ -5,6 +5,7 @@ import { InputType } from '../models/input-type.model';
 import { Xsd } from '../models/xsd.model';
 import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../models/ext-auth-categories.model';
 import { isAuthorityTerm } from '../models/authority/authority-term.guard';
+import { termAcronymOf } from './bioportal-term-link';
 import {
   BranchConstraint,
   ClassConstraint,
@@ -423,6 +424,17 @@ export function specTermSourcesOf(field: FieldComponent): ReadonlyArray<SpecTerm
   ];
 }
 
+/** A controlled field's declared default term. */
+export type SpecDefaultTerm = {
+  readonly label: string;
+  readonly uri: string;
+  /**
+   * The ontology the term is from, by acronym, stated after it as a branch's is after the branch. Null
+   * when the field's constraints do not settle which ontology that is.
+   */
+  readonly acronym: string | null;
+};
+
 /**
  * A controlled field's declared default, as a term rather than as text.
  *
@@ -430,9 +442,11 @@ export function specTermSourcesOf(field: FieldComponent): ReadonlyArray<SpecTerm
  * what "asthma" means can be shown, and a fact rendered as a string cannot carry the link. Null for
  * every other kind of default, whose value is text and has nowhere to point.
  */
-export function specDefaultTermOf(field: FieldComponent): { readonly label: string; readonly uri: string } | null {
+export function specDefaultTermOf(field: FieldComponent): SpecDefaultTerm | null {
   const declared = field.valueInfo.defaultValue;
-  return isAuthorityTerm(declared) ? { label: declared.label, uri: declared.iri } : null;
+  return isAuthorityTerm(declared)
+    ? { label: declared.label, uri: declared.iri, acronym: termAcronymOf(field.controlledInfo, declared.iri) }
+    : null;
 }
 
 /**
