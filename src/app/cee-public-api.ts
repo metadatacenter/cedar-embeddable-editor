@@ -500,7 +500,11 @@ export interface CedarEmbeddableEditorElement extends HTMLElement {
   /** Restore into a fresh element; rejects incompatible or malformed data atomically. */
   readonly restoreDraft: (draft: CeeRecoveryDraft) => boolean;
 
-  /** The instance as CEDAR YAML. Read-only. */
+  /**
+   * The instance as CEDAR YAML. Read-only. The empty string when no YAML can be written: while the
+   * instance input is rejected, or while the instance names no template or has no name, as one from
+   * an unsaved template does.
+   */
   readonly currentMetadataYaml: string;
 
   /** What CEE thinks of the instance. Read-only. */

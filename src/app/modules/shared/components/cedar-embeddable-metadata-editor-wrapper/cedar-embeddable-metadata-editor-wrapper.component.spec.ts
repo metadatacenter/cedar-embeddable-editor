@@ -574,6 +574,26 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
     expect(reported(errors)).toContain('"instanceObject" ignored, because the instance is already set');
   });
 
+  /**
+   * The YAML writer refuses an instance that names no template, which is all an unsaved template can
+   * give it. The getter then answers as it does for a rejected instance, rather than throwing at a host
+   * that only read a property.
+   */
+  it('answers an empty YAML string while the template has no identifier, and YAML once it has one', () => {
+    const unsaved: CeeJsonObject = { ...validTemplate };
+    delete unsaved['@id'];
+    const draft = make();
+    draft.component.ngOnInit();
+    draft.component.templateObject = unsaved;
+    expect(draft.component.editorDataReady()).toBe(true);
+    expect(draft.component.currentMetadataYaml).toBe('');
+
+    const saved = make();
+    saved.component.ngOnInit();
+    saved.component.templateObject = validTemplate;
+    expect(saved.component.currentMetadataYaml).toContain(String(validTemplate['@id']));
+  });
+
   it('reports an unreadable instance without spending its claim, then accepts the correction', () => {
     const { component, errors } = make();
     const corrected = artifact('corrected');

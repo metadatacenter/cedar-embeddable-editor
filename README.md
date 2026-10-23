@@ -117,7 +117,10 @@ service URLs are needed only for controlled-term and external-authority lookups.
 
 Read the record back from `currentMetadata` as CEDAR JSON-LD, or from
 `currentMetadataYaml` as YAML. The CEE neither submits nor stores it. The host
-decides when and where a record is saved.
+decides when and where a record is saved. `currentMetadataYaml` is the empty
+string when no YAML can be written: while the instance input is rejected, or
+while the instance names no template or has no name, as one from an unsaved
+template does.
 
 For recovery across reloads, `captureDraft()` returns a JSON-serializable recovery document
 containing the template, accepted metadata and unfinished field input. This is **not** a

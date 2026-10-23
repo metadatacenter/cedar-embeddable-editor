@@ -244,10 +244,14 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
    * writer, not a different code path.
    */
   @Input() get currentMetadataYaml(): string {
-    if (!this.artifacts.instanceInputRejected) {
+    if (this.artifacts.instanceInputRejected) return '';
+    try {
       return InstanceSerializer.toYaml(this.handlerContext.dataContext.instanceFullData, this.parsedTemplate());
+    } catch {
+      // The YAML writer refuses an instance it cannot state, such as one naming no template, which is
+      // all an unsaved template gives it. A host reading a property is not owed an exception for that.
+      return '';
     }
-    return '';
   }
 
   /**
