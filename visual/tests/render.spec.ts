@@ -2050,7 +2050,9 @@ test.describe('declared non-enumerated defaults', () => {
     expect(JSON.stringify(metadata)).not.toContain('NCBITaxon_9606');
   });
 
-  test('read-only template view states numeric, temporal and term defaults as specification facts', async ({ page }) => {
+  test('read-only template view states numeric, temporal and term defaults as specification facts', async ({
+    page,
+  }) => {
     await open(page, '23-declared-defaults', 'readonly');
 
     const measurement = page.locator('.non-iterable-component').filter({ hasText: 'measurement' });

@@ -8,7 +8,9 @@ const constraints = (shape: Partial<ControlledInfo>): ControlledInfo => Object.a
 
 describe('termAcronymOf', () => {
   it('names the ontology of a field whose branch is its only source', () => {
-    const controlled = constraints({ branches: [{ uri: 'https://purl.humanatlas.io/vocab/hravs#datasets', acronym: 'HRAVS' }] });
+    const controlled = constraints({
+      branches: [{ uri: 'https://purl.humanatlas.io/vocab/hravs#datasets', acronym: 'HRAVS' }],
+    });
     expect(termAcronymOf(controlled, HRAVS_TERM)).toBe('HRAVS');
   });
 
@@ -51,6 +53,8 @@ describe('bioPortalTermLink', () => {
 
   it('keeps linking an unsettled term to the first ontology the field names', () => {
     const controlled = constraints({ ontologies: [{ acronym: 'NCIT' }, { acronym: 'DOID' }] });
-    expect(bioPortalTermLink(controlled, HRAVS_TERM)).toMatch(/^https:\/\/bioportal\.bioontology\.org\/ontologies\/NCIT\?/);
+    expect(bioPortalTermLink(controlled, HRAVS_TERM)).toMatch(
+      /^https:\/\/bioportal\.bioontology\.org\/ontologies\/NCIT\?/,
+    );
   });
 });
