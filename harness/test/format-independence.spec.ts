@@ -167,8 +167,10 @@ describe('a template read from YAML', () => {
    * written in cannot reach it.
    */
   it.each(paired.map((p) => [p.id, p] as const))('template-%s builds the same @context', (_id, pair) => {
-    expect(fromYaml(pair.yaml).emitted[DocumentKey.atContext]).toEqual(
-      fromJson(pair.json).emitted[DocumentKey.atContext],
+    // Compared in the form CEE compares instances in, which template 001's has
+    // although it names no template and so is written for no host.
+    expect(fromYaml(pair.yaml).comparable[DocumentKey.atContext]).toEqual(
+      fromJson(pair.json).comparable[DocumentKey.atContext],
     );
   });
 

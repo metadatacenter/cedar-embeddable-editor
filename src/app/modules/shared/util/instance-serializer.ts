@@ -1,4 +1,11 @@
-import { CedarWriters, InstanceInflater, JsonNode, Template, TemplateInstance } from 'cedar-model-typescript-library';
+import {
+  CedarArtifactId,
+  CedarWriters,
+  InstanceInflater,
+  JsonNode,
+  Template,
+  TemplateInstance,
+} from 'cedar-model-typescript-library';
 import { cloneDeep } from 'lodash-es';
 
 /**
@@ -21,6 +28,9 @@ import { cloneDeep } from 'lodash-es';
  * instance.
  */
 export class InstanceSerializer {
+  /** The template a comparable instance that names none is written as naming. */
+  private static readonly STAND_IN_TEMPLATE = 'urn:cee:stand-in-template';
+
   /**
    * Whether there is an instance here a writer can be given.
    *
@@ -32,6 +42,16 @@ export class InstanceSerializer {
    */
   private static isWritable(instance: TemplateInstance | null): instance is TemplateInstance {
     return instance != null && instance.dataContainer != null;
+  }
+
+  /**
+   * Whether the instance names the template it is based on.
+   *
+   * Both writers refuse an instance that does not, and an instance of an unsaved
+   * template names none, since only a saved template has an identifier.
+   */
+  static namesTemplate(instance: TemplateInstance | null): boolean {
+    return InstanceSerializer.isWritable(instance) && instance.schema_isBasedOn.getValue() !== null;
   }
 
   /**
@@ -85,6 +105,34 @@ export class InstanceSerializer {
       .getAsJsonNode(InstanceSerializer.contracted(instance, template));
   }
 
+  /**
+   * What a host reads as `currentMetadata` for an instance CEE holds.
+   *
+   * The instance as CEDAR JSON, or the empty object while it names no template,
+   * which the writer refuses to write. A host reading a property is not owed an
+   * exception for that.
+   */
+  static toHostJson(instance: TemplateInstance | null, template: Template | null = null): JsonNode {
+    return InstanceSerializer.namesTemplate(instance) ? InstanceSerializer.toJson(instance, template) : {};
+  }
+
+  /**
+   * The instance as CEDAR JSON, for telling one state of the form from the next.
+   *
+   * The same document `toJson` writes wherever it writes one. An instance that
+   * names no template has none, since the writer refuses it, and its edits still
+   * have to be told apart, so it is written as though it named a stand-in
+   * template. The result is compared and never handed to a host.
+   */
+  static toComparableJson(instance: TemplateInstance | null, template: Template | null = null): JsonNode {
+    if (!InstanceSerializer.isWritable(instance) || InstanceSerializer.namesTemplate(instance)) {
+      return InstanceSerializer.toJson(instance, template);
+    }
+    const named: TemplateInstance = Object.assign(Object.create(Object.getPrototypeOf(instance)), instance);
+    named.schema_isBasedOn = CedarArtifactId.forValue(InstanceSerializer.STAND_IN_TEMPLATE);
+    return InstanceSerializer.toJson(named, template);
+  }
+
   /** The same instance as CEDAR YAML, optionally in the library's compact form. */
   static toYaml(
     instance: TemplateInstance | null,
@@ -98,5 +146,21 @@ export class InstanceSerializer {
       .getStrict()
       .getTemplateInstanceWriter()
       .getAsYamlString(InstanceSerializer.contracted(instance, template), isCompact);
+  }
+
+  /**
+   * What a host reads as `currentMetadataYaml` for an instance CEE holds.
+   *
+   * The instance as CEDAR YAML, or the empty string where the writer refuses it,
+   * as it refuses one that names no template, as an instance of an unsaved
+   * template does, and one that has no name. A host reading a property is not
+   * owed an exception for that.
+   */
+  static toHostYaml(instance: TemplateInstance | null, template: Template | null = null): string {
+    try {
+      return InstanceSerializer.toYaml(instance, template);
+    } catch {
+      return '';
+    }
   }
 }

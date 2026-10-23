@@ -27,6 +27,7 @@ import { CeeChangeDetail, CeeJsonObject } from '../../../../cee-public-api';
 import inputTypesTemplate from '../../../../../../visual/fixtures/01-input-types.json';
 import nestedTemplate from '../../../../../../visual/fixtures/03-nested-multi.json';
 import { FieldComponent } from '../../models/component/field-component.model';
+import { JsonSourcePolicy } from 'cedar-model-typescript-library';
 
 const validTemplate = inputTypesTemplate as unknown as CeeJsonObject;
 
@@ -356,6 +357,35 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
     expect(changes).toHaveLength(2);
     expect(changes[1]).toMatchObject({ operation: 'valueChanged', path: field.path, value: null });
   });
+
+  /**
+   * An instance of a template with no identifier names no template, so it has no metadata to hand
+   * out and `currentMetadata` stays empty. Its edits are still told apart: each is published once,
+   * including one that leaves the quality report as it was, and a write that changes nothing is not.
+   */
+  it('publishes the edits of an instance whose template has no identifier', () => {
+    const { component, mocks } = make();
+    const changes: CeeChangeDetail[] = [];
+    mocks.host.addEventListener('change', (event) => changes.push((event as CustomEvent<CeeChangeDetail>).detail));
+    const unsaved: CeeJsonObject = { ...validTemplate };
+    delete unsaved['@id'];
+
+    component.ngOnInit();
+    component.templateObject = unsaved;
+    expect(changes).toEqual([]);
+    const field = component.dataContext.templateRepresentation?.children.find(
+      (child): child is FieldComponent => 'basicInfo' in child,
+    ) as FieldComponent;
+
+    component.handlerContext.changeValue(field, 'edited');
+    const report = JsonSourcePolicy.stringify(component.dataQualityReport);
+    component.handlerContext.changeValue(field, 'edited');
+    component.handlerContext.changeValue(field, 'edited again');
+
+    expect(JsonSourcePolicy.stringify(component.dataQualityReport)).toBe(report);
+    expect(changes.map((change) => change.value)).toEqual(['edited', 'edited again']);
+    expect(component.currentMetadata).toEqual({});
+  });
 });
 
 /**
@@ -592,6 +622,48 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
     saved.component.ngOnInit();
     saved.component.templateObject = validTemplate;
     expect(saved.component.currentMetadataYaml).toContain(String(validTemplate['@id']));
+  });
+
+  /**
+   * The JSON writer refuses an instance that names no template too. The getter answers the empty
+   * object it answers for a rejected instance, and assigning the template, which reads the instance to
+   * tell one state of the form from the next, does not throw.
+   */
+  it('answers an empty object while the template has no identifier, and the instance once it has one', () => {
+    const unsaved: CeeJsonObject = { ...validTemplate };
+    delete unsaved['@id'];
+    const draft = make();
+    draft.component.ngOnInit();
+    draft.component.templateObject = unsaved;
+    expect(draft.component.editorDataReady()).toBe(true);
+    expect(draft.component.currentMetadata).toEqual({});
+
+    const saved = make();
+    saved.component.ngOnInit();
+    saved.component.templateObject = validTemplate;
+    expect((saved.component.currentMetadata as CeeJsonObject)['schema:isBasedOn']).toBe(validTemplate['@id']);
+  });
+
+  /**
+   * An instance that names no template has no metadata to recover or to save, so both captures answer
+   * null, as they do before a form is loaded. Once the template has an identifier, both carry the
+   * instance, naming its template.
+   */
+  it('captures no draft and no save while the template has no identifier', () => {
+    const unsaved: CeeJsonObject = { ...validTemplate };
+    delete unsaved['@id'];
+    const draft = make();
+    draft.component.ngOnInit();
+    draft.component.templateObject = unsaved;
+    expect(draft.component.editorDataReady()).toBe(true);
+    expect(draft.component.captureDraft()).toBeNull();
+    expect(draft.component.captureSave()).toBeNull();
+
+    const saved = make();
+    saved.component.ngOnInit();
+    saved.component.templateObject = validTemplate;
+    expect(saved.component.captureDraft()?.metadata['schema:isBasedOn']).toBe(validTemplate['@id']);
+    expect(saved.component.captureSave()?.metadata['schema:isBasedOn']).toBe(validTemplate['@id']);
   });
 
   it('reports an unreadable instance without spending its claim, then accepts the correction', () => {

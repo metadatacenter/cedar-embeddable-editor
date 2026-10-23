@@ -120,7 +120,11 @@ Read the record back from `currentMetadata` as CEDAR JSON-LD, or from
 decides when and where a record is saved. `currentMetadataYaml` is the empty
 string when no YAML can be written: while the instance input is rejected, or
 while the instance names no template or has no name, as one from an unsaved
-template does.
+template does. `currentMetadata` is likewise the empty object while the instance
+input is rejected or the instance names no template. The form from an unsaved
+template is shown all the same, so a host that reads an empty `currentMetadata`
+as a refusal assigns only a template that has an identifier. For an instance
+that names no template, `captureDraft()` and `captureSave()` return `null`.
 
 For recovery across reloads, `captureDraft()` returns a JSON-serializable recovery document
 containing the template, accepted metadata and unfinished field input. This is **not** a

@@ -189,23 +189,42 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
    * CEE keeps while the form is open is its own working copy — the widgets
    * mutate it in place — but what leaves here is a CEDAR artifact, and what one
    * of those looks like is the model's business.
+   *
+   * The JSON writer refuses an instance that names no template, which is all an
+   * unsaved template gives it. A host reading a property is not owed an exception
+   * for that, so the getter answers the empty object it answers for a rejected
+   * instance.
    */
   @Input() get currentMetadata(): object {
-    if (!this.artifacts.instanceInputRejected) {
-      return InstanceSerializer.toJson(this.handlerContext.dataContext.instanceFullData, this.parsedTemplate());
-    }
-    return {};
+    if (this.artifacts.instanceInputRejected) return {};
+    return InstanceSerializer.toHostJson(this.handlerContext.dataContext.instanceFullData, this.parsedTemplate());
+  }
+
+  /**
+   * The instance as compared between one state of the form and the next.
+   *
+   * `currentMetadata` wherever that holds the instance. An instance that names no
+   * template has no metadata to hand out, and its edits are still told apart.
+   */
+  private comparableMetadata(): object {
+    if (this.artifacts.instanceInputRejected) return {};
+    return InstanceSerializer.toComparableJson(this.handlerContext.dataContext.instanceFullData, this.parsedTemplate());
   }
 
   @Input() get captureSave(): () => CeeSaveSnapshot | null {
     return this.captureSaveSnapshot;
   }
 
+  /**
+   * Null while no readable form is loaded, and while the instance names no
+   * template, since no metadata can be written for one.
+   */
   @Input() readonly captureDraft = (): CeeRecoveryDraft | null => {
     if (!this.editorDataReady()) return null;
     const template = this.artifacts.state.templateJson ?? this.artifacts.state.templateAndInstanceJson?.templateObject;
-    const root = this.dataContext.instanceFullData?.dataContainer;
-    if (!template || !root) return null;
+    const instance = this.dataContext.instanceFullData;
+    const root = instance?.dataContainer;
+    if (!template || !root || !InstanceSerializer.namesTemplate(instance)) return null;
     return JsonSourcePolicy.clone({
       format: 'cedar-cee-draft',
       version: 1,
@@ -221,11 +240,15 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     return true;
   };
 
+  /**
+   * Null while no readable form is loaded, and while the instance names no
+   * template, since no repository stores an instance that names none.
+   */
   private readonly captureSaveSnapshot = (): CeeSaveSnapshot | null => {
     if (!this.editorDataReady()) return null;
     const context = this.handlerContext.dataContext;
     const root = context.instanceFullData?.dataContainer;
-    if (!root) return null;
+    if (!root || !InstanceSerializer.namesTemplate(context.instanceFullData)) return null;
     return captureInstanceSave(
       this.currentMetadata as CeeJsonObject,
       root,
@@ -245,13 +268,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
    */
   @Input() get currentMetadataYaml(): string {
     if (this.artifacts.instanceInputRejected) return '';
-    try {
-      return InstanceSerializer.toYaml(this.handlerContext.dataContext.instanceFullData, this.parsedTemplate());
-    } catch {
-      // The YAML writer refuses an instance it cannot state, such as one naming no template, which is
-      // all an unsaved template gives it. A host reading a property is not owed an exception for that.
-      return '';
-    }
+    return InstanceSerializer.toHostYaml(this.handlerContext.dataContext.instanceFullData, this.parsedTemplate());
   }
 
   /**
@@ -319,14 +336,13 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   private validationStateKey(): string {
-    return JsonSourcePolicy.stringify([this.currentMetadata, this.dataQualityReport]);
+    return JsonSourcePolicy.stringify([this.comparableMetadata(), this.dataQualityReport]);
   }
 
   /** Publish changes to either serialized metadata or its quality report, including unfinished edits. */
   private publishMutation(mutation: InstanceMutation): void {
-    const metadata = this.currentMetadata as CeeJsonObject;
     const report = this.dataQualityReport as CeeDataQualityReport;
-    const key = JsonSourcePolicy.stringify([metadata, report]);
+    const key = JsonSourcePolicy.stringify([this.comparableMetadata(), report]);
     if (key === this.lastPublishedState) {
       return;
     }

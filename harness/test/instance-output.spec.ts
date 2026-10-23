@@ -24,7 +24,7 @@ import { parse as parseYaml } from 'yaml';
 import { InstanceSerializer } from '@cee/util/instance-serializer';
 import { CedarTemplate } from '@cee/models/template/cedar-template.model';
 import { CARDINALITIES, FIELD_KINDS, repeatingMinimum } from '../src/axes';
-import { corpusTemplates } from '../src/corpus';
+import { asSaved, corpusTemplates } from '../src/corpus';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { instanceWith, literalValue, heldValue } from '../src/values';
@@ -268,7 +268,7 @@ describe('real instances survive the trip', () => {
   it.each(corpusTemplates().map((t) => [t.id, t] as const))(
     'template-%s emits its values unchanged',
     (_id, artifact) => {
-      const driver = new CeeDriver(artifact.json);
+      const driver = new CeeDriver(asSaved(artifact));
       const working = driver.fullData;
       const emitted = driver.emitted as Record<string, unknown>;
 
@@ -365,7 +365,7 @@ describe('inflating against the template', () => {
   it.each(corpusTemplates().map((t) => [t.id, t] as const))(
     'template-%s emits the same document with the template as without',
     (_id, artifact) => {
-      const driver = new CeeDriver(artifact.json);
+      const driver = new CeeDriver(asSaved(artifact));
       expect(InstanceSerializer.toJson(driver.instance, parsedOf(driver))).toEqual(
         InstanceSerializer.toJson(driver.instance),
       );

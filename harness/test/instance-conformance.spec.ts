@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CARDINALITIES, FIELD_KINDS, repeatingMinimum } from '../src/axes';
-import { corpusTemplates } from '../src/corpus';
+import { asSaved, corpusTemplates } from '../src/corpus';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { validateWithModel } from '../src/instance-conformance';
@@ -122,7 +122,8 @@ describe('the shared corpus', () => {
   it.each(corpusTemplates().map((t) => [t.id, t] as const))(
     'template-%s produces an instance that satisfies it',
     (_id, artifact) => {
-      const outcome = conformance(artifact.json, new CeeDriver(artifact.json));
+      const template = asSaved(artifact);
+      const outcome = conformance(template, new CeeDriver(template));
       expect(outcome.count, outcome.detail).toBe(0);
     },
   );

@@ -3,6 +3,7 @@ import { CedarReaders, InstanceValidator, JsonNode } from 'cedar-model-typescrip
 import type { InstanceObject } from '@cee/models/instance-node.model';
 import { ceeSuiteCases } from '../src/corpus';
 import { CeeDriver } from '../src/driver';
+import { InstanceSerializer } from '@cee/util/instance-serializer';
 
 type PathSegment = string | number;
 type PairedCase = { id: string; template: object; instance: InstanceObject };
@@ -99,6 +100,16 @@ describe('the production-derived CEE lifecycle corpus', () => {
       // schema:isBasedOn; CEE must report that limitation rather than quietly
       // handing the host an apparently complete document.
       expect(driver.messages.errors).toEqual(id === '048' ? [unsavedTemplateMessage] : []);
+      if (id === '048') {
+        // Both writers refuse an instance that names no template, and the host
+        // reads an empty object as JSON and an empty string as YAML.
+        const refusal = 'A template instance must name the template it is based on.';
+        expect(() => InstanceSerializer.toJson(driver.instance)).toThrow(refusal);
+        expect(() => InstanceSerializer.toYaml(driver.instance)).toThrow(refusal);
+        expect(driver.emitted).toEqual({});
+        expect(driver.emittedYaml).toBe('');
+        return;
+      }
 
       const emitted = driver.emitted;
       const parsedTemplate = CedarReaders.json()
@@ -111,7 +122,7 @@ describe('the production-derived CEE lifecycle corpus', () => {
         .readFromObject(emitted as JsonNode);
 
       expect(parsedInstance.parsingResult.getBlueprintComparisonErrorCount()).toBe(0);
-      expect(parsedInstance.parsingResult.getBlueprintComparisonWarningCount()).toBe(id === '048' ? 6 : 5);
+      expect(parsedInstance.parsingResult.getBlueprintComparisonWarningCount()).toBe(5);
       expect(
         InstanceValidator.validateReport(parsedInstance.instance, parsedTemplate)
           .findings.filter((finding) => finding.category === 'structural')

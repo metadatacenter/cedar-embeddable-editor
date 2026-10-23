@@ -1,12 +1,59 @@
 {
+  "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "schema": "http://schema.org/",
+    "oslc": "http://open-services.net/ns/core#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "rdfs:label": {
+      "@type": "xsd:string"
+    },
+    "schema:isBasedOn": {
+      "@type": "@id"
+    },
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:derivedFrom": {
+      "@type": "@id"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    },
+    "skos:notation": {
+      "@type": "xsd:string"
+    },
+    "Another Controlled Element": "https://schema.metadatacenter.org/properties/8fc549f9-56f3-4780-96e9-23988f18fe3c",
+    "Controlled Element": "https://schema.metadatacenter.org/properties/3b5d0ad4-f279-489e-96e8-0dd523c662b0",
+    "Controlled Standalone": "https://schema.metadatacenter.org/properties/46606e90-c433-4dc1-a21e-1b89b53ffe4e"
+  },
   "Another Controlled Element": [
     {
+      "@context": {
+        "Controlled Field 1 in Element": "https://schema.metadatacenter.org/properties/26779971-8825-44c3-9773-b6339665f0bd"
+      },
       "Controlled Field 1 in Element": {
         "@id": "http://purl.bioontology.org/ontology/LNC/MTHU059704",
         "rdfs:label": "Bacterial aminoglycoside resistance aacA gene"
       }
     },
     {
+      "@context": {
+        "Controlled Field 1 in Element": "https://schema.metadatacenter.org/properties/26779971-8825-44c3-9773-b6339665f0bd"
+      },
       "Controlled Field 1 in Element": {
         "@id": "http://purl.bioontology.org/ontology/LNC/LP379168-0",
         "rdfs:label": "Avian paramyxovirus 3 Ab &#x7C; Serum &#x7C; Microbiology"
@@ -15,6 +62,10 @@
   ],
   "Controlled Element": [
     {
+      "@context": {
+        "Controlled Field 1 in Element": "https://schema.metadatacenter.org/properties/0626ae90-2e1f-47b5-b638-6fa51975bfca",
+        "Controlled Field 2 in Element": "https://schema.metadatacenter.org/properties/26779971-8825-44c3-9773-b6339665f0bd"
+      },
       "Controlled Field 1 in Element": [
         {
           "@id": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C131506",
@@ -31,12 +82,20 @@
       }
     },
     {
+      "@context": {
+        "Controlled Field 1 in Element": "https://schema.metadatacenter.org/properties/0626ae90-2e1f-47b5-b638-6fa51975bfca",
+        "Controlled Field 2 in Element": "https://schema.metadatacenter.org/properties/26779971-8825-44c3-9773-b6339665f0bd"
+      },
       "Controlled Field 1 in Element": [
         {}
       ],
       "Controlled Field 2 in Element": {}
     },
     {
+      "@context": {
+        "Controlled Field 1 in Element": "https://schema.metadatacenter.org/properties/0626ae90-2e1f-47b5-b638-6fa51975bfca",
+        "Controlled Field 2 in Element": "https://schema.metadatacenter.org/properties/26779971-8825-44c3-9773-b6339665f0bd"
+      },
       "Controlled Field 1 in Element": [
         {
           "@id": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C137647",
