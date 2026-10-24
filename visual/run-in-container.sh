@@ -44,6 +44,7 @@ trap 'exit 143' TERM
 docker run --name "$CONTAINER" --rm --init \
   --platform linux/arm64 \
   --ipc=host \
+  -e CEDAR_TEST_TRACE="${CEDAR_TEST_TRACE:-}" \
   -e CEDAR_TEST_WORKERS="${CEDAR_TEST_WORKERS:-}" \
   -v "$REPO":/repo \
   ${reactor_mount[@]+"${reactor_mount[@]}"} \
