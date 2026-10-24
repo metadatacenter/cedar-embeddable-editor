@@ -63,4 +63,33 @@ describe('CedarInputAttributeValueComponent', () => {
     expect(component.attributeNameError).toBeNull();
     expect(component.nameInputControl.errors).toBeNull();
   });
+
+  it('restores a rejected name draft instead of overwriting it with the last accepted value', () => {
+    const component = makeComponent();
+    const error = { key: 'Validation.Attribute.NameInUse', params: { name: 'size' } };
+    component.handlerContext = {
+      validation: { draftFor: () => ({ code: 'attributeName', state: { key: 'size', value: 'large', error } }) },
+    } as never;
+
+    component.setCurrentValue({ colour: 'blue' });
+
+    expect(component.nameInputControl.value).toBe('size');
+    expect(component.valueInputControl.value).toBe('large');
+    expect(component.attributeNameError).toEqual(error);
+    expect(component.nameInputControl.errors).toEqual({ attributeName: true });
+  });
+
+  it('clears a rejected name and its value when the occurrence is deleted', () => {
+    const component = makeComponent();
+    component.setCurrentValue({ colour: 'blue' });
+    component.attributeNameError = { key: 'Validation.Attribute.NameInUse', params: { name: 'colour' } };
+    component.nameInputControl.setErrors({ attributeName: true });
+
+    component.deleteCurrentValue();
+
+    expect(component.nameInputControl.value).toBeNull();
+    expect(component.valueInputControl.value).toBeNull();
+    expect(component.attributeNameError).toBeNull();
+    expect(component.nameInputControl.errors).toBeNull();
+  });
 });
