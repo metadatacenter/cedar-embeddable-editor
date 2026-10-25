@@ -1,4 +1,4 @@
-import { Template } from 'cedar-model-typescript-library';
+import { JsonNode, Template } from 'cedar-model-typescript-library';
 import { TemplateComponent } from './template-component.model';
 import { AbstractElementComponent } from '../element/abstract-element-component.model';
 import { CedarComponent } from '../component/cedar-component.model';
@@ -36,6 +36,16 @@ export class CedarTemplate extends AbstractElementComponent implements TemplateC
    * built by hand in a test.
    */
   parsed: Template | null = null;
+
+  /**
+   * The JSON Schema document `parsed` was read from, as the host handed it over.
+   *
+   * The server judges an instance against the template as it is stored, and an
+   * older template can require fewer children, or admit more keys, than the
+   * model would write. The validator reads those facts from this document.
+   * Null for a YAML template, which is converted before it is stored.
+   */
+  stored: JsonNode | null = null;
 
   hasPageBreaks(): boolean {
     return this.pageBreakChildren.length > 1 && !DataObjectUtil.arraysEqual(this.children, this.pageBreakChildren[0]);

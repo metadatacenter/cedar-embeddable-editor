@@ -141,7 +141,7 @@ test('refuses a place the form does not have, and changes nothing', async ({ pag
 test('publishes localized explanations without losing the technical diagnostic or location', async ({ page }) => {
   const problem = await problemAt(page, ['_organism'], 'controlledStructure');
   expect(problem?.displayMessage).toBe('The stored term is missing its label or its IRI.');
-  expect(problem?.message).toContain('@id');
+  expect(problem?.message).toContain('requires an IRI');
   expect(problem?.severity).toBe('error');
   expect(await reveal(page, problem!)).toBe(true);
 });

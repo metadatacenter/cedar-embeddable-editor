@@ -115,6 +115,19 @@ const withoutUnexpressibleSlots = (fromYamlSide: unknown, fromJsonSide: unknown)
   return fromYamlSide;
 };
 
+/**
+ * The other thing only one form says, so the other place the two readings may differ.
+ *
+ * The server judges an instance against the JSON template as it is stored, and
+ * CEE now judges it the same way, so the JSON form's `required` list decides
+ * which children an instance must hold. The YAML form has no such list.
+ * `template-003` was written to trigger validation errors, and its `required`
+ * names a child it does not declare while admitting no further keys, so the
+ * server would refuse every instance of its JSON form. Its YAML form describes
+ * the same children without that contradiction.
+ */
+const REQUIRED_ONLY_IN_JSON = new Set(['003']);
+
 const fromJson = (template: object) => new CeeDriver(template, { templateParser: new ModelLibraryTemplateParser() });
 const fromYaml = (template: object) => new CeeDriver(template, { templateParser: new YamlTemplateParser() });
 
@@ -174,9 +187,22 @@ describe('a template read from YAML', () => {
     );
   });
 
-  it.each(paired.map((p) => [p.id, p] as const))('template-%s reports the same validity', (_id, pair) => {
-    expect(fromYaml(pair.yaml).qualityReport.isValid).toBe(fromJson(pair.json).qualityReport.isValid);
-  });
+  it.each(paired.filter((p) => !REQUIRED_ONLY_IN_JSON.has(p.id)).map((p) => [p.id, p] as const))(
+    'template-%s reports the same validity',
+    (_id, pair) => {
+      expect(fromYaml(pair.yaml).qualityReport.isValid).toBe(fromJson(pair.json).qualityReport.isValid);
+    },
+  );
+
+  it.each([...REQUIRED_ONLY_IN_JSON])(
+    'template-%s is refused from JSON alone, by the required list only JSON states',
+    (id) => {
+      const pair = paired.find((p) => p.id === id);
+      expect(pair, `template-${id} is no longer a paired case`).toBeDefined();
+      expect(fromJson(pair!.json).qualityReport.canSave).toBe(false);
+      expect(fromYaml(pair!.yaml).qualityReport.canSave).toBe(true);
+    },
+  );
 });
 
 describe('what that demonstrates', () => {

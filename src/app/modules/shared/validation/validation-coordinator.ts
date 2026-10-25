@@ -208,7 +208,7 @@ export class ValidationCoordinator {
     const data = this.context.dataContext;
     const template = data.templateRepresentation;
     if (!(template instanceof CedarTemplate) || !template.parsed || !data.instanceFullData) return;
-    const model = InstanceValidator.validateReport(data.instanceFullData, template.parsed).findings;
+    const model = InstanceValidator.validateReport(data.instanceFullData, template.parsed, template.stored).findings;
     const findings = [
       ...model,
       ...InstanceDeserializer.structuralFindings(data.instanceFullData).filter(
