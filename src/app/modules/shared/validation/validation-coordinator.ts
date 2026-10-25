@@ -208,7 +208,11 @@ export class ValidationCoordinator {
     const data = this.context.dataContext;
     const template = data.templateRepresentation;
     if (!(template instanceof CedarTemplate) || !template.parsed || !data.instanceFullData) return;
-    const model = InstanceValidator.validateReport(data.instanceFullData, template.parsed, template.stored).findings;
+    // The export writes through InstanceInflater, which maps each child to the template's property
+    // IRI, so the mappings the working tree holds are not what the server receives.
+    const model = InstanceValidator.validateReport(data.instanceFullData, template.parsed, template.stored, {
+      childIrisFromTemplate: true,
+    }).findings;
     const findings = [
       ...model,
       ...InstanceDeserializer.structuralFindings(data.instanceFullData).filter(
