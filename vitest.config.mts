@@ -52,6 +52,10 @@ export default defineConfig({
     root: '.',
     coverage: {
       provider: 'v8',
+      // A directory of its own. Vitest empties its reports directory when it starts, and the
+      // default `coverage` holds the coordinator suite's `coverage/cedar-embeddable-editor`, which
+      // the gate may be writing at that moment.
+      reportsDirectory: 'coverage/unit',
       include: ['src/**/*.ts'],
       exclude: ['src/**/*.spec.ts', 'src/main.ts', 'src/polyfills.ts', 'src/test.ts', 'src/environments/**'],
       thresholds: {
