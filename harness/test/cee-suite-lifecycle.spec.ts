@@ -180,7 +180,14 @@ describe('the production-derived CEE lifecycle corpus', () => {
                   path: '/Element with Several Fields, some Multi/1/Another text field/2/@value',
                 },
               ]
-            : [];
+            : id === '046'
+              ? // Two element occurrences list {"@value": null} in an attribute-value field, where
+                // only attribute names belong; the Java validator refuses the document for both.
+                [1, 2].map((occurrence) => ({
+                  code: 'valueShape',
+                  path: `/Element 1/Element 2/0/Element 3/${occurrence}/Sample Attribute Value/0`,
+                }))
+              : [];
       const actualValidation = validation
         .getValidationReport()
         .findings.filter((finding) => finding.category === 'structural')
@@ -190,7 +197,7 @@ describe('the production-derived CEE lifecycle corpus', () => {
         expect(validation.getValidationReport().findings).toContainEqual(
           expect.objectContaining({ code: 'minItems', path: '/Multi Text Field' }),
         );
-      if (id === '004' || id === '029') expect(driver.qualityReport.canSave).toBe(false);
+      if (id === '004' || id === '029' || id === '046') expect(driver.qualityReport.canSave).toBe(false);
     },
   );
 });
