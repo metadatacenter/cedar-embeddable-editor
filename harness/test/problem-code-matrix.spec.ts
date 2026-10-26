@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { FIELD_KINDS, FieldKind } from '../src/axes';
 import { buildTemplate, ChildSpec, ElementSpec } from '../src/generate';
 import { CeeDriver } from '../src/driver';
+import { occurrenceContext } from '../src/validation-state-fixtures';
 import { ValidationProblem } from '@cee/validation/validation-problem.model';
 
 /**
@@ -26,51 +27,57 @@ function constrained(key: string, configure: (builder: any) => any): FieldKind {
   return { ...base, configure: (builder) => configure(base.configure ? base.configure(builder) : builder) };
 }
 
-/** Empty answers still have the structural properties their field declares. */
+/**
+ * An empty occurrence of an element: its `@context`, as a stored occurrence carries it, and empty
+ * answers that still have the structural properties their field declares.
+ */
 function emptyContainer(schema: any): Record<string, unknown> {
-  return Object.fromEntries(
-    (schema._ui.order as string[]).map((key) => {
-      const child = schema.properties[key];
-      if (child.type === 'array') return [key, []];
-      if (!child._ui?.inputType) return [key, emptyContainer(child)];
-      if (!child.properties?.['@value']) return [key, {}];
-      const datatype = child._valueConstraints?.numberType ?? child._valueConstraints?.temporalType;
-      return [key, { '@value': null, ...(datatype ? { '@type': datatype } : {}) }];
-    }),
-  );
+  return {
+    '@context': occurrenceContext(schema),
+    ...Object.fromEntries(
+      (schema._ui.order as string[]).map((key) => {
+        const child = schema.properties[key];
+        if (child.type === 'array') return [key, []];
+        if (!child._ui?.inputType) return [key, emptyContainer(child)];
+        if (!child.properties?.['@value']) return [key, {}];
+        const datatype = child._valueConstraints?.numberType ?? child._valueConstraints?.temporalType;
+        return [key, { '@value': null, ...(datatype ? { '@type': datatype } : {}) }];
+      }),
+    ),
+  };
 }
 
-/** Each repeated ancestor has a structurally valid empty sibling and the branch under test at index 1. */
+/**
+ * Each repeated ancestor has a structurally valid empty sibling and the branch under test at index 1.
+ * Every occurrence carries its element's `@context`, as a stored one does, and the value under test is
+ * left as given.
+ */
 function nested(spec: ChildSpec, value: unknown, depth: number) {
   let elements: ElementSpec[] = [];
   let children = [spec];
-  let values: Record<string, unknown> = { _f: value };
   const path = ['_f'];
   const occurrences: number[] = [];
   for (let level = depth - 1; level >= 0; level--) {
     const name = `level${level}`;
     elements = [{ name, cardinality: 'multi', minItems: 0, children, elements }];
     children = [];
-    values = { [`_${name}`]: [{}, values] };
     path.unshift(`_${name}`);
     occurrences.unshift(1);
   }
   const template = buildTemplate({ name: 'problem_codes', children, elements });
-  const instance = { '@context': {}, 'schema:isBasedOn': (template as Record<string, unknown>)['@id'], ...values };
-  // Fill only sibling occurrences, leaving the deliberately invalid target untouched.
-  let container: any = instance;
-  let schema: any = template;
-  for (const key of path.slice(0, -1)) {
+  const branch = (schema: any, keys: string[]): Record<string, unknown> => {
+    const [key, ...rest] = keys;
+    if (rest.length === 0) return { [key]: value };
     const child = schema.properties[key];
-    if (child.type === 'array') {
-      container[key][0] = emptyContainer(child.items);
-      container = container[key][1];
-      schema = child.items;
-    } else {
-      container = container[key];
-      schema = child;
-    }
-  }
+    const element = child.type === 'array' ? child.items : child;
+    const occurrence = { '@context': occurrenceContext(element), ...branch(element, rest) };
+    return { [key]: child.type === 'array' ? [emptyContainer(element), occurrence] : occurrence };
+  };
+  const instance = {
+    '@context': {},
+    'schema:isBasedOn': (template as Record<string, unknown>)['@id'],
+    ...branch(template, path),
+  };
   return { template, instance, path, occurrences };
 }
 

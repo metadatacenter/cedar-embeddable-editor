@@ -52,9 +52,15 @@ export default defineConfig({
     root: '.',
     coverage: {
       provider: 'v8',
+      // A directory of its own. Vitest empties its reports directory when it starts, and the
+      // default `coverage` holds the coordinator suite's `coverage/cedar-embeddable-editor`, which
+      // the gate may be writing at that moment.
+      reportsDirectory: 'coverage/unit',
       include: ['src/**/*.ts'],
       exclude: ['src/**/*.spec.ts', 'src/main.ts', 'src/polyfills.ts', 'src/test.ts', 'src/environments/**'],
       thresholds: {
+        // Each widget must clear its own floor; other widgets cannot compensate for missing tests.
+        perFile: true,
         // Host-input coordination is small, stateful and release-critical. Keep
         // regressions visible even when the broad component total barely moves.
         'src/app/modules/shared/util/artifact-input-coordinator.ts': {
@@ -80,11 +86,13 @@ export default defineConfig({
          * does not catch a wrong test: `atLeastOneChecked` was covered by a spec
          * that handed it a shape no widget produces, and stayed green over a
          * required field that could never be satisfied. What it catches is the
-         * case that produced most of what this floor was added after — a widget
+         * case that produced most of what this floor was added after — an individual widget
          * with no spec at all. Three of these were at zero, including the radio
          * group, which is one of the two ways a template asks a closed question.
          */
-        'src/app/modules/input-types/components/**/cedar-input-*.component.ts': {
+        // Authority wrappers delegate their behavior to the shared implementation;
+        // it must meet the same floor independently of those wrappers.
+        'src/app/modules/input-types/components/**/{cedar-input-*,abstract-authority-input}.component.ts': {
           statements: 62,
           branches: 40,
           functions: 50,

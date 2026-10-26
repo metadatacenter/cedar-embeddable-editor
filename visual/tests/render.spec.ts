@@ -2050,7 +2050,9 @@ test.describe('declared non-enumerated defaults', () => {
     expect(JSON.stringify(metadata)).not.toContain('NCBITaxon_9606');
   });
 
-  test('read-only template view states numeric and temporal defaults as specification facts', async ({ page }) => {
+  test('read-only template view states numeric, temporal and term defaults as specification facts', async ({
+    page,
+  }) => {
     await open(page, '23-declared-defaults', 'readonly');
 
     const measurement = page.locator('.non-iterable-component').filter({ hasText: 'measurement' });
@@ -2059,6 +2061,11 @@ test.describe('declared non-enumerated defaults', () => {
     await expect(collectedOn.locator('.cee-spec-box')).toContainText('default 2026-08-20');
     await expect(measurement.locator('input')).toHaveCount(0);
     await expect(collectedOn.locator('input')).toHaveCount(0);
+    // A term default names its ontology after it, inside its link, as a branch does.
+    const organism = page.locator('.non-iterable-component').filter({ hasText: 'organism' });
+    const term = organism.locator('.cee-spec-box-link').filter({ hasText: 'Homo sapiens' });
+    await expect(term).toHaveText('Homo sapiens (NCBITAXON)');
+    await expect(term).toHaveAttribute('href', /\/ontologies\/NCBITAXON\?p=classes&conceptid=/);
   });
 
   test('read-only supplied instance states the specification for explicitly blank fields', async ({ page }) => {

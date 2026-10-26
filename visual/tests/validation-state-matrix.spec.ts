@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { draftTemplate } from '../../harness/src/validation-state-fixtures';
+import { draftContexts, draftTemplate } from '../../harness/src/validation-state-fixtures';
 import { changeDetails, open, recordChanges } from './support/host';
 
 for (const depth of [1, 3, 6]) {
@@ -72,12 +72,17 @@ for (const depth of [1, 3, 6]) {
 for (const depth of [1, 6]) {
   test(`an unreadable temporal value at depth ${depth} can be cleared`, async ({ page }) => {
     const template = draftTemplate(depth, 'temporal');
-    let values: Record<string, unknown> = { _f: { '@value': 'not a date' } };
-    for (let level = depth - 1; level >= 0; level--)
-      values = {
-        [`_level${level}`]:
-          level === depth - 1 ? [values, { _f: { '@value': null, '@type': 'xsd:dateTime' } }] : [values],
-      };
+    // Every occurrence carries its level's `@context`, as a stored one does.
+    const contexts = draftContexts(template, depth);
+    const occurrence = (value: object) => ({ '@context': contexts[depth - 1], _f: value });
+    let values: Record<string, unknown> = {
+      [`_level${depth - 1}`]: [
+        occurrence({ '@value': 'not a date' }),
+        occurrence({ '@value': null, '@type': 'xsd:dateTime' }),
+      ],
+    };
+    for (let level = depth - 2; level >= 0; level--)
+      values = { [`_level${level}`]: [{ '@context': contexts[level], ...values }] };
     await page.route('**/fixtures/validation-state.json', (route) => route.fulfill({ json: template }));
     await page.route('**/fixtures/validation-state-instance.json', (route) =>
       route.fulfill({
@@ -111,12 +116,15 @@ for (const depth of [1, 6]) {
 
 for (const depth of [1, 3, 6]) {
   test(`a malformed element at depth ${depth} can be located and repaired`, async ({ page }) => {
-    let values: object = { '@value': 'not an element' };
-    for (let level = depth - 1; level >= 0; level--)
-      values = { [`_level${level}`]: level === depth - 1 ? [{ _f: { '@value': null } }, values] : [values] };
-    await page.route('**/fixtures/validation-state.json', (route) =>
-      route.fulfill({ json: draftTemplate(depth, 'text') }),
-    );
+    const template = draftTemplate(depth, 'text');
+    // Every occurrence carries its level's `@context`, as a stored one does. Beside an occurrence that
+    // carries one, a value is refused when read, so the malformed occurrence is the only entry of its
+    // list.
+    const contexts = draftContexts(template, depth);
+    let values: Record<string, unknown> = { [`_level${depth - 1}`]: [{ '@value': 'not an element' }] };
+    for (let level = depth - 2; level >= 0; level--)
+      values = { [`_level${level}`]: [{ '@context': contexts[level], ...values }] };
+    await page.route('**/fixtures/validation-state.json', (route) => route.fulfill({ json: template }));
     await page.route('**/fixtures/validation-state-instance.json', (route) =>
       route.fulfill({
         json: {
@@ -139,7 +147,11 @@ for (const depth of [1, 3, 6]) {
     await expect(page.getByText('This element contains malformed data.', { exact: false })).toBeVisible();
     await recordChanges(page);
     await page.locator('app-cedar-input-text input').fill('repaired');
-    await expect.poll(async () => (await changeDetails(page)).at(-1)?.dataQualityReport.isValid).toBe(true);
+    // The repaired list holds one of the two occurrences its element requires, which is a warning
+    // rather than malformed data.
+    await expect
+      .poll(async () => (await changeDetails(page)).at(-1)?.dataQualityReport.problems.map((problem) => problem.code))
+      .toEqual(['minItems']);
     await expect(page.getByText('This element contains malformed data.', { exact: false })).toHaveCount(0);
   });
 }

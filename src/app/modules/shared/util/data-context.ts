@@ -121,8 +121,8 @@ export class DataContext {
         this.templateRepresentation instanceof CedarTemplate ? this.templateRepresentation.isBasedOn : null;
       const instanceTemplateId = this.instanceFullData.schema_isBasedOn.getValue();
       if (templateId !== null && instanceTemplateId === null) {
-        // Extract-form and pre-envelope instances are valid inputs to CEE, but
-        // `schema:isBasedOn` cannot be left for the repository to mint: only the
+        // A pre-envelope instance, which names no template, is a valid input to
+        // CEE, but `schema:isBasedOn` cannot be left for the repository to mint: only the
         // template in hand says what this document is an instance of. Filling
         // that exact IRI is a deterministic repair and turns the common legacy
         // six-warning envelope into a saveable five-warning pre-save envelope.

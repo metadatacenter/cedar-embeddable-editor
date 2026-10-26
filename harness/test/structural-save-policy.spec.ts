@@ -4,6 +4,7 @@ import { FIELD_KINDS } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { instanceWith, templateIdOf } from '../src/values';
+import { occurrenceContext } from '../src/validation-state-fixtures';
 
 const text = FIELD_KINDS.find((kind) => kind.key === 'text')!;
 const numeric = {
@@ -66,9 +67,13 @@ describe('structural defects and saveable value quality', () => {
       name: 'Nested',
       elements: [{ name: 'group', cardinality: 'multi', children: [{ kind: numeric, name: 'a/b~c' }] }],
     });
+    const context = occurrenceContext((template as any).properties._group.items);
     const instance = {
       ...instanceWith(templateIdOf(template), {}),
-      _group: [{ '_a/b~c': { '@value': '1', '@type': 'xsd:int' } }, { '_a/b~c': { '@value': '2' } }],
+      _group: [
+        { '@context': context, '_a/b~c': { '@value': '1', '@type': 'xsd:int' } },
+        { '@context': context, '_a/b~c': { '@value': '2' } },
+      ],
     };
     const driver = new CeeDriver(template, { instance });
     expect(driver.qualityReport.problems).toContainEqual(

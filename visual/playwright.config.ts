@@ -49,7 +49,7 @@ export default defineConfig({
   use: {
     baseURL: 'http://127.0.0.1:4455',
     // Screenshots only; no video or trace by default — this suite runs often.
-    trace: 'retain-on-failure',
+    trace: process.env.CEDAR_TEST_TRACE === 'on' ? 'retain-on-failure' : 'on-first-retry',
   },
 
   expect: {

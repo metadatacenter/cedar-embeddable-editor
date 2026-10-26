@@ -489,18 +489,32 @@ export interface CedarEmbeddableEditorElement extends HTMLElement {
    * after the assignment as a refusal. An instance assigned on its own is held while it waits for a
    * template, so a template refused after it leaves this holding the instance. The refusal's reason
    * goes to the event handler's `error`.
+   *
+   * It is also an empty object while the instance names no template, as one from an unsaved template
+   * does, since no JSON can be written for it. The form is shown all the same, so a host that reads an
+   * empty object as a refusal assigns only a template that has an identifier.
    */
   readonly currentMetadata: CeeJsonObject;
 
-  /** Capture immediately before saving. Null while no readable form is loaded. */
+  /**
+   * Capture immediately before saving. Null while no readable form is loaded, and while the instance
+   * names no template, as one from an unsaved template does, since no repository stores it.
+   */
   readonly captureSave: () => CeeSaveSnapshot | null;
 
-  /** Captures accepted values and unfinished input, independently of validity. */
+  /**
+   * Captures accepted values and unfinished input, independently of validity. Null while no readable
+   * form is loaded, and while the instance names no template, since no metadata can be written for it.
+   */
   readonly captureDraft: () => CeeRecoveryDraft | null;
   /** Restore into a fresh element; rejects incompatible or malformed data atomically. */
   readonly restoreDraft: (draft: CeeRecoveryDraft) => boolean;
 
-  /** The instance as CEDAR YAML. Read-only. */
+  /**
+   * The instance as CEDAR YAML. Read-only. The empty string when no YAML can be written: while the
+   * instance input is rejected, or while the instance names no template or has no name, as one from
+   * an unsaved template does.
+   */
   readonly currentMetadataYaml: string;
 
   /** What CEE thinks of the instance. Read-only. */

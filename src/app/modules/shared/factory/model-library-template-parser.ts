@@ -214,6 +214,7 @@ export class ModelLibraryTemplateParser implements TemplateParser {
 
     ModelLibraryTemplateParser.report(result.parsingResult.getBlueprintComparisonErrors(), handlerContext);
     ModelLibraryTemplateParser.mapParsedTemplate(result.template, template);
+    template.stored = templateJson as JsonNode;
 
     if (!template.isBasedOn) {
       // Every instance built from this template will have no `schema:isBasedOn`

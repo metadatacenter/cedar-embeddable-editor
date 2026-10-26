@@ -117,7 +117,14 @@ service URLs are needed only for controlled-term and external-authority lookups.
 
 Read the record back from `currentMetadata` as CEDAR JSON-LD, or from
 `currentMetadataYaml` as YAML. The CEE neither submits nor stores it. The host
-decides when and where a record is saved.
+decides when and where a record is saved. `currentMetadataYaml` is the empty
+string when no YAML can be written: while the instance input is rejected, or
+while the instance names no template or has no name, as one from an unsaved
+template does. `currentMetadata` is likewise the empty object while the instance
+input is rejected or the instance names no template. The form from an unsaved
+template is shown all the same, so a host that reads an empty `currentMetadata`
+as a refusal assigns only a template that has an identifier. For an instance
+that names no template, `captureDraft()` and `captureSave()` return `null`.
 
 For recovery across reloads, `captureDraft()` returns a JSON-serializable recovery document
 containing the template, accepted metadata and unfinished field input. This is **not** a
@@ -317,7 +324,7 @@ npm run build:production
 npm run test:visual:prebuilt
 ```
 
-Use Node 24.22.0, which `.nvmrc`, `package.json` and CI all specify. The build and
+Use Node 24.22.1, which `.nvmrc`, `package.json` and CI all specify. The build and
 tests use that same version, so the distribution is produced by the toolchain
 that exercises it.
 
@@ -401,7 +408,7 @@ The visual suite installs nothing here. It runs inside Playwright's own containe
 which carries the browsers it drives, and installs its dependencies there against a
 named volume — so it needs Docker running and no `playwright install` of its own.
 
-The CEE uses Angular 22.2 and Node 24.22.0. `.nvmrc`, the package `engines` field and
+The CEE uses Angular 22.2 and Node 24.22.1. `.nvmrc`, the package `engines` field and
 CI specify the Node version.
 
 The application bundle and the visual fixture generator each install the model

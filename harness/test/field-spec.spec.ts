@@ -535,7 +535,17 @@ describe('the less-travelled halves', () => {
     expect(specDefaultTermOf(field)).toStrictEqual({
       label: 'asthma',
       uri: 'http://purl.obolibrary.org/obo/DOID_2841',
+      acronym: null,
     });
+  });
+
+  it('names the ontology of a term default when the field draws on that ontology alone', () => {
+    const field = new SingleFieldComponent();
+    field.basicInfo.inputType = InputType.controlled;
+    field.controlledInfo.branches = [{ uri: 'http://purl.obolibrary.org/obo/DOID_4', acronym: 'DOID' }];
+    field.valueInfo.defaultValue = { iri: 'http://purl.obolibrary.org/obo/DOID_2841', label: 'asthma' };
+
+    expect(specDefaultTermOf(field)?.acronym).toBe('DOID');
   });
 
   it('has no term to offer when the default is text', () => {

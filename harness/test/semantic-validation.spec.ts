@@ -228,7 +228,8 @@ describe('semantic verification lifecycle', () => {
     constraints.ontologies = [
       { acronym: 'TEST', uri: 'https://example.org/ontologies/TEST', name: 'Test', version: { id: 'v2' } },
     ];
-    constraints.actions = [{ action: 'delete', termUri: 'urn:removed' }];
+    // An action names its term's type, which both readers require.
+    constraints.actions = [{ action: 'delete', termUri: 'urn:removed', type: 'OntologyClass' }];
     const fetcher = vi.fn(async (_url: string | URL | Request, init?: RequestInit) => {
       expect(JSON.parse(String(init?.body))).toEqual({ iri: term, valueConstraints: constraints });
       return new Response(JSON.stringify(answer('failed')));

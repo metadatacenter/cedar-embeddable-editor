@@ -185,10 +185,27 @@ export class CeeDriver {
    * The working tree read into the model, completed against its template and
    * written back out by the library — the same path the wrapper's getter takes.
    * A spec asserting what a saved instance looks like should use this: it is the
-   * document, and it does not move when CEE's internal shape does.
+   * document, and it does not move when CEE's internal shape does. The empty
+   * object while the instance names no template, as the getter answers.
    */
   get emitted(): any {
-    return InstanceSerializer.toJson(this.dataContext.instanceFullData, this.parsedTemplate());
+    return InstanceSerializer.toHostJson(this.dataContext.instanceFullData, this.parsedTemplate());
+  }
+
+  /** What the host page receives from `cee.currentMetadataYaml`, by the getter's own path. */
+  get emittedYaml(): string {
+    return InstanceSerializer.toHostYaml(this.dataContext.instanceFullData, this.parsedTemplate());
+  }
+
+  /**
+   * The instance as CEE tells one state of the form from the next.
+   *
+   * `emitted` wherever the instance names a template. One that names none, as an
+   * instance of an unsaved template does, is written as though it named a
+   * stand-in, so a spec about something other than the envelope can read it.
+   */
+  get comparable(): any {
+    return InstanceSerializer.toComparableJson(this.dataContext.instanceFullData, this.parsedTemplate());
   }
 
   /** The template as the library parsed it, or null if none has been set. */

@@ -208,7 +208,11 @@ export class ValidationCoordinator {
     const data = this.context.dataContext;
     const template = data.templateRepresentation;
     if (!(template instanceof CedarTemplate) || !template.parsed || !data.instanceFullData) return;
-    const model = InstanceValidator.validateReport(data.instanceFullData, template.parsed).findings;
+    // The export writes through InstanceInflater and the library's JSON writer, so what the server
+    // receives is that write, not the working tree as it stands.
+    const model = InstanceValidator.validateReport(data.instanceFullData, template.parsed, template.stored, {
+      asWritten: true,
+    }).findings;
     const findings = [
       ...model,
       ...InstanceDeserializer.structuralFindings(data.instanceFullData).filter(

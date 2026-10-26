@@ -56,3 +56,39 @@ export function draftTemplate(depth: number, type: 'temporal' | 'attrValue' | 't
     .build();
   return JSON.parse(JSON.stringify(CedarWriters.json().getStrict().getTemplateWriter().getAsJsonNode(template)));
 }
+
+/** What `occurrenceContext` reads of an element's schema. */
+interface ElementSchemaShape {
+  properties?: { '@context'?: { properties?: Record<string, { enum?: unknown[] }> } };
+  _ui: { order: string[] };
+}
+
+/**
+ * The `@context` a stored occurrence of an element carries, read from the element's schema.
+ *
+ * `@context` is what marks an element value, and the model library refuses an occurrence without one
+ * that carries a child. A stored occurrence binds each child the schema gives a property IRI to that
+ * IRI. A child with none gets no entry, so an element whose children have no IRIs carries `{}`.
+ */
+export function occurrenceContext(schema: object): Record<string, string> {
+  const element = schema as ElementSchemaShape;
+  const declared = element.properties?.['@context']?.properties ?? {};
+  return Object.fromEntries(
+    element._ui.order.flatMap((key) => {
+      const iri = declared[key]?.enum?.[0];
+      return typeof iri === 'string' ? [[key, iri]] : [];
+    }),
+  );
+}
+
+/** The `@context` an occurrence of each level of a draft template carries, outermost level first. */
+export function draftContexts(template: object, depth: number): Record<string, string>[] {
+  const contexts: Record<string, string>[] = [];
+  let schema = template as { properties: Record<string, { items: object }> };
+  for (let level = 0; level < depth; level++) {
+    const element = schema.properties[`_level${level}`].items;
+    contexts.push(occurrenceContext(element));
+    schema = element as typeof schema;
+  }
+  return contexts;
+}

@@ -2,58 +2,68 @@ import { NumberType } from 'cedar-model-typescript-library';
 import { describe, expect, it } from 'vitest';
 import { FIELD_KINDS, FieldKind } from '../src/axes';
 import { buildTemplate, ChildSpec, ElementSpec } from '../src/generate';
-import { CeeDriver } from '../src/driver';
+import { CeeDriver, RecordingMessageHandler } from '../src/driver';
+import { occurrenceContext } from '../src/validation-state-fixtures';
 import { ValidationProblem } from '@cee/validation/validation-problem.model';
+import { ArtifactInputCoordinator } from '@cee/util/artifact-input-coordinator';
+import { InstanceDeserializer } from '@cee/util/instance-deserializer';
+import type { CeeJsonObject } from '../../src/app/cee-public-api';
 
 const kind = (key: string): FieldKind => FIELD_KINDS.find((entry) => entry.key === key)!;
 const depths = [0, 1, 3, 6];
 const modes = [false, true];
 
-/** Empty answers still have the structural properties their field declares. */
+/**
+ * An empty occurrence of an element: its `@context`, as a stored occurrence carries it, and empty
+ * answers that still have the structural properties their field declares.
+ */
 function emptyContainer(schema: any): Record<string, unknown> {
-  return Object.fromEntries(
-    (schema._ui.order as string[]).map((key) => {
-      const child = schema.properties[key];
-      if (child.type === 'array') return [key, []];
-      if (!child._ui?.inputType) return [key, emptyContainer(child)];
-      if (!child.properties?.['@value']) return [key, {}];
-      const datatype = child._valueConstraints?.numberType ?? child._valueConstraints?.temporalType;
-      return [key, { '@value': null, ...(datatype ? { '@type': datatype } : {}) }];
-    }),
-  );
+  return {
+    '@context': occurrenceContext(schema),
+    ...Object.fromEntries(
+      (schema._ui.order as string[]).map((key) => {
+        const child = schema.properties[key];
+        if (child.type === 'array') return [key, []];
+        if (!child._ui?.inputType) return [key, emptyContainer(child)];
+        if (!child.properties?.['@value']) return [key, {}];
+        const datatype = child._valueConstraints?.numberType ?? child._valueConstraints?.temporalType;
+        return [key, { '@value': null, ...(datatype ? { '@type': datatype } : {}) }];
+      }),
+    ),
+  };
 }
 
-/** Each repeated ancestor has a structurally valid empty sibling and the branch under test at index 1. */
+/**
+ * Each repeated ancestor has a structurally valid empty sibling and the branch under test at index 1.
+ * Every occurrence carries its element's `@context`, as a stored one does, and the value under test is
+ * left as given.
+ */
 function nested(spec: ChildSpec, value: unknown, depth: number, elementCardinality: 'single' | 'multi' = 'multi') {
   let elements: ElementSpec[] = [];
   let children = [spec];
-  let values: Record<string, unknown> = { _f: value };
   const path = ['_f'];
   const occurrences: number[] = [];
   for (let level = depth - 1; level >= 0; level--) {
     const name = `level${level}`;
     elements = [{ name, cardinality: elementCardinality, minItems: 0, children, elements }];
     children = [];
-    values = { [`_${name}`]: elementCardinality === 'multi' ? [{}, values] : values };
     path.unshift(`_${name}`);
     if (elementCardinality === 'multi') occurrences.unshift(1);
   }
   const template = buildTemplate({ name: 'state_matrix', children, elements });
-  const instance = { '@context': {}, 'schema:isBasedOn': (template as Record<string, unknown>)['@id'], ...values };
-  // Fill only sibling occurrences, leaving the deliberately invalid target untouched.
-  let container: any = instance;
-  let schema: any = template;
-  for (const key of path.slice(0, -1)) {
+  const branch = (schema: any, keys: string[]): Record<string, unknown> => {
+    const [key, ...rest] = keys;
+    if (rest.length === 0) return { [key]: value };
     const child = schema.properties[key];
-    if (child.type === 'array') {
-      container[key][0] = emptyContainer(child.items);
-      container = container[key][1];
-      schema = child.items;
-    } else {
-      container = container[key];
-      schema = child;
-    }
-  }
+    const element = child.type === 'array' ? child.items : child;
+    const occurrence = { '@context': occurrenceContext(element), ...branch(element, rest) };
+    return { [key]: child.type === 'array' ? [emptyContainer(element), occurrence] : occurrence };
+  };
+  const instance = {
+    '@context': {},
+    'schema:isBasedOn': (template as Record<string, unknown>)['@id'],
+    ...branch(template, path),
+  };
   return { template, instance, path, occurrences };
 }
 
@@ -76,13 +86,6 @@ const badValues = [
     name: 'IRI in a literal field',
     kind: 'text',
     value: { '@id': 'https://example.org/value' },
-    code: 'valueShape',
-    repair: 'fixed',
-  },
-  {
-    name: 'container in a literal field',
-    kind: 'text',
-    value: { _nested: { '@value': 'hidden' } },
     code: 'valueShape',
     repair: 'fixed',
   },
@@ -134,6 +137,37 @@ describe.each(depths)('invalid incoming values at depth %i', (depth) => {
       const reloaded = new CeeDriver(fixture.template, { instance: driver.emitted, readOnlyMode });
       expect(reloaded.qualityReport.canSave).toBe(true);
     });
+  });
+});
+
+/**
+ * A container in a literal field is an object without `@context` that carries a child. The model
+ * library refuses it when it reads the instance, so CEE never holds it as a value to report. The
+ * instance input is rejected instead, with the library's reason, and the host's document is left as it
+ * was given.
+ */
+describe.each(depths)('a container in a literal field at depth %i', (depth) => {
+  it('is refused when read, and CEE rejects the instance input with the reason', () => {
+    const fixture = nested({ kind: kind('text'), name: 'f' }, { _nested: { '@value': 'hidden' } }, depth);
+    const supplied = JSON.stringify(fixture.instance);
+    const steps = fixture.path.flatMap((key, index) =>
+      index < fixture.occurrences.length ? [key, fixture.occurrences[index]] : [key],
+    );
+    const refusal =
+      'An element value must carry @context, and an object without one cannot carry the child key ' +
+      `"_nested" at /${[...steps, '_nested'].join('/')}.`;
+    expect(() => InstanceDeserializer.read(fixture.instance)).toThrow(refusal);
+
+    const messages = new RecordingMessageHandler();
+    const artifacts = new ArtifactInputCoordinator(messages);
+    expect(artifacts.acceptTemplate(fixture.template as CeeJsonObject)).toBe(true);
+    expect(artifacts.acceptInstance(fixture.instance as CeeJsonObject)).toBe(false);
+    expect(artifacts.instanceInputRejected).toBe(true);
+    expect(artifacts.state.instanceJson).toBeNull();
+    expect(messages.errors).toEqual([
+      `CEDAR Embeddable Editor: "instanceObject" rejected because it is not a readable CEDAR instance: ${refusal}`,
+    ]);
+    expect(JSON.stringify(fixture.instance)).toBe(supplied);
   });
 });
 
@@ -453,8 +487,12 @@ describe.each([1, 3, 6])('malformed element occurrences at depth %i', (depth) =>
       let container = fixture.instance as any;
       for (const segment of fixture.path.slice(0, -2))
         container = cardinality === 'multi' ? container[segment][1] : container[segment];
-      if (cardinality === 'multi') container[fixture.path.at(-2)!][1] = bad;
+      // Beside an occurrence that carries `@context`, a value is refused when read or, holding only
+      // `@id`, read as an occurrence. In a repeated element the malformed occurrence is therefore the
+      // only entry of its list.
+      if (cardinality === 'multi') container[fixture.path.at(-2)!] = [bad];
       else container[fixture.path.at(-2)!] = bad;
+      const occurrences = cardinality === 'multi' ? [...fixture.occurrences.slice(0, -1), 0] : fixture.occurrences;
       const supplied = JSON.stringify(fixture.instance);
       const driver = new CeeDriver(fixture.template, { instance: fixture.instance });
       expect(driver.qualityReport.problems).toContainEqual(
@@ -462,7 +500,7 @@ describe.each([1, 3, 6])('malformed element occurrences at depth %i', (depth) =>
           code: 'valueShape',
           inputType: 'element',
           path: fixture.path.slice(0, -1),
-          occurrences: fixture.occurrences,
+          occurrences,
           severity: 'error',
         }),
       );
@@ -471,7 +509,10 @@ describe.each([1, 3, 6])('malformed element occurrences at depth %i', (depth) =>
         fixture.path
           .slice(0, -1)
           .forEach((_step, index) =>
-            driver.handlerContext.setCurrentIndex(driver.findOrThrow(fixture.path.slice(0, index + 1)), 1),
+            driver.handlerContext.setCurrentIndex(
+              driver.findOrThrow(fixture.path.slice(0, index + 1)),
+              occurrences[index],
+            ),
           );
       driver.setValue(fixture.path, kind('text'), 'repaired');
       expect(driver.qualityReport.isValid, JSON.stringify(driver.qualityReport)).toBe(true);

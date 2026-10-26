@@ -20,8 +20,9 @@
  */
 import { describe, expect, it } from 'vitest';
 import { DocumentKey } from '../src/document-keys';
-import { corpusInstances, corpusTemplates, describeTree, hubmapTemplates } from '../src/corpus';
+import { asSaved, corpusInstances, corpusTemplates, describeTree, hubmapTemplates } from '../src/corpus';
 import { CeeDriver } from '../src/driver';
+import { InstanceSerializer } from '@cee/util/instance-serializer';
 import { CedarArtifactType } from 'cedar-model-typescript-library';
 
 const templates = corpusTemplates();
@@ -122,9 +123,29 @@ describe('real corpus templates', () => {
   });
 
   it.each(templates.map((t) => [t.id, t] as const))('template-%s builds an instance skeleton', (_id, artifact) => {
-    const driver = new CeeDriver(artifact.json);
+    const driver = new CeeDriver(asSaved(artifact));
     expect(driver.metadata).toBeTruthy();
     expect(driver.extract).toBeTruthy();
+  });
+
+  /**
+   * Template 001 has never been saved, so the instance CEE builds for it names
+   * no template. Both writers refuse such an instance, and a host reading the
+   * instance is handed nothing: an empty object as JSON and an empty string as
+   * YAML.
+   */
+  it('template-001 builds an instance it writes nothing for', () => {
+    const unsaved = templates.find((t) => t.id === '001');
+    if (unsaved === undefined) throw new Error('No corpus template 001');
+    expect((unsaved.json as Record<string, unknown>)[DocumentKey.atId]).toBeNull();
+    const driver = new CeeDriver(unsaved.json);
+    const refusal = 'A template instance must name the template it is based on.';
+
+    expect(driver.extract).toBeTruthy();
+    expect(() => driver.metadata).toThrow(refusal);
+    expect(() => InstanceSerializer.toYaml(driver.instance)).toThrow(refusal);
+    expect(driver.emitted).toEqual({});
+    expect(driver.emittedYaml).toBe('');
   });
 
   it.each(templates.map((t) => [t.id, t] as const))('template-%s produces a quality report', (_id, artifact) => {

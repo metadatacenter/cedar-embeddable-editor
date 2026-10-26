@@ -12,13 +12,27 @@ describe('repository identity acknowledgement', () => {
     const link = InstanceDataLinkAtom.fromParsedNode('https://example.org/link', null);
     first.setValue('Link', link);
     root.setValue('Entries', [first, second]);
+    // Every element occurrence carries its `@context`, as a written and a stored one do.
     const metadata: CeeJsonObject = {
-      Entries: [{ '@id': null, Nested: { '@id': null }, Link: { '@id': 'https://example.org/link' } }, { '@id': null }],
+      Entries: [
+        {
+          '@context': {},
+          '@id': null,
+          Nested: { '@context': {}, '@id': null },
+          Link: { '@id': 'https://example.org/link' },
+        },
+        { '@context': {}, '@id': null },
+      ],
     };
     const stored: CeeJsonObject = {
       Entries: [
-        { '@id': 'urn:first', Nested: { '@id': 'urn:nested' }, Link: { '@id': 'https://example.org/link' } },
-        { '@id': 'urn:second' },
+        {
+          '@context': {},
+          '@id': 'urn:first',
+          Nested: { '@context': {}, '@id': 'urn:nested' },
+          Link: { '@id': 'https://example.org/link' },
+        },
+        { '@context': {}, '@id': 'urn:second' },
       ],
     };
     let current: InstanceDataContainer | null = root;
@@ -72,8 +86,18 @@ describe('repository identity acknowledgement', () => {
 
   it.each([
     {},
-    { Entries: [{ '@id': 'urn:first' }, { '@id': 'urn:second' }] },
-    { Entries: [{ '@id': 'urn:first', Nested: { '@id': 'urn:nested' } }, { '@id': '' }] },
+    {
+      Entries: [
+        { '@context': {}, '@id': 'urn:first' },
+        { '@context': {}, '@id': 'urn:second' },
+      ],
+    },
+    {
+      Entries: [
+        { '@context': {}, '@id': 'urn:first', Nested: { '@context': {}, '@id': 'urn:nested' } },
+        { '@context': {}, '@id': '' },
+      ],
+    },
   ])('rejects incomplete identities atomically', (stored) => {
     const f = fixture();
     expect(() => f.snapshot.acknowledge(stored as CeeJsonObject)).toThrow();
@@ -91,7 +115,7 @@ describe('repository identity acknowledgement', () => {
   it('does not partially apply identities when serialization omitted a container', () => {
     const f = fixture();
     const snapshot = captureInstanceSave(
-      { Entries: [{ Nested: {} }] },
+      { Entries: [{ '@context': {}, Nested: {} }] },
       f.root,
       () => f.root,
       () => {},

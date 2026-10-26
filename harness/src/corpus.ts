@@ -3,6 +3,7 @@ import * as path from 'node:path';
 import { parse as parseYaml } from 'yaml';
 import type { InstanceObject } from '@cee/models/instance-node.model';
 import { ComponentDataService } from '@cee/service/component-data.service';
+import { DocumentKey } from './document-keys';
 
 /**
  * A vendored snapshot of the CEDAR artifact corpus — real templates and
@@ -87,6 +88,21 @@ const load = <T extends object = object>(
 };
 
 export const corpusTemplates = (): CorpusArtifact[] => load('templates', 'template', EXPECTED_TEMPLATE_COUNT);
+
+/**
+ * A corpus template as the repository holds it once saved, which is with an identifier.
+ *
+ * Template 001 has never been saved, and its `@id` is null. An instance of it
+ * names no template, so no writer writes one. A spec about something other than
+ * the envelope reads this form, which gives such a template an identifier under
+ * the repository's templates. A template that has one keeps it.
+ */
+export const asSaved = (artifact: CorpusArtifact): object => {
+  const id: unknown = (artifact.json as Record<string, unknown>)[DocumentKey.atId];
+  return typeof id === 'string' && id !== ''
+    ? artifact.json
+    : { ...artifact.json, [DocumentKey.atId]: `https://repo.metadatacenter.org/templates/corpus-${artifact.id}` };
+};
 
 /**
  * The same 37 templates, as YAML.
