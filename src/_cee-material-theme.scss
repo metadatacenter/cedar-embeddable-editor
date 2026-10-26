@@ -88,20 +88,52 @@ $_colors: (
     $_colors
   );
 
-  // Host M2 themes (notably OpenView) publish component color variables on
-  // html. Those cross shadow roots and outrank M3's system-token fallbacks.
-  // Rebind every choice color, including hover/focus/pressed and disabled roles,
-  // to this shadow host's CEDAR system palette through Material's public API.
-  $choice-theme: mat.define-theme(
+  // A host page with a Material theme of its own (Bridging's and OpenView's are M2)
+  // publishes component tokens on html. Custom properties inherit through the
+  // shadow root, and a token that is set outranks the system-token fallback that
+  // Material's styles use when it is not, so the host's values replaced CEE's:
+  // Bridging drew CEE's field placeholders in its own grey. Every colour,
+  // typography and density token of each Material component CEE renders is
+  // therefore bound to this shadow host's CEDAR system here, before the overrides
+  // below. The bound values are the fallbacks themselves, so a page without a
+  // Material theme renders CEE exactly as before.
+  $own-theme: mat.define-theme(
     (
       color: (
         use-system-variables: true,
         system-variables-prefix: mat-sys,
       ),
+      typography: (
+        use-system-variables: true,
+        system-variables-prefix: mat-sys,
+      ),
+      density: (
+        scale: 0,
+      ),
     )
   );
-  @include mat.checkbox-color($choice-theme);
-  @include mat.radio-color($choice-theme);
+  @include mat.core-theme($own-theme);
+  @include mat.autocomplete-theme($own-theme);
+  @include mat.button-theme($own-theme);
+  @include mat.icon-button-theme($own-theme);
+  @include mat.card-theme($own-theme);
+  @include mat.checkbox-theme($own-theme);
+  @include mat.chips-theme($own-theme);
+  @include mat.datepicker-theme($own-theme);
+  @include mat.divider-theme($own-theme);
+  @include mat.expansion-theme($own-theme);
+  @include mat.form-field-theme($own-theme);
+  @include mat.grid-list-theme($own-theme);
+  @include mat.icon-theme($own-theme);
+  @include mat.input-theme($own-theme);
+  @include mat.list-theme($own-theme);
+  @include mat.menu-theme($own-theme);
+  @include mat.paginator-theme($own-theme);
+  @include mat.progress-spinner-theme($own-theme);
+  @include mat.radio-theme($own-theme);
+  @include mat.select-theme($own-theme);
+  @include mat.toolbar-theme($own-theme);
+  @include mat.tooltip-theme($own-theme);
 
   // Material defaults use rem. Embedders own html's size, so state all levels
   // in px, including the shorthand used by menus and datepicker overlays. Every
