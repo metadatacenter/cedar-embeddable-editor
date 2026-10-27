@@ -1,4 +1,4 @@
-import * as _ from 'lodash-es';
+import { deepClone, deepEqual } from './deep-value';
 import { InstanceNode, isInstanceObject } from '../models/instance-node.model';
 
 interface EntryHistory {
@@ -21,7 +21,7 @@ export class PreviewEditState {
     // Containers are inspected recursively. Retaining a full snapshot at every
     // ancestor would multiply memory by nesting depth; only field values and
     // selections need a value baseline for explicit edits/reverts.
-    return isInstanceObject(node) || (Array.isArray(node) && node.some(isInstanceObject)) ? null : _.cloneDeep(node);
+    return isInstanceObject(node) || (Array.isArray(node) && node.some(isInstanceObject)) ? null : deepClone(node);
   }
 
   seed(node: InstanceNode | null, slot: number | null = 0): void {
@@ -47,7 +47,7 @@ export class PreviewEditState {
     if (entry?.owned || entry?.structural) return true;
     if (Array.isArray(node)) return node.some((child) => this.edited(child));
     if (isInstanceObject(node)) return Object.values(node.values).some((child) => this.edited(child));
-    return entry !== undefined && !_.isEqual(node, entry.baseline);
+    return entry !== undefined && !deepEqual(node, entry.baseline);
   }
 
   /** Capture a value replacement; normalization does not manufacture user intent. */
@@ -60,7 +60,7 @@ export class PreviewEditState {
       entry.baseline = previous.baseline;
       entry.slot = previous.slot;
     }
-    entry.owned = normalization ? (previous?.owned ?? false) : draft || !_.isEqual(after, entry.baseline);
+    entry.owned = normalization ? (previous?.owned ?? false) : draft || !deepEqual(after, entry.baseline);
   }
 
   structure(node: InstanceNode | null): void {
@@ -74,7 +74,7 @@ export class PreviewEditState {
     if (source === null || target === null) return;
     this.seed(target);
     const entry = this.entries.get(source);
-    if (entry) this.entries.set(target, _.cloneDeep(entry));
+    if (entry) this.entries.set(target, deepClone(entry));
     if (Array.isArray(source) && Array.isArray(target)) {
       source.forEach((node, index) => this.copy(node, target[index] ?? null));
     } else if (isInstanceObject(source) && isInstanceObject(target)) {

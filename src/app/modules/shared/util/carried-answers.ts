@@ -1,4 +1,4 @@
-import * as _ from 'lodash-es';
+import { deepClone, deepEqual } from './deep-value';
 import { InstanceDataAttributeValueFieldName, TemplateInstance } from 'cedar-model-typescript-library';
 import { CedarComponent } from '../models/component/cedar-component.model';
 import { AbstractElementComponent } from '../models/element/abstract-element-component.model';
@@ -13,6 +13,12 @@ import { DataObjectUtil } from './data-object-util';
 import { InstanceValueNode } from './instance-value-node';
 import type { HandlerContext } from './handler-context';
 import { CarriedAnswerValidation } from './carried-answer-validation';
+
+/** The index of the last entry that satisfies `predicate`, or -1. */
+function lastIndexWhere<T>(entries: readonly T[], predicate: (entry: T) => boolean): number {
+  for (let index = entries.length - 1; index >= 0; index--) if (predicate(entries[index])) return index;
+  return -1;
+}
 
 export interface CarriedForm {
   readonly template: CedarTemplate;
@@ -137,7 +143,7 @@ class AnswerCarrier {
           fresh,
         );
       }
-      if (_.isEqual(answer, fresh)) this.validation.inherit(answer, fresh, true);
+      if (deepEqual(answer, fresh)) this.validation.inherit(answer, fresh, true);
       return { node: fresh, answered: false };
     }
     const restated: Restated[] = entriesOf(answer).map((entry, origin) => {
@@ -179,7 +185,7 @@ class AnswerCarrier {
             const node = this.freshEntry(after, fresh, this.before.previewEdits.slot(old));
             if (entry.kind === 'default') {
               this.after.previewEdits.inherit(this.before.previewEdits, old, node, node);
-              if (_.isEqual(old, node)) this.validation.inherit(old, node);
+              if (deepEqual(old, node)) this.validation.inherit(old, node);
             }
             return { node, answered: false, origin: entry.origin };
           })
@@ -251,7 +257,7 @@ class AnswerCarrier {
       if (!(slot instanceof InstanceDataAttributeValueFieldName) || slot.name === '') continue;
       named = true;
       if (target.hasValue(slot.name) || !answered.hasValue(slot.name)) continue;
-      target.setValue(slot.name, _.cloneDeep(answered.values[slot.name]));
+      target.setValue(slot.name, deepClone(answered.values[slot.name]));
       if (answered.hasIri(slot.name)) target.setIri(slot.name, answered.iris[slot.name]);
     }
     if (named) target.removeIri(field.name);
@@ -264,7 +270,7 @@ class AnswerCarrier {
       exact >= 0
         ? exact
         : Math.max(
-            _.findLastIndex(entries, (entry) => entry.origin !== null && chosen !== null && entry.origin < chosen),
+            lastIndexWhere(entries, (entry) => entry.origin !== null && chosen !== null && entry.origin < chosen),
             0,
           );
     this.cursors.set(nodes, nodes.slice(0, index + 1).reverse());
@@ -297,7 +303,7 @@ class AnswerCarrier {
   }
 
   private cloneFresh<T extends InstanceNode>(node: T, slot: number | null = 0): T {
-    const copy = _.cloneDeep(node);
+    const copy = deepClone(node);
     this.validation.copyFresh(node, copy);
     this.after.previewEdits.seed(copy, slot);
     return copy;
@@ -327,7 +333,7 @@ class AnswerCarrier {
           : this.after.dataObjectBuilderService.buildOccurrence(component));
       this.additions.set(component, built);
     }
-    const copy = _.cloneDeep(built);
+    const copy = deepClone(built);
     this.after.previewEdits.seed(copy, null);
     return copy;
   }
@@ -428,7 +434,7 @@ function fit(
   const limit = boundAfter(before, after, entries.length);
   if (limit !== null) {
     while (kept.length > limit) {
-      const unanswered = _.findLastIndex(kept, (entry) => !entry.answered);
+      const unanswered = lastIndexWhere(kept, (entry) => !entry.answered);
       kept.splice(unanswered === -1 ? kept.length - 1 : unanswered, 1);
     }
   }

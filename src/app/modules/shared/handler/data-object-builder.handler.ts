@@ -8,7 +8,7 @@ import { SingleFieldComponent } from '../models/field/single-field-component.mod
 import { MultiFieldComponent } from '../models/field/multi-field-component.model';
 import { FieldComponent } from '../models/component/field-component.model';
 import { InstanceDataContainer, TemplateInstance, TemplateInstanceBuilder } from 'cedar-model-typescript-library';
-import * as _ from 'lodash-es';
+import { deepClone } from '../util/deep-value';
 import { DataObjectUtil } from '../util/data-object-util';
 import { AbstractElementComponent } from '../models/element/abstract-element-component.model';
 import { InstanceArray, InstanceNode, InstanceObject, isInstanceArray } from '../models/instance-node.model';
@@ -47,7 +47,7 @@ export class DataObjectBuilderHandler {
         if (multiElement.multiInfo.getSafeMinItems() > 0) {
           const dummyTargetObject = this.buildOccurrence(multiElement);
           for (let idx = 0; idx < multiElement.multiInfo.getSafeMinItems(); idx++) {
-            occurrences.push(_.cloneDeep(dummyTargetObject));
+            occurrences.push(deepClone(dummyTargetObject));
           }
         }
       } else {
@@ -103,7 +103,7 @@ export class DataObjectBuilderHandler {
    */
   public buildAddedOccurrence(component: MultiComponent): InstanceNode | null {
     const holder = new InstanceDataContainer();
-    const clone = _.cloneDeep(component);
+    const clone = deepClone(component);
     DataObjectBuilderHandler.setCurrentCountToMinRecursively(clone, component.path);
     this.buildRecursively(clone, holder);
     const built = holder.values[component.name] ?? null;

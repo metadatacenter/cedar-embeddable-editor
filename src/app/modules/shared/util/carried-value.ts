@@ -1,5 +1,5 @@
 import { ValidationCode } from '../validation/validation-problem.model';
-import * as _ from 'lodash-es';
+import { deepClone, deepEqual } from './deep-value';
 import {
   InstanceDataAttributeValueFieldName,
   InstanceDataEmptyAtom,
@@ -55,7 +55,7 @@ export function compatibleDraft(before: FieldComponent, after: FieldComponent): 
   return (
     before.basicInfo.inputType === after.basicInfo.inputType &&
     (after.basicInfo.inputType !== InputType.temporal ||
-      _.isEqual(temporalConfiguration(before), temporalConfiguration(after)))
+      deepEqual(temporalConfiguration(before), temporalConfiguration(after)))
   );
 }
 
@@ -91,19 +91,19 @@ export function holdsAnswer(node: InstanceNode): boolean {
 function unchanged(after: FieldComponent, answer: InstanceNode): InstanceNode | null {
   const attribute = after.basicInfo.inputType === InputType.attributeValue;
   if (answer instanceof InstanceDataAttributeValueFieldName) {
-    return attribute ? _.cloneDeep(answer) : null;
+    return attribute ? deepClone(answer) : null;
   }
   if (attribute) {
     return null;
   }
   if (InstanceValueNode.isIriBearing(answer) || answer instanceof InstanceDataEmptyAtom) {
-    return DataObjectUtil.isIriValued(after) ? _.cloneDeep(answer) : null;
+    return DataObjectUtil.isIriValued(after) ? deepClone(answer) : null;
   }
   if (!InstanceValueNode.isLiteral(answer) || DataObjectUtil.isIriValued(after)) {
     return null;
   }
   const datatype = answer instanceof InstanceDataTypedAtom ? answer.type : null;
-  return datatype === DataObjectUtil.xsdTypeForFullCopy(after) ? _.cloneDeep(answer) : null;
+  return datatype === DataObjectUtil.xsdTypeForFullCopy(after) ? deepClone(answer) : null;
 }
 
 function restate(before: FieldComponent, after: FieldComponent, answer: InstanceNode): InstanceNode | null {
@@ -115,7 +115,7 @@ function restate(before: FieldComponent, after: FieldComponent, answer: Instance
     return null;
   }
   if (InstanceValueNode.isIriBearing(answer)) {
-    return DataObjectUtil.isIriValued(after) ? _.cloneDeep(answer) : null;
+    return DataObjectUtil.isIriValued(after) ? deepClone(answer) : null;
   }
   const text = InstanceValueNode.literal(answer);
   if (text === null || text === undefined || DataObjectUtil.isIriValued(after)) {

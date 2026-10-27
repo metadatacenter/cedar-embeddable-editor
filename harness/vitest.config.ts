@@ -37,9 +37,9 @@ const ceeStubs = (): Plugin => ({
     if (source === '@angular/core') {
       return path.resolve(here, 'stubs/angular-core.ts');
     }
-    // CEE's handlers `import * as _ from 'lodash-es'`, but they live in
-    // `../src`, and node resolution from there walks up to a repo root with no
-    // node_modules. Point bare deps at the harness's own copy.
+    // CEE no longer depends on lodash. The harness keeps its own copy so that
+    // deep-value.spec.ts can hold CEE's deepClone and deepEqual to lodash's
+    // results, and points the bare specifier at that copy.
     if (source === 'lodash-es') {
       return path.resolve(here, 'node_modules/lodash-es/lodash.js');
     }
