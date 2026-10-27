@@ -6,7 +6,7 @@ import {
   Template,
   TemplateInstance,
 } from 'cedar-model-typescript-library';
-import { cloneDeep } from 'lodash-es';
+import { deepClone } from './deep-value';
 
 /**
  * Hand the instance out in whatever serialisation is asked for.
@@ -83,7 +83,7 @@ export class InstanceSerializer {
     // Envelope wrappers include canonical null sentinels whose identity the
     // model writer recognizes. Inflation only mutates the data container.
     const copy: TemplateInstance = Object.assign(Object.create(Object.getPrototypeOf(instance)), instance);
-    copy.dataContainer = cloneDeep(instance.dataContainer);
+    copy.dataContainer = deepClone(instance.dataContainer);
     return InstanceInflater.inflate(copy, template, 'empty');
   }
 

@@ -29,7 +29,13 @@
             "extractLicenses": false,
             "sourceMap": true,
             "optimization": false,
-            "browser": "src/main.ts",
+            "browser": "src/main.dev.ts",
+            "fileReplacements": [
+              {
+                "replace": "src/app/modules/shared/directives/shadow-root-css.ts",
+                "with": "dist-styles/shadow-root-css.ts"
+              }
+            ],
             "polyfills": ["src/polyfills.ts"]
           },
           "configurations": {
@@ -37,10 +43,15 @@
               "polyfills": []
             },
             "production": {
+              "browser": "src/main.ts",
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
                   "with": "src/environments/environment.prod.ts"
+                },
+                {
+                  "replace": "src/app/modules/shared/directives/shadow-root-css.ts",
+                  "with": "dist-styles/shadow-root-css.ts"
                 }
               ],
               "optimization": true,
@@ -61,6 +72,7 @@
               ]
             },
             "host-fonts": {
+              "browser": "src/main.ts",
               "outputPath": "dist/cedar-embeddable-editor-host-fonts",
               "fileReplacements": [
                 {
@@ -70,6 +82,10 @@
                 {
                   "replace": "src/app/modules/shared/components/cedar-font-registrar/cedar-font-registrar.component.ts",
                   "with": "src/app/modules/shared/components/cedar-font-registrar/cedar-font-registrar.host-fonts.ts"
+                },
+                {
+                  "replace": "src/app/modules/shared/directives/shadow-root-css.ts",
+                  "with": "dist-styles/shadow-root-css.ts"
                 }
               ]
             }

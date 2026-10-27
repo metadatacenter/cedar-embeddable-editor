@@ -127,9 +127,10 @@ test('a rejected assignment stays rejected after changing the field type', async
   await expect(page.locator('cedar-embeddable-field .cee-spec-box')).toBeEmpty();
   await page.evaluate(async () => {
     const template = await fetch('/fixtures/01-input-types.json').then((response) => response.json());
-    const field = template.properties._numeric;
-    field._valueConstraints.defaultValue = 7;
-    document.querySelector('cedar-embeddable-field')!.fieldObject = field;
+    template.properties._numeric._valueConstraints.defaultValue = 7;
+    document.querySelector('cedar-embeddable-field')!.fieldObject = window.ceeStandaloneField(
+      template.properties._numeric,
+    ).field;
   });
   await expect.poll(() => currentValue(page)).toEqual({ kind: 'number', value: 7 });
   expect(await changes(page)).toEqual([]);
@@ -170,8 +171,7 @@ for (const [fixture, property] of fieldPreviews) {
     await page.evaluate(
       async ({ fixture, property }) => {
         const template = await fetch(`/fixtures/${fixture}.json`).then((response) => response.json());
-        const slot = template.properties[property];
-        const field = slot.items || slot;
+        const { field } = window.ceeStandaloneField(template.properties[property]);
         field['schema:description'] = 'A description supplied by the field artifact.';
         document.querySelector('cedar-embeddable-field')!.fieldObject = field;
       },
@@ -230,8 +230,7 @@ for (const [fixture, property, type, icon] of hostTitledPreviews) {
     await page.evaluate(
       async ({ fixture, property }) => {
         const template = await fetch(`/fixtures/${fixture}.json`).then((response) => response.json());
-        const slot = template.properties[property];
-        const field = slot.items || slot;
+        const { field } = window.ceeStandaloneField(template.properties[property]);
         field['schema:description'] = 'A description supplied by the field artifact.';
         document.querySelector('cedar-embeddable-field')!.fieldObject = field;
       },
@@ -254,8 +253,7 @@ test('a host whose heading already shows the type gets no type statement', async
   await open(page, '_award_nih', 'preview', '08-authority');
   await page.evaluate(async () => {
     const template = await fetch('/fixtures/08-authority.json').then((response) => response.json());
-    const slot = template.properties._award_nih;
-    const field = slot.items || slot;
+    const { field } = window.ceeStandaloneField(template.properties._award_nih);
     field['schema:description'] = 'A description supplied by the field artifact.';
     document.querySelector('cedar-embeddable-field')!.fieldObject = field;
   });

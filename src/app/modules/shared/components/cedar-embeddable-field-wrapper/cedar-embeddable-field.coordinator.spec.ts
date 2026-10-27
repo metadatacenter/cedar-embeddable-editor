@@ -219,6 +219,67 @@ describe('presenting a value', () => {
   });
 });
 
+/**
+ * A field written on its own is not required, because only a template or an element requires the
+ * field it places. A host that places one as required says so in its configuration.
+ */
+describe('a field the host places as required', () => {
+  const requiredMark = (mounted: Mounted) => mounted.fixture.debugElement.queryAll(By.css('.required-mark'));
+
+  it('is not marked required unless the host says so', async () => {
+    const mounted = await mount(textArtifact(), { readOnlyMode: true });
+
+    expect(requiredMark(mounted)).toHaveLength(0);
+  });
+
+  it('is marked required, as CEE marks a required field', async () => {
+    const mounted = await mount(textArtifact(), { readOnlyMode: true, required: true });
+
+    expect(requiredMark(mounted)).toHaveLength(1);
+    expect(mounted.errors).not.toHaveBeenCalled();
+  });
+
+  it('reports an emptied value as missing', async () => {
+    const mounted = await mount(textArtifact(), { required: true });
+
+    await type(mounted, 'something');
+    await type(mounted, '');
+
+    expect(mounted.changes.at(-1)).toEqual({ value: { kind: 'none' }, valid: false });
+  });
+
+  it('is rebuilt as required by a configuration that arrives after it, keeping the assigned value', async () => {
+    await TestBed.configureTestingModule({
+      imports: [SharedModule],
+      providers: [provideHttpClient(), provideTranslateService()],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(CedarEmbeddableFieldWrapperComponent);
+    fixture.componentInstance.fieldObject = textArtifact();
+    fixture.componentInstance.value = { kind: 'literal', value: 'assigned' };
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(fixture.debugElement.queryAll(By.css('.required-mark'))).toHaveLength(0);
+
+    fixture.componentInstance.config = { readOnlyMode: true, required: true };
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.queryAll(By.css('.required-mark'))).toHaveLength(1);
+    expect(fixture.componentInstance.currentValue).toEqual({ kind: 'literal', value: 'assigned' });
+  });
+
+  it('is refused when the artifact states a requirement itself', async () => {
+    const artifact = textArtifact();
+    (artifact['_valueConstraints'] as CeeJsonObject)['requiredValue'] = true;
+
+    const mounted = await mount(artifact, { required: true });
+
+    expect(mounted.errors).toHaveBeenCalledWith(expect.stringContaining('not required'), null);
+    expect(mounted.fixture.debugElement.query(By.css('input'))).toBeNull();
+  });
+});
+
 describe('an artifact the element cannot render', () => {
   it('is reported, rather than leaving a blank element', async () => {
     const mounted = await mount({ '@type': 'https://example.org/not-a-field' } as CeeJsonObject);

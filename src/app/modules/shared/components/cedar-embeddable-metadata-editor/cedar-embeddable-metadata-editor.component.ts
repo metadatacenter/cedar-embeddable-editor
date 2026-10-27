@@ -10,7 +10,7 @@ import { ExternalAuthorityLookupService } from '../../service/external-authority
 import { TemplateTrustService } from '../../service/template-trust.service';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 import { MessageHandlerService } from '../../service/message-handler.service';
-import packageJson from 'package.json';
+import { version as packageVersion } from 'package.json';
 import { DOWNLOAD_ITEMS, DownloadItemId } from '../../models/ui/download-item.model';
 import { downloadContentFor, downloadFilenameFor } from '../../util/download-content';
 import { triggerDownload } from '../../util/trigger-download';
@@ -29,7 +29,7 @@ import { textLanguageOf } from '../../a11y/language-tag';
   standalone: false,
 })
 export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
-  private static INNER_VERSION = '2026-10-26 03:27 2d6d27f4';
+  private static INNER_VERSION = '2026-10-27 02:03 85141e91';
 
   dataContext: DataContext | null = null;
   handlerContext: HandlerContext | null = null;
@@ -128,7 +128,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
       this.templateTrustService,
       this.userPreferencesService,
     );
-    this.ceeVersion = packageJson.version;
+    this.ceeVersion = packageVersion;
     this.messageHandlerService.trace('CEDAR Embeddable Editor ' + CedarEmbeddableMetadataEditorComponent.INNER_VERSION);
   }
 

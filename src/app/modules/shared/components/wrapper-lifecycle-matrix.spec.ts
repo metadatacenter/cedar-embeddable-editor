@@ -4,7 +4,7 @@
  */
 import { ChangeDetectorRef, ElementRef, Injector, runInInjectionContext } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
-import { CedarBuilders, CedarWriters } from 'cedar-model-typescript-library';
+import { CedarBuilders, CedarReaders, CedarWriters, JsonNode } from 'cedar-model-typescript-library';
 import { Subject } from 'rxjs';
 import { vi } from 'vitest';
 import type {
@@ -56,7 +56,15 @@ const numericModel = CedarBuilders.numericFieldBuilder().withSchemaName('Exact n
 const numericArtifact = JSON.parse(
   JSON.stringify(CedarWriters.json().getStrict().getFieldWriterForField(numericModel).getAsJsonNode(numericModel)),
 ) as CeeJsonObject;
-const controlledArtifact = templateFixture.properties._organism as unknown as CeeJsonObject;
+// The fixture's controlled-term child, written as a field on its own. As the template's child it
+// states the template's requirement of it, which a field written on its own does not.
+const organism = CedarReaders.json()
+  .getFebruary2024()
+  .getTemplateFieldReader()
+  .readFromObject(templateFixture.properties._organism as unknown as JsonNode).field;
+const controlledArtifact = JSON.parse(
+  JSON.stringify(CedarWriters.json().getStrict().getFieldWriterForField(organism).getAsJsonNode(organism)),
+) as CeeJsonObject;
 const precisionCases = [
   { name: 'ordinary', first: '1.5', next: '2.5', expected: 2.5 },
   { name: 'long', first: '9007199254740992', next: '9007199254740993', expected: '9007199254740993' },

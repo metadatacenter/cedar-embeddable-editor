@@ -52,6 +52,7 @@
       }
     </style>
     <script src="cedar-embeddable-editor.js"></script>
+    <script src="standalone-field.js"></script>
   </head>
   <body>
     <header>
@@ -91,14 +92,14 @@
         }
         const children = [];
         for (const key of template._ui.order) {
-          const field = template.properties[key]?.items ?? template.properties[key];
-          if (!field) continue;
+          if (!template.properties[key]) continue;
+          const { field, placement } = window.ceeStandaloneField(template.properties[key]);
           const label = document.createElement('label');
           label.textContent = field['schema:name'] ?? key;
           const control = document.createElement('cedar-embeddable-field');
 
-          control.config = { readOnlyMode: false };
-          control.fieldObject = structuredClone(field);
+          control.config = { readOnlyMode: false, ...placement };
+          control.fieldObject = field;
           children.push(label, control);
         }
         document.getElementById('fields').replaceChildren(...children);

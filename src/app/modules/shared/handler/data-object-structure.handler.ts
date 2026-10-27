@@ -1,4 +1,4 @@
-import * as _ from 'lodash-es';
+import { deepClone } from '../util/deep-value';
 import { MultiComponent } from '../models/component/multi-component.model';
 import { MultiInstanceObjectInfo } from '../models/info/multi-instance-object-info.model';
 import { CedarComponent } from '../models/component/cedar-component.model';
@@ -301,7 +301,7 @@ export class DataObjectStructureHandler {
      * and one that cannot fire is worse than none: it reads as though the case
      * happens.
      */
-    const cloneItem = _.cloneDeep(occurrences[multiInstanceInfo.currentIndex]);
+    const cloneItem = deepClone(occurrences[multiInstanceInfo.currentIndex]);
     this.clearElementInstanceIds(cloneItem, component);
     occurrences.splice(multiInstanceInfo.currentIndex + 1, 0, cloneItem);
   }

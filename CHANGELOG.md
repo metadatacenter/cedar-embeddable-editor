@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.30] - 2026-10-27
+
+Aligns with `cedar-model-typescript-library@1.0.25`.
+
+- Adds a `required` setting to the field element's configuration. The aligned model library no longer lets a field written on its own state a requirement, so a host that places the field as required now says so in this setting.
+- Keeps a host page's Material theme from restyling the editor, by binding every Material token CEE reads on its own shadow host.
+- Registers the embedded fonts once in the document head rather than in every shadow root, and compiles the shadow-root stylesheet once rather than into both elements. The production bundle no longer carries the developer app, lodash or the whole `package.json`, and its manifest records the version the bundle reports as `reportedVersion`.
+
 ## [2.0.29] - 2026-10-26
 
 Aligns with `cedar-model-typescript-library@1.0.24`.

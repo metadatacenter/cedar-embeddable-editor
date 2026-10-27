@@ -51,12 +51,13 @@ import { ArtifactInputCoordinator } from '../../util/artifact-input-coordinator'
 import { WrapperConfigCoordinator } from '../../util/wrapper-config-coordinator';
 import { FieldRevealService } from '../../service/field-reveal.service';
 import { uiLanguageOf } from '../../a11y/language-tag';
+import { ShadowRootStyles } from '../../directives/shadow-root-styles.directive';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor-wrapper',
   templateUrl: './cedar-embeddable-metadata-editor-wrapper.component.html',
-  styleUrls: ['./cedar-embeddable-metadata-editor-wrapper.component.scss'],
   encapsulation: ViewEncapsulation.ShadowDom,
+  hostDirectives: [ShadowRootStyles],
   providers: [
     { provide: AriaDescriber, useClass: CedarAriaDescriber },
     { provide: OverlayContainer, useClass: CedarOverlayContainer },

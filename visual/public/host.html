@@ -25,6 +25,7 @@
   <body>
     <div id="frame"><cedar-embeddable-editor></cedar-embeddable-editor></div>
 
+    <script src="./standalone-field.js"></script>
     <script>
       /**
        * Load the bundle at a URL that changes when the bundle does.
@@ -110,10 +111,10 @@
              * and no form around it.
              *
              * The field is sliced out of a template fixture rather than kept as a
-             * fixture of its own. A template's `properties` entry *is* a field
-             * artifact — an array-valued one wraps it in `items` — so this is a real
-             * artifact rather than one written to be convenient, and it stays in step
-             * with the fixtures the editor is screenshotted against.
+             * fixture of its own, so it stays in step with the fixtures the editor is
+             * screenshotted against. `ceeStandaloneField` turns the template's child
+             * into the field a host would hand over, and the template's requirement
+             * of it into the `required` setting.
              */
             await customElements.whenDefined('cedar-embeddable-field');
             const fixture = params.get('t') || '01-input-types';
@@ -125,6 +126,7 @@
               return;
             }
 
+            const { field: artifact, placement } = window.ceeStandaloneField(slot);
             const frame = document.querySelector('#frame');
             frame.replaceChildren();
             const field = document.createElement('cedar-embeddable-field');
@@ -144,11 +146,12 @@
               // Unreachable on purpose, exactly as the editor's presets are.
               terminologyBaseUrl: 'http://127.0.0.1:9/unused/',
               bridgeBaseUrl: 'http://127.0.0.1:9/',
+              ...placement,
               // ?f= and ?n= turn boolean keys on and off, as they do for the editor below.
               ...Object.fromEntries((params.get('f') || '').split(',').filter(Boolean).map((flag) => [flag, true])),
               ...Object.fromEntries((params.get('n') || '').split(',').filter(Boolean).map((flag) => [flag, false])),
             };
-            field.fieldObject = slot.items || slot;
+            field.fieldObject = artifact;
           } else if (hostRoute === 'lang') {
             /**
              * `?host=lang` drives translation through `languageMapPathPrefix`.

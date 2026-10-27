@@ -17,6 +17,7 @@ import { dirname, resolve } from 'node:path';
 import { DEFAULT_DIST, describeInputs, resolveBuildOutput } from './resolve-build-output.mjs';
 
 const OUT = fileURLToPath(new URL('./public/cedar-embeddable-editor.js', import.meta.url));
+const SOURCE_PACKAGE = fileURLToPath(new URL('../package.json', import.meta.url));
 const MANIFEST = fileURLToPath(new URL('./public/bundle-manifest.json', import.meta.url));
 
 /**
@@ -58,9 +59,10 @@ const flatten = async (entry) => {
 
 /**
  * @param {string} [dist] build output root; defaults to the app's `dist`.
+ * @param {string} [sourcePackage] the manifest the build read its version from.
  * @returns {Promise<{bundle: Buffer, manifest: object, strategy: string, inputs: string[]}>}
  */
-export const produceBundle = async (dist = DEFAULT_DIST) => {
+export const produceBundle = async (dist = DEFAULT_DIST, sourcePackage = SOURCE_PACKAGE) => {
   const { dir, strategy, entry, inputs } = resolveBuildOutput(dist);
 
   let bundle;
@@ -92,6 +94,13 @@ export const produceBundle = async (dist = DEFAULT_DIST) => {
       inputs: describeInputs(dir, inputs),
       bytes: bundle.byteLength,
       sha256: createHash('sha256').update(bundle).digest('hex'),
+      /*
+       * The version the bundle reports as `window.cedarEmbeddableEditorVersion`, which is the
+       * source manifest's. A development package is published under a version of its own, so a
+       * consumer that checks which CEE it bundled reads this one. The bundle holds it as a bare
+       * string, which nothing else identifies.
+       */
+      reportedVersion: JSON.parse(readFileSync(sourcePackage, 'utf8')).version,
     },
   };
 };

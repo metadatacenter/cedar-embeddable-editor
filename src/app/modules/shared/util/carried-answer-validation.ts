@@ -1,4 +1,4 @@
-import * as _ from 'lodash-es';
+import { deepEqual } from './deep-value';
 import { InstanceNode, InstanceObject, isInstanceObject } from '../models/instance-node.model';
 import { AbstractElementComponent } from '../models/element/abstract-element-component.model';
 import { MultiElementComponent } from '../models/element/multi-element-component.model';
@@ -163,7 +163,7 @@ export class CarriedAnswerValidation {
           changed = true;
           continue;
         }
-        if (!_.isEqual(held[index], next)) {
+        if (!deepEqual(held[index], next)) {
           held[index] = next;
           changed = true;
         }
@@ -171,7 +171,7 @@ export class CarriedAnswerValidation {
       return changed;
     }
     const next = replacement(null);
-    if (_.isEqual(held, next)) return false;
+    if (deepEqual(held, next)) return false;
     at.container.setValue(field.name, next);
     return true;
   }

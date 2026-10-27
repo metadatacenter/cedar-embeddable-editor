@@ -66,11 +66,14 @@ const freshElement = async (
       frame.replaceChildren();
       const element = document.createElement(tag);
       frame.appendChild(element);
-      Object.assign(element, { config: { defaultLanguage, fallbackLanguage: 'en' } });
-      Object.assign(
-        element,
-        tag === 'cedar-embeddable-field' ? { fieldObject: template.properties._text } : { templateObject: template },
-      );
+      if (tag === 'cedar-embeddable-field') {
+        const { field, placement } = window.ceeStandaloneField(template.properties._text);
+        Object.assign(element, { config: { defaultLanguage, fallbackLanguage: 'en', ...placement } });
+        Object.assign(element, { fieldObject: field });
+      } else {
+        Object.assign(element, { config: { defaultLanguage, fallbackLanguage: 'en' } });
+        Object.assign(element, { templateObject: template });
+      }
     },
     { tag, defaultLanguage },
   );

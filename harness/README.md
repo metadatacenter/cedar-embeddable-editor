@@ -282,9 +282,10 @@ rebuilt.
    `vitest`, handing the spec files a second copy of `describe`/`it` that the
    runner never sees. The suite then "passes" having collected zero tests —
    the worst possible failure mode.
-4. **`lodash-es` needs an explicit resolution.** CEE's handlers import it, but
-   they live in `../src`, and node resolution from there walks up to a repo root
-   with no `node_modules`.
+4. **`lodash-es` resolves to the harness's own copy.** CEE no longer depends on
+   lodash. The harness keeps it so that `deep-value.spec.ts` can hold CEE's
+   `deepClone` and `deepEqual` to lodash's results, and `vitest.config.ts` points
+   the bare specifier at that copy.
 
 ## Enforced domain coverage
 
