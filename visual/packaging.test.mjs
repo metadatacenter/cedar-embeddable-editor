@@ -13,7 +13,7 @@
  * Run: npm --prefix visual run test:packaging
  */
 import { strict as assert } from 'node:assert';
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, describe, it } from 'node:test';
@@ -171,6 +171,12 @@ describe('produceBundle', () => {
     new Function('window', bundle.toString())(window);
     assert.equal(window.__main, 42);
     assert.equal(window.__polyfills, 1);
+  });
+
+  it("records the version the bundle reports, which is the source manifest's", async () => {
+    const { manifest } = await produceBundle(webpackDist());
+    const source = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
+    assert.equal(manifest.reportedVersion, source.version);
   });
 
   it('records a digest that changes with the bytes', async () => {
