@@ -2,7 +2,7 @@ import { enableProdMode, provideZoneChangeDetection } from '@angular/core';
 import { platformBrowser } from '@angular/platform-browser';
 import { environment } from './environments/environment';
 import { AppModuleProd } from './app/app.module.prod';
-import packageJson from 'package.json';
+import { version } from 'package.json';
 import { bootstrapCedarEditorOnce, CedarEditorBootstrapState } from './app/bootstrap-once';
 
 /**
@@ -27,7 +27,7 @@ bootstrapCedarEditorOnce(
   () => {
     // Assign the version only to the bundle that wins the bootstrap slot. If
     // another version is loaded later, it must not claim to be the one running.
-    (window as Window & CedarEditorBootstrapState).cedarEmbeddableEditorVersion = packageJson.version;
+    (window as Window & CedarEditorBootstrapState).cedarEmbeddableEditorVersion = version;
     return platformBrowser().bootstrapModule(AppModuleProd, {
       applicationProviders: [provideZoneChangeDetection()],
     });

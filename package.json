@@ -8,8 +8,8 @@
   },
   "scripts": {
     "ng": "ng",
-    "start": "node scripts/compile-shadow-root-styles.mjs --watch ng serve",
-    "build": "node scripts/compile-shadow-root-styles.mjs && ng build",
+    "start": "node scripts/compile-shadow-root-styles.mjs --development --watch ng serve",
+    "build": "node scripts/compile-shadow-root-styles.mjs --development && ng build",
     "build:production": "node scripts/compile-shadow-root-styles.mjs && ng build --configuration=production && ng build --configuration=production,host-fonts",
     "test": "vitest run",
     "test:watch": "vitest",

@@ -4,18 +4,20 @@
  * roots, before the Angular build that bundles it.
  *
  *   node scripts/compile-shadow-root-styles.mjs
- *   node scripts/compile-shadow-root-styles.mjs --watch ng serve
+ *   node scripts/compile-shadow-root-styles.mjs --development --watch ng serve
  *
- * The second form compiles, starts the command, and recompiles whenever a stylesheet the compiled
- * one depends on changes, until the command exits.
+ * `--watch` compiles, starts the command, and recompiles whenever a stylesheet the compiled one
+ * depends on changes, until the command exits. `--development` gives the stylesheet the form
+ * Angular's development build gives a component stylesheet: unminified, with an inline source map
+ * that carries its Sass sources.
  *
  * The compilation repeats the one Angular's application builder gives a component stylesheet, so
  * the inserted stylesheet is the one Angular embedded in each component, byte for byte. It uses
  * the copies of Sass and esbuild that `@angular/build` itself runs, Sass's expanded output with the
  * workspace's include paths, and esbuild's bundling and minification for the browsers Angular
  * targets, with nesting lowered. Last, it marks each custom property with Angular's namespace
- * placeholder, as Angular's compiler does to component styles. The output is always the optimized
- * form a production build embeds, development builds included.
+ * placeholder, as Angular's compiler does to component styles. Without `--development`, the output
+ * is the optimized form a production build embeds.
  */
 import { spawn } from 'node:child_process';
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
@@ -34,6 +36,12 @@ const sass = angularBuild('sass');
 // Angular's own browser support policy and its translation into esbuild targets.
 const { getSupportedBrowsers, transformSupportedBrowsersToTargets } = workspace('@angular/build/private');
 
+const args = process.argv.slice(2);
+const development = args[0] === '--development';
+if (development) args.shift();
+const watching = args[0] === '--watch';
+const command = watching ? args.slice(1) : [];
+
 const angularJson = JSON.parse(await readFile(path.join(root, 'angular.json'), 'utf8'));
 const { stylePreprocessorOptions = {} } = angularJson.projects['cedar-embeddable-editor'].architect.build.options;
 const includePaths = (stylePreprocessorOptions.includePaths ?? []).map((include) => path.resolve(root, include));
@@ -51,11 +59,13 @@ const sassPlugin = {
     const resolve = (url, resolveDir) =>
       build.resolve(url.startsWith('pkg:') ? url.slice('pkg:'.length) : url, { kind: 'import-rule', resolveDir });
     build.onLoad({ filter: /\.s[ac]ss$/ }, async ({ path: file }) => {
-      const { css, loadedUrls } = await sass.compileStringAsync(await readFile(file, 'utf8'), {
+      const { css, sourceMap, loadedUrls } = await sass.compileStringAsync(await readFile(file, 'utf8'), {
         url: pathToFileURL(file),
         style: 'expanded',
         syntax: file.endsWith('.sass') ? 'indented' : 'scss',
         loadPaths: includePaths,
+        sourceMap: development,
+        sourceMapIncludeSources: development,
         silenceDeprecations,
         fatalDeprecations,
         futureDeprecations,
@@ -72,12 +82,18 @@ const sassPlugin = {
               const segments = (url.startsWith('pkg:') ? url.slice('pkg:'.length) : url).split('/');
               const nameLength = segments[0].startsWith('@') ? 2 : 1;
               const manifest = await resolve(`${segments.slice(0, nameLength).join('/')}/package.json`, resolveDir);
-              return manifest.path ? pathToFileURL(path.join(path.dirname(manifest.path), ...segments.slice(nameLength))) : null;
+              return manifest.path
+                ? pathToFileURL(path.join(path.dirname(manifest.path), ...segments.slice(nameLength)))
+                : null;
             },
           },
         ],
       });
-      return { loader: 'css', contents: css, watchFiles: loadedUrls.map((url) => fileURLToPath(url)) };
+      // esbuild chains a source map given in a trailing comment, the form in which Angular passes Sass's on.
+      const map = sourceMap
+        ? `\n/*# sourceMappingURL=data:application/json;charset=utf-8;base64,${Buffer.from(JSON.stringify(sourceMap)).toString('base64')} */`
+        : '';
+      return { loader: 'css', contents: css + map, watchFiles: loadedUrls.map((url) => fileURLToPath(url)) };
     });
   },
 };
@@ -89,7 +105,9 @@ const customProperty = /(var\(\s*|@property\s+)?(--(?:[a-zA-Z0-9_-]|[^\x00-\x7F]
 function namespaceCustomProperties(css) {
   return css.replace(customProperty, (match, prefix, name, colon) => {
     if (!prefix && !colon) return match;
-    const namespaced = name.startsWith('--global--') ? `--${name.slice('--global--'.length)}` : `--%NS%${name.slice(2)}`;
+    const namespaced = name.startsWith('--global--')
+      ? `--${name.slice('--global--'.length)}`
+      : `--%NS%${name.slice(2)}`;
     return (prefix ?? '') + namespaced + (colon ?? '');
   });
 }
@@ -109,8 +127,6 @@ async function emit(css) {
   await rename(partial, output);
 }
 
-const watching = process.argv[2] === '--watch';
-const command = watching ? process.argv.slice(3) : [];
 let built = false;
 const context = await esbuild.context({
   absWorkingDir: root,
@@ -119,7 +135,9 @@ const context = await esbuild.context({
   write: false,
   outdir: root,
   logLevel: 'silent',
-  minify: true,
+  minify: !development,
+  sourcemap: development ? 'inline' : false,
+  sourcesContent: development,
   platform: 'browser',
   target: transformSupportedBrowsersToTargets(getSupportedBrowsers(root, { warn: (text) => console.warn(text) })),
   conditions: ['style', 'sass', 'production'],
