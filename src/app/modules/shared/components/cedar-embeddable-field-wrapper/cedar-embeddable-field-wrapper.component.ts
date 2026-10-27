@@ -46,6 +46,7 @@ import { uiLanguageOf } from '../../a11y/language-tag';
 import { isCedarFieldValue, readFieldValue, sameFieldValue, writeFieldValue } from '../../util/cedar-field-value';
 import { templateForField } from '../../util/single-field-template';
 import { decideComponentRender } from '../cedar-component-renderer/component-render-decision';
+import { ShadowRootStyles } from '../../directives/shadow-root-styles.directive';
 
 /** One field, parsed and ready to render. */
 interface FieldRuntime {
@@ -83,8 +84,8 @@ interface FieldRuntime {
 @Component({
   selector: 'app-cedar-embeddable-field-wrapper',
   templateUrl: './cedar-embeddable-field-wrapper.component.html',
-  styleUrls: ['./cedar-embeddable-field-wrapper.component.scss'],
   encapsulation: ViewEncapsulation.ShadowDom,
+  hostDirectives: [ShadowRootStyles],
   providers: [
     { provide: AriaDescriber, useClass: CedarAriaDescriber },
     { provide: OverlayContainer, useClass: CedarOverlayContainer },

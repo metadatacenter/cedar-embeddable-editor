@@ -30,6 +30,12 @@
             "sourceMap": true,
             "optimization": false,
             "browser": "src/main.dev.ts",
+            "fileReplacements": [
+              {
+                "replace": "src/app/modules/shared/directives/shadow-root-css.ts",
+                "with": "dist-styles/shadow-root-css.ts"
+              }
+            ],
             "polyfills": ["src/polyfills.ts"]
           },
           "configurations": {
@@ -42,6 +48,10 @@
                 {
                   "replace": "src/environments/environment.ts",
                   "with": "src/environments/environment.prod.ts"
+                },
+                {
+                  "replace": "src/app/modules/shared/directives/shadow-root-css.ts",
+                  "with": "dist-styles/shadow-root-css.ts"
                 }
               ],
               "optimization": true,
@@ -72,6 +82,10 @@
                 {
                   "replace": "src/app/modules/shared/components/cedar-font-registrar/cedar-font-registrar.component.ts",
                   "with": "src/app/modules/shared/components/cedar-font-registrar/cedar-font-registrar.host-fonts.ts"
+                },
+                {
+                  "replace": "src/app/modules/shared/directives/shadow-root-css.ts",
+                  "with": "dist-styles/shadow-root-css.ts"
                 }
               ]
             }

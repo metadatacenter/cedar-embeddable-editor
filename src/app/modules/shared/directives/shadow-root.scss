@@ -1,0 +1,8 @@
+// The stylesheet of each shadow root CEE renders into: the editor's and the single field's.
+// `scripts/compile-shadow-root-styles.mjs` compiles it once for both, and `ShadowRootStyles`
+// puts it into each root.
+@use '../../../../styles-own';
+@use '@org.metadatacenter/cedar-design-tokens/controls';
+
+// The shared focus ring for everything in the shadow root that does not draw its own.
+@include controls.focus-states;

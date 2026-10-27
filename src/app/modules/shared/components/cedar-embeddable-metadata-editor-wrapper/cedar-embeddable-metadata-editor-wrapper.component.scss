@@ -1,5 +1,0 @@
-@use '../../../../../styles-own';
-@use '@org.metadatacenter/cedar-design-tokens/controls';
-
-// The shared focus ring for everything in this shadow root that does not draw its own.
-@include controls.focus-states;
