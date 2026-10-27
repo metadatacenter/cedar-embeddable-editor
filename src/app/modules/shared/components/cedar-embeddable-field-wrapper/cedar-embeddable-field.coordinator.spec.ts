@@ -220,8 +220,8 @@ describe('presenting a value', () => {
 });
 
 /**
- * A field written on its own is not required: only a template or an element requires the field it
- * places. A host that places one as required says so in its configuration.
+ * A field written on its own is not required, because only a template or an element requires the
+ * field it places. A host that places one as required says so in its configuration.
  */
 describe('a field the host places as required', () => {
   const requiredMark = (mounted: Mounted) => mounted.fixture.debugElement.queryAll(By.css('.required-mark'));

@@ -44,7 +44,7 @@ const SINGLE_FIELD_TEMPLATE_ID = 'urn:cedar:cee:single-field-template';
  * rather than asking every host to hand over a template it does not have.
  *
  * The deployment is all this decides. Cardinality lives on the deployment, so the value
- * is single. So does requirement: a template or element says whether the field it places
+ * is single. So does requirement. A template or element says whether the field it places
  * is required or recommended, and a field written on its own says neither. The strict
  * reader refuses one that does, as both model libraries do. The host's configuration says
  * whether it places the field as required, and the deployment states it, so an empty value

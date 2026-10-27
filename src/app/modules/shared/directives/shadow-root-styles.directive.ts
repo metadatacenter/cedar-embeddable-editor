@@ -9,7 +9,7 @@ import { SHADOW_ROOT_CSS } from './shadow-root-css';
  *
  * The editor and the single field render into shadow roots of their own, and both roots take the
  * same stylesheet. Declared as each component's own style, it reached the bundle twice, about
- * 82 kB a copy: Angular keeps a component's styles as a string in that component's definition, and
+ * 82 kB a copy. Angular keeps a component's styles as a string in that component's definition, and
  * shares a string only between components of one file. The stylesheet is now compiled once, before
  * the Angular build, and inserted here.
  *
