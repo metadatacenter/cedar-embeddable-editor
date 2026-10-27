@@ -113,7 +113,7 @@ const TOKEN_DEFAULTS = {
   "--cedar-text-muted": "#555",
   "--cedar-text-title": "#173f3e",
   "--cedar-border-rule": "#d7e0df",
-  "--cedar-control-border-default": "rgba(0, 0, 0, 0.38)",
+  "--cedar-control-border-default": "rgba(0, 0, 0, 0.44)",
   "--cedar-surface-raised": "#ffffff",
   "--cedar-surface-subtle": "#f4f6f6",
   "--cedar-surface-selected": "#e4f1f1",

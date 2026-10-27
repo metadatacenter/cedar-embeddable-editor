@@ -464,6 +464,19 @@ app-cedar-component-renderer:has(> mat-accordion) + app-cedar-component-renderer
   line-height: tokens.$control-line-height-default;
 }
 
+/**
+ * The focused date in an open calendar.
+ *
+ * Material takes the outline off a calendar's date cells and marks the focused one with a
+ * background alone, which here is the selection tint, about 1.2:1 against the calendar. The focused
+ * date also takes the shared focus ring, whether or not it is the selected date. Global for the
+ * same reason as the row above: the calendar is rendered into the overlay container.
+ */
+.cdk-keyboard-focused .mat-calendar-body-active > .mat-calendar-body-cell-content,
+.cdk-program-focused .mat-calendar-body-active > .mat-calendar-body-cell-content {
+  @include controls.focus-ring(var(--cedar-control-focus, var(--cedar-color-primary, #{tokens.$color-primary})));
+}
+
 /*
  * Read-only rendering is denser than editing, because none of the room editing needs is in use.
  *

@@ -23,7 +23,7 @@ inherit through shadow roots. CED's native default inputs consume the same token
 | `--cedar-control-font-size`   | `14px`    | Value text                           |
 | `--cedar-control-line-height` | `21px`    | Value line height                    |
 | `--cedar-control-radius`      | `4px`     | Outline corners                      |
-| `--cedar-control-border`      | `rgba(0, 0, 0, 0.38)`    | Resting outline                      |
+| `--cedar-control-border`      | `rgba(0, 0, 0, 0.44)`    | Resting outline                      |
 | `--cedar-control-focus`       | `#0f7686` | Focus outline                        |
 | `--cedar-textarea-min-rows`   | `2`       | Starting rows for compact paragraphs |
 | `--cedar-control-error`       | `#b42318` | Invalid outline and message          |
