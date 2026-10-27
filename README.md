@@ -220,6 +220,14 @@ CEF then states the type above the description, with the icon its header would h
 drawn (for example, `Paragraph`). A host whose header already shows the type, as CED's
 field cards do, leaves it unset.
 
+A field written on its own is not required, because only a template or an element
+requires the field it places. A host that places the field as required sets
+`required: true`. CEF then marks the field as CEE marks a required one, and reports an
+empty value as missing unless `suppressEmptyFieldErrors` is set. Like every key, it
+takes one assignment, so a change of requirement takes a new element. CEF refuses an
+artifact that states a requirement or a recommendation itself, as both CEDAR model
+libraries do.
+
 Read-only controls have no placeholder text, and fields without constraints draw empty
 boxes. Static fields show their content. A standalone page break is described without
 creating pagination.

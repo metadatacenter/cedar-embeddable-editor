@@ -22,6 +22,7 @@ export const CEE_CONFIG_KEY = {
   previewMode: 'previewMode',
   showFieldType: 'showFieldType',
   suppressEmptyFieldErrors: 'suppressEmptyFieldErrors',
+  required: 'required',
   readOnlyMode: 'readOnlyMode',
   trustTemplateRichText: 'trustTemplateRichText',
   showDownloadMenu: 'showDownloadMenu',

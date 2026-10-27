@@ -18,6 +18,11 @@ declare global {
     __staticMarkupRan?: boolean;
     __templateMarkupRan?: boolean;
     cedarEmbeddableEditorBootstrap?: unknown;
+    /** `public/standalone-field.js`: a template fixture's child as a field written on its own. */
+    ceeStandaloneField: (child: object) => {
+      field: import('../../src/app/cee-public-api').CeeJsonObject;
+      placement: { required: boolean };
+    };
   }
 }
 

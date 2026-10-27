@@ -37,6 +37,7 @@ export const CONFIG_SCHEMA: Readonly<Record<string, ExpectedType>> = {
   [CEE_CONFIG_KEY.previewMode]: 'boolean',
   [CEE_CONFIG_KEY.showFieldType]: 'boolean',
   [CEE_CONFIG_KEY.suppressEmptyFieldErrors]: 'boolean',
+  [CEE_CONFIG_KEY.required]: 'boolean',
 
   [CEE_CONFIG_KEY.readOnlyMode]: 'boolean',
   [CEE_CONFIG_KEY.trustTemplateRichText]: 'boolean',

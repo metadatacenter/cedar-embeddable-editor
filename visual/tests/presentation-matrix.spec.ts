@@ -132,7 +132,8 @@ test.describe('the field element under every combination of its presentation set
         await expect(input).toHaveCount(1);
         await expect(field.locator('app-cedar-component-header')).toHaveCount(0);
         await expect(field.locator('.cee-field-type')).toHaveCount(0);
-        // The fixture's field carries its own requiredness, which the element keeps unless asked for quiet.
+        // The fixture's template requires the field, which the host route passes on as `required`, and the
+        // element reports its empty value unless asked for quiet.
         await input.fill('value');
         await input.fill('');
         await input.blur();

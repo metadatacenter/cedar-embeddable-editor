@@ -55,6 +55,8 @@ interface FieldRuntime {
   readonly component: CedarComponent;
   /** The same component where it holds a value, and null where it is a static block. */
   readonly valueComponent: FieldComponent | null;
+  /** Whether the field was built as required, which the host's configuration says. */
+  readonly required: boolean;
 }
 
 /**
@@ -135,6 +137,8 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
   private readonly configuration: WrapperConfigCoordinator;
   private readonly widgetConfig: WidgetConfigCoordinator;
   private runtime: FieldRuntime | null = null;
+  /** A copy of the field the runtime was built from, kept to rebuild it under a later configuration. */
+  private fieldSource: CeeJsonObject | null = null;
   /**
    * The value a host assigned, kept because it can arrive before the field does and
    * has to survive the field being replaced.
@@ -204,6 +208,7 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
     }
     const runtime = this.buildRuntime(field);
     if (runtime !== null) {
+      this.fieldSource = structuredClone(field);
       this.install(runtime);
     }
   }
@@ -229,10 +234,23 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
     }
   }
 
-  /** Configuration, which takes one assignment. */
+  /**
+   * Configuration, which takes one assignment.
+   *
+   * Whether the field is required is built into the template that holds it, so a configuration
+   * that arrives after the field and says otherwise rebuilds the field. A value the host assigned
+   * survives that, as it survives a new field.
+   */
   @Input() set config(value: CedarEmbeddableFieldConfig | null) {
     if (value === null || !this.configuration.accept(value as CeeConfig)) {
       return;
+    }
+    if (this.runtime !== null && this.fieldSource !== null && this.required() !== this.runtime.required) {
+      const runtime = this.buildRuntime(this.fieldSource);
+      if (runtime !== null) {
+        this.install(runtime);
+        return;
+      }
     }
     this.applyConfiguration();
   }
@@ -264,10 +282,11 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
    * is the one that owes the host a sentence about the artifact it just supplied.
    */
   private buildRuntime(field: CeeJsonObject): FieldRuntime | null {
+    const required = this.required();
     let dataContext: DataContext;
     let handlerContext: HandlerContext;
     try {
-      const template = templateForField(field as JsonNode);
+      const template = templateForField(field as JsonNode, required);
       dataContext = new DataContext();
       handlerContext = new HandlerContext(dataContext, this.messageHandlerService);
       dataContext.setInputTemplate(template, handlerContext, null);
@@ -290,10 +309,10 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
 
     const decision = decideComponentRender(component);
     if (decision.kind === 'field') {
-      return { dataContext, handlerContext, component, valueComponent: decision.component };
+      return { dataContext, handlerContext, component, valueComponent: decision.component, required };
     }
     if (decision.kind === 'static') {
-      return { dataContext, handlerContext, component, valueComponent: null };
+      return { dataContext, handlerContext, component, valueComponent: null, required };
     }
     this.messageHandlerService.error(
       `cedar-embeddable-field: "fieldObject" rejected. ${
@@ -370,6 +389,11 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
     this.showHeader = !(this.handlerContext.readOnlyMode && configFlag(config, CEE_CONFIG_KEY.previewMode, false));
     this.showFieldType = !this.showHeader && configFlag(config, CEE_CONFIG_KEY.showFieldType, false);
     this.widgetConfig.apply(config, this.handlerContext.readOnlyMode);
+  }
+
+  /** Whether the host places the field as required, which its configuration says. */
+  private required(): boolean {
+    return configFlag(this.configuration.config ?? {}, CEE_CONFIG_KEY.required, false);
   }
 
   /**

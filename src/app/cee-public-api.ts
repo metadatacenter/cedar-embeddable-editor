@@ -62,6 +62,16 @@ export interface CeeConfig {
   suppressEmptyFieldErrors?: boolean;
 
   /**
+   * For CEF: whether the field is required where the host places it.
+   *
+   * A field written on its own is not required, because only a template or an element requires the
+   * field it places. A host placing the field in a form of its own says so here. CEF then marks the
+   * field as CEE marks a required one, and reports an empty value as missing unless
+   * `suppressEmptyFieldErrors` is set. CEE reads its fields' requirements from the template.
+   */
+  required?: boolean;
+
+  /**
    * Renders the form without editing controls.
    *
    * The only way in or out of read-only mode. CEE offered the user a toggle of its
@@ -594,6 +604,7 @@ export type CedarEmbeddableFieldConfig = Pick<
   | 'previewMode'
   | 'showFieldType'
   | 'suppressEmptyFieldErrors'
+  | 'required'
   | 'trustTemplateRichText'
   | 'terminologyBaseUrl'
   | 'bridgeBaseUrl'
@@ -613,11 +624,12 @@ export type CedarEmbeddableFieldConfig = Pick<
  * value remains visible and cannot be edited. Static content is also described;
  * a standalone page break has a label and type but does not create pagination.
  *
- * Cardinality belongs to a field's deployment in a template, and this element deploys
- * nothing, so the value it acquires is single. Requiredness is the field's own: an
- * artifact that states `requiredValue: true` has an empty value reported as missing,
- * unless the host sets `suppressEmptyFieldErrors`. CED writes a field on its own with
- * `requiredValue: false`, which is what leaves a default value free to be empty.
+ * Cardinality and requirement belong to a field's placement in a template, and a field
+ * written on its own states neither, so the value this element acquires is single. A
+ * host that places the field as required says so with the `required` configuration
+ * key. Like the rest of the configuration it takes one assignment, so a change of
+ * requirement takes a new element. An artifact that states a requirement or a
+ * recommendation itself is refused, as both CEDAR model libraries refuse one.
  */
 export interface CedarEmbeddableFieldElement extends HTMLElement {
   /** Typed value event; the inherited overloads still handle every other DOM event. */

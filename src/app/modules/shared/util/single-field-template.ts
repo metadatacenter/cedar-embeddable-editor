@@ -1,4 +1,5 @@
 import {
+  AbstractFieldChildDeploymentInfoBuilder,
   BiboStatus,
   CedarBuilders,
   CedarReaders,
@@ -42,15 +43,15 @@ const SINGLE_FIELD_TEMPLATE_ID = 'urn:cedar:cee:single-field-template';
  * element makes the missing statement in the only place it can be made once, here,
  * rather than asking every host to hand over a template it does not have.
  *
- * The deployment is bare, and that is the whole of what this decides. Cardinality lives
- * on the deployment, so the value is single. Requiredness does not: the model keeps a
- * field's `requiredValue` on the field itself, read from its `_valueConstraints`, so an
- * artifact that states one keeps it here and an empty value is reported as missing.
- * Nothing here adds one. CED writes a field on its own with `requiredValue: false`,
- * which leaves a default value free to be empty, as a default must be. A host handed a
- * required field quiets the report of its empty value with `suppressEmptyFieldErrors`.
+ * The deployment is all this decides. Cardinality lives on the deployment, so the value
+ * is single. So does requirement: a template or element says whether the field it places
+ * is required or recommended, and a field written on its own says neither. The strict
+ * reader refuses one that does, as both model libraries do. The host's configuration says
+ * whether it places the field as required, and the deployment states it, so an empty value
+ * is reported as missing exactly as it is in a form. A field type that keeps no
+ * requirement, such as an attribute-value field or a static one, takes none.
  */
-export function templateForField(fieldJson: JsonNode): JsonNode {
+export function templateForField(fieldJson: JsonNode, required = false): JsonNode {
   const field: TemplateField = CedarReaders.json().getStrict().getTemplateFieldReader().readFromObject(fieldJson).field;
   const template = CedarBuilders.templateBuilder()
     .withAtId(SINGLE_FIELD_TEMPLATE_ID)
@@ -59,13 +60,17 @@ export function templateForField(fieldJson: JsonNode): JsonNode {
     .withStatus(BiboStatus.DRAFT)
     .build();
 
+  const deployment = field.createDeploymentBuilder(SINGLE_FIELD_PROPERTY);
+  if (deployment instanceof AbstractFieldChildDeploymentInfoBuilder) {
+    deployment.withRequiredValue(required);
+  }
   /*
    * Added to the built template rather than through the builder's own `addChild`,
    * which declares the one dynamic deployment class and so cannot take the static
    * one a section break or an image builds. The container's method takes the base
    * both extend, and a static field is a field this element renders.
    */
-  template.addChild(field, field.createDeploymentBuilder(SINGLE_FIELD_PROPERTY).build());
+  template.addChild(field, deployment.build());
 
   return CedarWriters.json().getStrict().getTemplateWriter().getAsJsonNode(template);
 }
