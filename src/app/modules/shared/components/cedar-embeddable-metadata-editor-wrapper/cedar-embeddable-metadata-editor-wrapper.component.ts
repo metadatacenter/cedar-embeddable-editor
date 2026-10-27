@@ -13,6 +13,7 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { ControlledFieldDataService } from '../../service/controlled-field-data.service';
+import { ResourceDescriptionService } from '../../service/resource-description.service';
 import { MessageHandlerService } from '../../service/message-handler.service';
 import {
   CeeChangeDetail,
@@ -72,6 +73,7 @@ import { ShadowRootStyles } from '../../directives/shadow-root-styles.directive'
     Overlay,
     ActiveComponentRegistryService,
     ControlledFieldDataService,
+    ResourceDescriptionService,
     ExternalAuthorityLookupService,
     FieldRevealService,
     GlobalSettingsContextService,

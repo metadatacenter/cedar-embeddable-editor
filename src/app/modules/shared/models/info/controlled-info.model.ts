@@ -12,6 +12,9 @@
  * acronym. Only `uri` is reliably present on all four.
  */
 export interface OntologyConstraint {
+  sourceSystem?: string;
+  iri?: string;
+  version?: { id: string } | 'latest';
   uri?: string;
   acronym?: string;
   name?: string;
@@ -19,6 +22,9 @@ export interface OntologyConstraint {
 }
 
 export interface BranchConstraint {
+  sourceSystem?: string;
+  iri?: string;
+  version?: { id: string } | 'latest';
   uri?: string;
   source?: string;
   acronym?: string;
@@ -27,6 +33,9 @@ export interface BranchConstraint {
 }
 
 export interface ClassConstraint {
+  sourceSystem?: string;
+  iri?: string;
+  version?: { id: string } | 'latest';
   uri?: string;
   source?: string;
   label?: string;
@@ -35,6 +44,9 @@ export interface ClassConstraint {
 }
 
 export interface ValueSetConstraint {
+  sourceSystem?: string;
+  iri?: string;
+  version?: { id: string } | 'latest';
   uri?: string;
   vsCollection?: string;
   name?: string;

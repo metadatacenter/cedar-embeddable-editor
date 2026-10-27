@@ -1,3 +1,4 @@
+import { ResourceDescription } from '../terminology-resource';
 /**
  * One term from an authority lookup: an IRI and the label it is shown by.
  *
@@ -26,6 +27,9 @@ export interface AuthorityTerm {
   label: string;
   /** ORCID's search results carry a details URL alongside the term. */
   detailsUrl?: string;
+  resource?: ResourceDescription;
+  /** Query-matching aliases/identifiers from the authority; never saved into the instance. */
+  matchedNames?: readonly string[];
 }
 
 export interface AuthoritySearchResponse {

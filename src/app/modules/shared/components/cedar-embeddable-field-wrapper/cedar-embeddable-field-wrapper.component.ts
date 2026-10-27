@@ -30,6 +30,7 @@ import { CedarOverlayContainer } from '../../service/cedar-overlay-container.ser
 import { CedarLiveRegion } from '../../service/cedar-live-region.service';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
 import { ControlledFieldDataService } from '../../service/controlled-field-data.service';
+import { ResourceDescriptionService } from '../../service/resource-description.service';
 import { ExternalAuthorityLookupService } from '../../service/external-authority-lookup.service';
 import { GlobalSettingsContextService } from '../../service/global-settings-context.service';
 import { MessageHandlerService } from '../../service/message-handler.service';
@@ -100,6 +101,7 @@ interface FieldRuntime {
     Overlay,
     ActiveComponentRegistryService,
     ControlledFieldDataService,
+    ResourceDescriptionService,
     ExternalAuthorityLookupService,
     GlobalSettingsContextService,
     MessageHandlerService,

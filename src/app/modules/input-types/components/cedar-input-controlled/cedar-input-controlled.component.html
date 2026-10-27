@@ -16,7 +16,7 @@ different destinations worth having.
   <ng-container>
     <!--
       Read-only and empty, the box states the authority instead of the value, with each source linked
-      to its BioPortal page. Not an `input`, because that could only carry the text as a placeholder
+      to its public page. Not an `input`, because that could only carry the text as a placeholder
       and a placeholder cannot be clicked.
     -->
     @if (readOnlyMode && !inputValueControl.value && specSources.length > 0) {
@@ -66,13 +66,17 @@ different destinations worth having.
         @if (bioPortalTermLink) {
           <a
             termLinkPrefix
-            class="cee-bioportal-term-link"
+            [class.cee-bioportal-term-link]="authorityPageIcon === 'bioportal'"
             [href]="bioPortalTermLink"
             target="_blank"
             rel="noopener"
-            attr.aria-label="{{ 'Generic.OpenAuthorityPage' | translate: { authority: 'BioPortal' } }}"
-            matTooltip="{{ 'Generic.OpenAuthorityPage' | translate: { authority: 'BioPortal' } }}"
-          ></a>
+            attr.aria-label="{{ 'Generic.OpenAuthorityPage' | translate: { authority: authorityPageName } }}"
+            matTooltip="{{ 'Generic.OpenAuthorityPage' | translate: { authority: authorityPageName } }}"
+          >
+            @if (authorityPageIcon !== 'bioportal') {
+              <mat-icon cedarIcon="external"></mat-icon>
+            }
+          </a>
         }
       </app-cedar-term-link>
     }
@@ -150,15 +154,15 @@ different destinations worth having.
           >
         }
       </mat-autocomplete>
-      @if (bioPortalTermLink) {
+      @if (authorityPageLink) {
         <a
           matSuffix
           mat-icon-button
-          [href]="bioPortalTermLink"
+          [href]="authorityPageLink"
           target="_blank"
           rel="noopener"
-          attr.aria-label="{{ 'Generic.OpenAuthorityPage' | translate: { authority: 'BioPortal' } }}"
-          matTooltip="{{ 'Generic.OpenAuthorityPage' | translate: { authority: 'BioPortal' } }}"
+          attr.aria-label="{{ 'Generic.OpenAuthorityPage' | translate: { authority: authorityPageName } }}"
+          matTooltip="{{ 'Generic.OpenAuthorityPage' | translate: { authority: authorityPageName } }}"
         >
           <mat-icon cedarIcon="external"></mat-icon>
         </a>

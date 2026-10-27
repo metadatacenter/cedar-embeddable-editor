@@ -5,6 +5,7 @@ import { InputType } from '../models/input-type.model';
 import { Xsd } from '../models/xsd.model';
 import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../models/ext-auth-categories.model';
 import { isAuthorityTerm } from '../models/authority/authority-term.guard';
+import { ControlledInfo } from '../models/info/controlled-info.model';
 import { termAcronymOf } from './bioportal-term-link';
 import {
   BranchConstraint,
@@ -103,6 +104,9 @@ export function specKeywordOf(fact: SpecFact): string | null {
 export type SpecTermSource = {
   /** `branch`, `ontology`, `valueSet`, `class` or `value`, which decides how narrow the authority is. */
   readonly kind: 'branch' | 'ontology' | 'valueSet' | 'class' | 'value';
+  readonly sourceSystem?: string;
+  readonly sourceIri?: string;
+  readonly versionId?: string;
   /** What the authority is called: a branch's label, an ontology's or value set's full name. */
   readonly name: string;
   /**
@@ -372,6 +376,9 @@ const branchSource = (branch: BranchConstraint): SpecTermSource => {
   const container = spelledOutName(branch.source, branch.acronym);
   return {
     kind: 'branch',
+    ...(branch.sourceSystem ? { sourceSystem: branch.sourceSystem } : {}),
+    ...(branch.iri ? { sourceIri: branch.iri } : {}),
+    ...(typeof branch.version === 'object' ? { versionId: branch.version.id } : {}),
     name: sourceName(branch.name, branch.uri),
     container,
     acronym: branch.acronym ?? null,
@@ -381,6 +388,9 @@ const branchSource = (branch: BranchConstraint): SpecTermSource => {
 
 const ontologySource = (ontology: OntologyConstraint): SpecTermSource => ({
   kind: 'ontology',
+  ...(ontology.sourceSystem ? { sourceSystem: ontology.sourceSystem } : {}),
+  ...(ontology.iri ? { sourceIri: ontology.iri } : {}),
+  ...(typeof ontology.version === 'object' ? { versionId: ontology.version.id } : {}),
   name: sourceName(ontology.name, ontology.uri),
   container: null,
   acronym: ontology.acronym ?? null,
@@ -389,6 +399,9 @@ const ontologySource = (ontology: OntologyConstraint): SpecTermSource => ({
 
 const valueSetSource = (valueSet: ValueSetConstraint): SpecTermSource => ({
   kind: 'valueSet',
+  ...(valueSet.sourceSystem ? { sourceSystem: valueSet.sourceSystem } : {}),
+  ...(valueSet.iri ? { sourceIri: valueSet.iri } : {}),
+  ...(typeof valueSet.version === 'object' ? { versionId: valueSet.version.id } : {}),
   name: sourceName(valueSet.name, valueSet.uri),
   container: null,
   acronym: valueSet.vsCollection ?? null,
@@ -399,6 +412,9 @@ const classSource = (entry: ClassConstraint): SpecTermSource => ({
   // Some producers use the classes array for a fixed value. Preserve that distinction in the label
   // while treating an absent type as the ontology class shape the model names.
   kind: entry.type === 'Value' ? 'value' : 'class',
+  ...(entry.sourceSystem ? { sourceSystem: entry.sourceSystem } : {}),
+  ...(entry.iri ? { sourceIri: entry.iri } : {}),
+  ...(typeof entry.version === 'object' ? { versionId: entry.version.id } : {}),
   name: sourceName(entry.prefLabel, entry.label, entry.uri),
   // A class names its ontology by acronym in `source`, where a branch names it in full. Reading it as
   // a container produced "class asthma of the DOID": an acronym in the slot for a spelled-out name.
@@ -415,7 +431,10 @@ export function specTermSourcesOf(field: FieldComponent): ReadonlyArray<SpecTerm
   if (field.basicInfo.inputType !== InputType.controlled) {
     return [];
   }
-  const controlled = field.controlledInfo;
+  return controlledTermSourcesOf(field.controlledInfo);
+}
+
+export function controlledTermSourcesOf(controlled: ControlledInfo): ReadonlyArray<SpecTermSource> {
   return [
     ...controlled.branches.map(branchSource),
     ...controlled.ontologies.map(ontologySource),

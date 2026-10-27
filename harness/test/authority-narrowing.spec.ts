@@ -57,4 +57,15 @@ describe('narrowing an authority search by what was typed', () => {
   it('answers an empty result set with an empty one', () => {
     expect(narrowByQuery([], 'anything')).toEqual([]);
   });
+
+  it.each(['pfoa', '335-67-1', 'dtxsid8031865'])('retains an alias or identifier match: %s', (query) => {
+    const chemical = { ...term('Perfluorooctanoic acid'), matchedNames: ['PFOA', '335-67-1', 'DTXSID8031865'] };
+    expect(narrowByQuery([chemical, term('Unrelated chemical')], query)).toEqual([chemical]);
+  });
+
+  it('requires all words in one name rather than stitching unrelated aliases together', () => {
+    const result = { ...term('Preferred label'), matchedNames: ['first alias', 'second name'] };
+    expect(narrowByQuery([result], 'first second')).toEqual([]);
+    expect(narrowByQuery([result], 'unrelated')).toEqual([]);
+  });
 });

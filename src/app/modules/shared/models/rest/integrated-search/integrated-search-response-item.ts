@@ -1,3 +1,4 @@
+import { ResourceDescription } from '../../terminology-resource';
 /**
  * One term as the terminology server's integrated search sends it.
  *
@@ -7,9 +8,10 @@
  * `IntegratedSearchResponse` — these are cast from JSON, never built.
  */
 export interface IntegratedSearchResponseItem {
+  resource?: ResourceDescription;
   /**
-   * The term's IRI, and the only property CEE takes from a result besides its
-   * label.
+   * The term's IRI. Only this and the preferred label become the instance value;
+   * descriptions and matching names are transient lookup metadata.
    *
    * One of the two places CEE names a JSON-LD key on purpose, and it names it as
    * the wire format it is rather than through the model library's constants: the
@@ -27,6 +29,7 @@ export interface IntegratedSearchResponseItem {
    * is a state the code already handles rather than one it assumes away.
    */
   prefLabel?: string;
+  matchedSynonyms?: string[];
   notation: object;
   definition: string;
   source: string;

@@ -43,7 +43,8 @@ import { MessageHandlerService } from '../../../shared/service/message-handler.s
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
 import { narrowByQuery } from '../../../shared/util/authority-narrowing';
-import { bioPortalSourceLink, bioPortalTermLink } from '../../../shared/util/bioportal-term-link';
+import { ResourceDescriptionService } from '../../../shared/service/resource-description.service';
+import { landingLink } from '../../../shared/models/terminology-resource';
 import { SpecTermSource, specTermSourcesOf } from '../../../shared/util/field-spec';
 import { holdsConstraintError } from '../../edited-field-error-state-matcher';
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
@@ -73,6 +74,7 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
    * The notice is a disabled option, which the list's keyboard handling passes over, so it is
    * announced when it appears and describes the box for as long as the list is open.
    */
+  private readonly resources = inject(ResourceDescriptionService, { optional: true });
   readonly lookupMessage = new WidgetMessage(inject(LiveAnnouncer, { optional: true }));
   @ViewChildren('lookupNotice', { read: ElementRef }) private lookupNotices?: QueryList<ElementRef<HTMLElement>>;
   @ViewChild('autoCompleteInput', { read: ElementRef }) private lookupBox?: ElementRef<HTMLInputElement>;
@@ -356,9 +358,9 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     return specTermSourcesOf(this.component);
   }
 
-  /** Where an authority can be read about, or null when it names no acronym to address it by. */
+  /** Where an authority can be read about, or null when no public destination is known. */
   specSourceLink(source: SpecTermSource): string | null {
-    return bioPortalSourceLink(source);
+    return this.resources?.sourceLink(source) ?? null;
   }
 
   /**
@@ -389,19 +391,31 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     return this.readOnlyMode && this.selectedData !== null;
   }
 
-  /**
-   * The BioPortal page for the term the field holds, or null when it holds none.
-   *
-   * Derived rather than assigned. It used to be set as a side effect of the
-   * function that formats the display text, and that function only runs in
-   * read-only mode — so the link existed in one mode and not the other for no
-   * reason anyone chose. The constraint the term came through decides which
-   * ontology addresses it, so the page is built from that constraint's acronym,
-   * in `bioPortalTermLink`.
-   */
+  /** Existing link slots consume the same provider-independent descriptor. */
   get bioPortalTermLink(): string | null {
-    return bioPortalTermLink(this.component.controlledInfo, this.selectedData?.iri);
+    const link = this.authorityPageLink;
+    return link === this.selectedData?.iri ? null : link;
   }
+
+  get authorityPageLink(): string | null {
+    return this.authorityLink?.href ?? null;
+  }
+
+  private get authorityLink() {
+    return (
+      landingLink(this.selectedData?.resource) ??
+      this.resources?.termLink(this.component.controlledInfo, this.selectedData?.iri)
+    );
+  }
+
+  get authorityPageIcon(): string | undefined {
+    return this.authorityLink?.icon;
+  }
+
+  get authorityPageName(): string {
+    return this.authorityLink?.label ?? '';
+  }
+
   clearValue(): void {
     this.selectedData = null;
     this.inputValueControl.setValue(null);

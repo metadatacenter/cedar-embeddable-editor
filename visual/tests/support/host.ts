@@ -15,6 +15,32 @@ export const BUNDLE_VERSION = String(fs.statSync(BUNDLE_PATH).mtimeMs);
 /** CEE seeds temporal controls from the current time, so tests pin one instant. */
 export const FROZEN = new Date('2026-01-01T09:30:00Z');
 
+const descriptionStubs = new WeakSet<Page>();
+const stubDescriptions = async (page: Page): Promise<void> => {
+  if (descriptionStubs.has(page)) return;
+  descriptionStubs.add(page);
+  // Public descriptions are supplied by the terminology service, not inferred by the widget.
+  await page.route('**/unused/resources/description?**', (route) => {
+    const p = new URL(route.request().url()).searchParams;
+    const acronym = p.get('sourceAcronym') ?? '';
+    const kind = p.get('kind');
+    const href =
+      'https://bioportal.bioontology.org/ontologies/' +
+      encodeURIComponent(acronym) +
+      (['term', 'branch'].includes(kind ?? '')
+        ? '?p=classes&conceptid=' + encodeURIComponent(p.get('resourceIri') ?? '')
+        : '');
+    return route.fulfill({
+      json: {
+        ref: Object.fromEntries(p),
+        status: 'available',
+        capabilities: [],
+        links: [{ rel: 'landing', href, label: 'BioPortal', versionScope: 'current', icon: 'bioportal' }],
+      },
+    });
+  });
+};
+
 /** Load a fixture through the same host page and custom-element inputs an embedder uses. */
 export const open = async (
   page: Page,
@@ -24,6 +50,7 @@ export const open = async (
   mode?: 'separate' | 'combined' | 'template-first',
   extra?: string,
 ): Promise<void> => {
+  await stubDescriptions(page);
   await page.clock.setFixedTime(FROZEN);
   await page.goto(
     `/host.html?t=${fixture}${preset ? `&c=${preset}` : ''}${instance ? `&i=${instance}` : ''}` +
@@ -156,6 +183,7 @@ export const addAttributeRow = async (page: Page): Promise<void> => {
 };
 
 export const openTwoEditors = async (page: Page, fixture: string): Promise<void> => {
+  await stubDescriptions(page);
   await page.clock.setFixedTime(FROZEN);
   await page.goto(`/host.html?host=multi&t=${fixture}&b=${BUNDLE_VERSION}`);
   await page.waitForFunction(() => window.__ceeReady === true || window.__ceeError, null, {
