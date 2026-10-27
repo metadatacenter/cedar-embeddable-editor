@@ -194,7 +194,8 @@ test('adds and removes a multi-instance value', async ({ page }) => {
       return Array.isArray(record) ? record.length : 0;
     });
 
-  expect(await count()).toBe(2);
+  // The instance arrives after the form opens, so its first count is awaited like the others.
+  await expect.poll(count).toBe(2);
   await add.click();
   await expect.poll(count).toBe(3);
   await remove.click();
