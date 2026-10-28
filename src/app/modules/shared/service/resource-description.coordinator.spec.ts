@@ -3,6 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { GlobalSettingsContextService } from './global-settings-context.service';
 import { ResourceDescriptionService } from './resource-description.service';
+import { ControlledInfo } from '../models/info/controlled-info.model';
 import { ConstraintReference } from '../models/terminology-resource';
 
 describe('resource descriptions on reopening', () => {
@@ -17,6 +18,14 @@ describe('resource descriptions on reopening', () => {
 
   beforeEach(() => TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] }));
   afterEach(() => TestBed.inject(HttpTestingController).verify());
+
+  it('uses a stored explicit class landing page without needing a lookup', () => {
+    TestBed.inject(GlobalSettingsContextService).terminologyBaseUrl = 'https://terms.example/';
+    const links = { landingPage: 'https://example.org/term', icon: 'https://example.org/icon.svg' };
+    const controlled = Object.assign(new ControlledInfo(), { classes: [{ uri: 'urn:term:1', links }] });
+    expect(TestBed.inject(ResourceDescriptionService).termLink(controlled, 'urn:term:1')).toEqual(links);
+    TestBed.inject(HttpTestingController).expectNone((req) => req.url.endsWith('/resources/description'));
+  });
 
   it('renders without a request when the host has no terminology endpoint', () => {
     expect(TestBed.inject(ResourceDescriptionService).describe(ref)).toBeNull();
@@ -34,7 +43,7 @@ describe('resource descriptions on reopening', () => {
     expect(request.request.body).toEqual(ref);
     const description = {
       constraint: ref,
-      presentation: { href: 'https://future.example/one', label: 'Future registry', versionScope: 'current' },
+      links: { landingPage: 'https://future.example/one' },
     };
     request.flush(description);
     expect(service.describe(ref)).toEqual(description);

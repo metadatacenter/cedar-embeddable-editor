@@ -49,11 +49,9 @@ for (const surface of ['spec box', 'controlled input'] as const) {
               (['class', 'branch'].includes(kind ?? '') ? '?p=classes&conceptid=' + encodeURIComponent(iri) : ''));
         request.flush({
           constraint: p,
-          presentation: {
-            href,
-            label: epa ? 'EPA' : 'BioPortal',
-            versionScope: 'current',
-            ...(epa ? {} : { icon: 'bioportal' }),
+          links: {
+            landingPage: href,
+            ...(epa ? {} : { icon: 'https://terms.example/resources/icons/bioportal.png' }),
           },
         });
       }

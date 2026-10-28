@@ -1,4 +1,4 @@
-import { Presentation } from '../terminology-resource';
+import { ConstraintLinks } from '../terminology-resource';
 /**
  * One term from an authority lookup: an IRI and the label it is shown by.
  *
@@ -27,7 +27,7 @@ export interface AuthorityTerm {
   label: string;
   /** ORCID's search results carry a details URL alongside the term. */
   detailsUrl?: string;
-  presentation?: Presentation;
+  links?: ConstraintLinks;
   /** Query-matching aliases/identifiers from the authority; never saved into the instance. */
   matchedNames?: readonly string[];
 }

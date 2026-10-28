@@ -122,7 +122,7 @@ export class CedarSpecBoxComponent {
     const term = this.defaultTerm;
     return term === null
       ? null
-      : (this.resources?.termLink(this.fieldToDescribe.controlledInfo, term.uri)?.href ?? null);
+      : (this.resources?.termLink(this.fieldToDescribe.controlledInfo, term.uri)?.landingPage ?? null);
   }
 
   get termSources(): ReadonlyArray<SpecTermSource> {

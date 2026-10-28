@@ -19,6 +19,12 @@ const descriptionStubs = new WeakSet<Page>();
 const stubDescriptions = async (page: Page): Promise<void> => {
   if (descriptionStubs.has(page)) return;
   descriptionStubs.add(page);
+  await page.route('https://terms.example/resources/icons/bioportal.png', (route) =>
+    route.fulfill({
+      contentType: 'image/png',
+      path: path.join(path.dirname(url.fileURLToPath(import.meta.url)), 'bioportal.png'),
+    }),
+  );
   // Public descriptions are supplied by the terminology service, not inferred by the widget.
   await page.route('**/unused/resources/description', (route) => {
     const p = route.request().postDataJSON();
@@ -33,7 +39,7 @@ const stubDescriptions = async (page: Page): Promise<void> => {
     return route.fulfill({
       json: {
         constraint: p,
-        presentation: { href, label: 'BioPortal', versionScope: 'current', icon: 'bioportal' },
+        links: { landingPage: href, icon: 'https://terms.example/resources/icons/bioportal.png' },
       },
     });
   });

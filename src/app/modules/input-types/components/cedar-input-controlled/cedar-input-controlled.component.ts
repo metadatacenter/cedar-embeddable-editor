@@ -394,26 +394,32 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
   /** Existing link slots consume the same provider-independent descriptor. */
   get bioPortalTermLink(): string | null {
     const link = this.authorityPageLink;
-    return link === this.selectedData?.iri ? null : link;
+    return link === this.selectedData?.iri && !this.authorityPageIcon ? null : link;
   }
 
   get authorityPageLink(): string | null {
-    return this.authorityLink?.href ?? null;
+    return this.authorityLink?.landingPage ?? null;
   }
 
   private get authorityLink() {
     return (
-      landingLink(this.selectedData?.presentation) ??
+      landingLink(this.selectedData?.links) ??
       this.resources?.termLink(this.component.controlledInfo, this.selectedData?.iri)
     );
   }
 
+  private failedAuthorityIcon?: string;
   get authorityPageIcon(): string | undefined {
-    return this.authorityLink?.icon;
+    const icon = this.authorityLink?.icon;
+    return icon === this.failedAuthorityIcon ? undefined : icon;
+  }
+  authorityIconFailed(icon: string | undefined): void {
+    this.failedAuthorityIcon = icon;
   }
 
   get authorityPageName(): string {
-    return this.authorityLink?.label ?? '';
+    const page = this.authorityPageLink;
+    return page ? new URL(page).hostname : '';
   }
 
   clearValue(): void {

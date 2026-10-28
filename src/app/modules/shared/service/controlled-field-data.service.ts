@@ -104,7 +104,7 @@ export class ControlledFieldDataService {
     return response.collection.map((item) => ({
       iri: item['@id'],
       label: item.prefLabel ?? '',
-      ...(item.presentation ? { presentation: item.presentation } : {}),
+      ...(item.links ? { links: item.links } : {}),
       ...(Array.isArray(item.matchedSynonyms) ? { matchedNames: item.matchedSynonyms } : {}),
     }));
   }

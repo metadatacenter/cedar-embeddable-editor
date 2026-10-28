@@ -46,10 +46,18 @@ export class ResourceDescriptionService {
   }
 
   sourceLink(source: SpecTermSource): string | null {
-    return landingLink(this.describe(sourceReference(source))?.presentation)?.href ?? null;
+    return (
+      landingLink(source.links)?.landingPage ??
+      landingLink(this.describe(sourceReference(source))?.links)?.landingPage ??
+      null
+    );
   }
 
   termLink(controlled: ControlledInfo, iri: string | null | undefined) {
-    return landingLink(this.describe(termReference(controlled, iri))?.presentation);
+    const matches = controlled.classes.filter((entry) => entry.uri === iri);
+    return (
+      (matches.length === 1 ? landingLink(matches[0].links) : null) ??
+      landingLink(this.describe(termReference(controlled, iri))?.links)
+    );
   }
 }

@@ -66,14 +66,22 @@ different destinations worth having.
         @if (bioPortalTermLink) {
           <a
             termLinkPrefix
-            [class.cee-bioportal-term-link]="authorityPageIcon === 'bioportal'"
+            [class.cee-authority-icon-link]="!!authorityPageIcon"
             [href]="bioPortalTermLink"
             target="_blank"
             rel="noopener"
             attr.aria-label="{{ 'Generic.OpenAuthorityPage' | translate: { authority: authorityPageName } }}"
             matTooltip="{{ 'Generic.OpenAuthorityPage' | translate: { authority: authorityPageName } }}"
           >
-            @if (authorityPageIcon !== 'bioportal') {
+            @if (authorityPageIcon) {
+              <img
+                class="cee-authority-icon"
+                [src]="authorityPageIcon"
+                alt=""
+                referrerpolicy="no-referrer"
+                (error)="authorityIconFailed(authorityPageIcon)"
+              />
+            } @else {
               <mat-icon cedarIcon="external"></mat-icon>
             }
           </a>

@@ -1,4 +1,4 @@
-import { Presentation } from '../../terminology-resource';
+import { ConstraintLinks } from '../../terminology-resource';
 /**
  * One term as the terminology server's integrated search sends it.
  *
@@ -8,7 +8,7 @@ import { Presentation } from '../../terminology-resource';
  * `IntegratedSearchResponse` — these are cast from JSON, never built.
  */
 export interface IntegratedSearchResponseItem {
-  presentation?: Presentation;
+  links?: ConstraintLinks;
   /**
    * The term's IRI. Only this and the preferred label become the instance value;
    * descriptions and matching names are transient lookup metadata.

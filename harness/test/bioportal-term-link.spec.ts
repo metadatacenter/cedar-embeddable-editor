@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { landingLink, sourceReference, termReference, Presentation } from '@cee/models/terminology-resource';
+import { landingLink, sourceReference, termReference, ConstraintLinks } from '@cee/models/terminology-resource';
 import { ControlledInfo } from '@cee/models/info/controlled-info.model';
 
-const page = (href: string): Presentation => ({ href, label: 'Future registry', versionScope: 'current' });
+const page = (href: string): ConstraintLinks => ({ landingPage: href });
 
 describe('generic terminology descriptions', () => {
   it('uses the supplied landing page independently of the identifier or provider', () => {
-    expect(landingLink(page('https://unknown.example/record/123'))?.href).toBe('https://unknown.example/record/123');
+    expect(landingLink(page('https://unknown.example/record/123'))?.landingPage).toBe(
+      'https://unknown.example/record/123',
+    );
   });
   it.each(['javascript:alert(1)', 'data:text/html,hello', '/relative', 'https://user:password@example.org/'])(
     'rejects unsafe link %s',
@@ -19,9 +21,9 @@ describe('generic terminology descriptions', () => {
     expect(landingLink({})).toBeNull();
   });
   it.each(['epa', 'bioportal', 'capabilities', 'description', 'resourceIri'])(
-    'rejects the additional presentation keyword %s',
+    'rejects the additional links keyword %s',
     (key) => {
-      expect(landingLink({ ...page('https://example.org'), [key]: 'custom' } as Presentation)).toBeNull();
+      expect(landingLink({ ...page('https://example.org'), [key]: 'custom' } as ConstraintLinks)).toBeNull();
     },
   );
   it('preserves each set reference, source identity and exact pin', () => {

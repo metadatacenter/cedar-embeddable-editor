@@ -1,3 +1,4 @@
+import type { ConstraintLinks } from 'cedar-model-typescript-library';
 import { FieldComponent } from '../models/component/field-component.model';
 import { countKey } from './count-key';
 import { ChoiceOption } from '../models/info/choice-option.model';
@@ -102,6 +103,7 @@ export function specKeywordOf(fact: SpecFact): string | null {
 
 /** One authority a controlled-term field draws its values from. */
 export type SpecTermSource = {
+  readonly links?: ConstraintLinks;
   /** `branch`, `ontology`, `valueSet`, `class` or `value`, which decides how narrow the authority is. */
   readonly kind: 'branch' | 'ontology' | 'valueSet' | 'class' | 'value';
   readonly sourceSystem?: string;
@@ -376,6 +378,7 @@ const branchSource = (branch: BranchConstraint): SpecTermSource => {
   const container = spelledOutName(branch.source, branch.acronym);
   return {
     kind: 'branch',
+    ...(branch.links ? { links: branch.links } : {}),
     ...(branch.sourceSystem ? { sourceSystem: branch.sourceSystem } : {}),
     ...(branch.iri ? { sourceIri: branch.iri } : {}),
     ...(typeof branch.version === 'object' ? { versionId: branch.version.id } : {}),
@@ -388,6 +391,7 @@ const branchSource = (branch: BranchConstraint): SpecTermSource => {
 
 const ontologySource = (ontology: OntologyConstraint): SpecTermSource => ({
   kind: 'ontology',
+  ...(ontology.links ? { links: ontology.links } : {}),
   ...(ontology.sourceSystem ? { sourceSystem: ontology.sourceSystem } : {}),
   ...(ontology.iri ? { sourceIri: ontology.iri } : {}),
   ...(typeof ontology.version === 'object' ? { versionId: ontology.version.id } : {}),
@@ -399,6 +403,7 @@ const ontologySource = (ontology: OntologyConstraint): SpecTermSource => ({
 
 const valueSetSource = (valueSet: ValueSetConstraint): SpecTermSource => ({
   kind: 'valueSet',
+  ...(valueSet.links ? { links: valueSet.links } : {}),
   ...(valueSet.sourceSystem ? { sourceSystem: valueSet.sourceSystem } : {}),
   ...(valueSet.iri ? { sourceIri: valueSet.iri } : {}),
   ...(typeof valueSet.version === 'object' ? { versionId: valueSet.version.id } : {}),
@@ -412,6 +417,7 @@ const classSource = (entry: ClassConstraint): SpecTermSource => ({
   // Some producers use the classes array for a fixed value. Preserve that distinction in the label
   // while treating an absent type as the ontology class shape the model names.
   kind: entry.type === 'Value' ? 'value' : 'class',
+  ...(entry.links ? { links: entry.links } : {}),
   ...(entry.sourceSystem ? { sourceSystem: entry.sourceSystem } : {}),
   ...(entry.iri ? { sourceIri: entry.iri } : {}),
   ...(typeof entry.version === 'object' ? { versionId: entry.version.id } : {}),

@@ -1,19 +1,15 @@
 import { ControlledInfo } from './info/controlled-info.model';
 import { SpecTermSource, controlledTermSourcesOf } from '../util/field-spec';
-import type { ConstraintReference, Presentation } from './generated/terminology-presentation';
-export type { ConstraintReference, Presentation, ResourceDescription } from './generated/terminology-presentation';
+import type { ConstraintReference, ConstraintLinks } from './generated/terminology-links';
+export type { ConstraintReference, ConstraintLinks, ResourceDescription } from './generated/terminology-links';
 
-/** One closed presentation shape for every provider. Never infer a page from an identifier. */
-export function landingLink(presentation: Presentation | null | undefined): Presentation | null {
-  if (!presentation?.href || typeof presentation.label !== 'string' || !presentation.label.trim()) return null;
-  if (Object.keys(presentation).some((key) => !['href', 'label', 'versionScope', 'icon'].includes(key))) return null;
-  if (!['current', 'exact'].includes(presentation.versionScope ?? '')) return null;
-  if (presentation.icon !== undefined && !['bioportal', 'external'].includes(presentation.icon)) return null;
+import { readConstraintLinks } from 'cedar-model-typescript-library';
+
+/** Runtime shape validation comes from the shared CEDAR model. */
+export function landingLink(links: ConstraintLinks | null | undefined): ConstraintLinks | null {
+  if (links == null) return null;
   try {
-    const url = new URL(presentation.href);
-    return ['https:', 'http:'].includes(url.protocol) && !!url.hostname && !url.username && !url.password
-      ? presentation
-      : null;
+    return readConstraintLinks(links);
   } catch {
     return null;
   }
