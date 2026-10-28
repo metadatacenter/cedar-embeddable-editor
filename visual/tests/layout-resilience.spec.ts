@@ -2,8 +2,9 @@ import { expect, test, type APIResponse, type Page } from '@playwright/test';
 import { open, passDebounceWindow } from './support/host';
 
 /**
- * WCAG 1.4.10 Reflow, 1.4.4 Resize Text, 1.4.12 Text Spacing and, for placeholders, 1.4.3 Contrast
- * (Minimum). The four CEDAR browser components check these the same way.
+ * WCAG 1.4.10 Reflow, 1.4.4 Resize Text, 1.4.12 Text Spacing, 1.4.3 Contrast (Minimum) for
+ * placeholders and 1.4.11 Non-text Contrast for field boundaries. The four CEDAR browser components
+ * check these the same way.
  *
  * - Reflow. At 320 CSS px wide, neither the page nor a scroll container of CEE's scrolls
  *   sideways, no text is clipped or overlaps other text, and every control can be reached.
@@ -13,6 +14,9 @@ import { open, passDebounceWindow } from './support/host';
  *   every shadow root, at 1280 px wide, no text is clipped or overlaps other text.
  * - Placeholders. Every placeholder clears 4.5:1 against the background it sits on. axe does not
  *   measure placeholder text.
+ * - Boundaries. Every text-entry or selection control that draws a boundary draws it at least 3:1
+ *   against what lies outside it. The token test measures the token's value; this measures what
+ *   the browser draws, so a framework default or a local override that replaces the token fails.
  *
  * A placeholder is text too, and since it cannot wrap, a box that is too narrow for it clips it. So
  * is the value a read-only box shows on its one line.
@@ -112,7 +116,7 @@ const TEXT_SPACING =
   '* { line-height: 1.5 !important; letter-spacing: 0.12em !important; word-spacing: 0.16em !important; } ' +
   'p { margin-bottom: 2em !important; }';
 
-type Check = 'reflow' | 'resize' | 'text spacing' | 'placeholder';
+type Check = 'reflow' | 'resize' | 'text spacing' | 'placeholder' | 'boundary';
 
 interface Exception {
   readonly check: Check;
@@ -452,6 +456,117 @@ function findFaintPlaceholders(): string[] {
   return findings;
 }
 
+/**
+ * Field boundaries below 3:1 against what lies outside them, and how many boundaries were measured.
+ * Runs in the page.
+ *
+ * A control's boundary is drawn by the border of the control itself, of an ancestor at most three
+ * levels up whose box is at most 48px larger each way, or of an element in an absolutely positioned
+ * layer within such an ancestor, as a Material outlined field's outline is. The strongest side of
+ * any of them must measure 3:1 against the colour outside the box that holds it. A control that
+ * draws no boundary is not measured, because 1.4.11 asks for contrast in what identifies a control
+ * rather than for a boundary; a disabled control is exempt, as 1.4.11 exempts inactive components.
+ */
+function findFaintBoundaries(): { findings: string[]; measured: number } {
+  const host = document.querySelector('cedar-embeddable-editor, cedar-embeddable-field')!;
+  const roots: ShadowRoot[] = [host.shadowRoot!];
+  for (const root of roots)
+    for (const element of root.querySelectorAll('*')) if (element.shadowRoot) roots.push(element.shadowRoot);
+  const parse = (color: string): number[] => (color.match(/[\d.]+/g) ?? ['0', '0', '0', '0']).map(Number);
+  const luminance = ([r, g, b]: number[]): number => {
+    const linear = [r, g, b].map((channel) => {
+      const value = channel / 255;
+      return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+    });
+    return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+  };
+  const over = (top: number[], bottom: number[]): number[] => {
+    const alpha = top[3] ?? 1;
+    return [0, 1, 2].map((c) => alpha * top[c] + (1 - alpha) * bottom[c]);
+  };
+  const contrast = (a: number[], b: number[]): number => {
+    const [high, low] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+    return (high + 0.05) / (low + 0.05);
+  };
+  const rgb = (colour: number[]): string => `rgb(${colour.map(Math.round).join(', ')})`;
+  const parent = (element: Element): Element | null =>
+    element.assignedSlot ?? element.parentElement ?? ((element.getRootNode() as ShadowRoot).host || null);
+  const contains = (outer: Element, inner: Element): boolean => {
+    for (let node: Element | null = inner; node; node = parent(node)) if (node === outer) return true;
+    return false;
+  };
+  /** Every layer under `element`, its own included, from the page up. */
+  const behind = (element: Element): number[] => {
+    const layers: number[][] = [];
+    for (let node: Element | null = element; node; node = parent(node)) {
+      const color = parse(getComputedStyle(node).backgroundColor);
+      if ((color[3] ?? 1) > 0) layers.push(color);
+    }
+    return layers.reverse().reduce((under, layer) => over(layer, under), [255, 255, 255]);
+  };
+  const SIDES = ['Top', 'Right', 'Bottom', 'Left'] as const;
+  /** The colours of the sides of `element` that draw a border. */
+  const borders = (element: Element): number[][] => {
+    const own = getComputedStyle(element);
+    return SIDES.flatMap((side) => {
+      const colour = parse(own[`border${side}Color`]);
+      const drawn =
+        parseFloat(own[`border${side}Width`]) >= 1 &&
+        !['none', 'hidden'].includes(own[`border${side}Style`]) &&
+        (colour[3] ?? 1) > 0;
+      return drawn ? [colour] : [];
+    });
+  };
+  const FIELDS =
+    'input:not([type="hidden"], [type="checkbox"], [type="radio"], [type="range"], [type="color"], ' +
+    '[type="file"], [type="button"], [type="submit"], [type="reset"], [type="image"]), textarea, select, ' +
+    '[role="textbox"], [role="combobox"], [role="searchbox"], [role="spinbutton"]';
+  const findings: string[] = [];
+  let measured = 0;
+  for (const root of roots)
+    for (const field of root.querySelectorAll(FIELDS)) {
+      if (!field.checkVisibility({ opacityProperty: true, visibilityProperty: true })) continue;
+      if ((field as HTMLInputElement).disabled || field.getAttribute('aria-disabled') === 'true') continue;
+      const own = field.getBoundingClientRect();
+      if (own.width <= 1 || own.height <= 1) continue;
+      // Each element that may draw the boundary, with the box whose outside it is measured against.
+      const drawers: { element: Element; holder: Element }[] = [];
+      let box: Element | null = field;
+      for (let level = 0; box && level <= 3; level++, box = parent(box)) {
+        const rect = box.getBoundingClientRect();
+        if (rect.width > own.width + 48 || rect.height > own.height + 48) break;
+        drawers.push({ element: box, holder: box });
+        if (box === field) continue;
+        for (const layer of box.querySelectorAll('*')) {
+          if (contains(field, layer) || contains(layer, field) || getComputedStyle(layer).position !== 'absolute')
+            continue;
+          for (const element of [layer, ...layer.querySelectorAll('*')])
+            if (element.checkVisibility({ visibilityProperty: true })) drawers.push({ element, holder: box });
+        }
+      }
+      let strongest: { ratio: number; colour: number[]; outside: number[] } | undefined;
+      for (const { element, holder } of drawers) {
+        const container = parent(holder);
+        const outside = container ? behind(container) : [255, 255, 255];
+        for (const colour of borders(element)) {
+          const drawn = over(colour, behind(element));
+          const ratio = contrast(drawn, outside);
+          if (!strongest || ratio > strongest.ratio) strongest = { ratio, colour: drawn, outside };
+        }
+      }
+      if (!strongest) continue;
+      measured++;
+      if (strongest.ratio < 3) {
+        const label = field.getAttribute('aria-label') ?? (field as HTMLInputElement).labels?.[0]?.textContent ?? '';
+        findings.push(
+          `boundary of ${field.localName}${label ? ` "${label.trim().slice(0, 40)}"` : ''} at ` +
+            `${strongest.ratio.toFixed(2)}:1, ${rgb(strongest.colour)} on ${rgb(strongest.outside)}`,
+        );
+      }
+    }
+  return { findings, measured };
+}
+
 /** The findings no exception accounts for. */
 const unexplained = (check: Check, findings: string[]): string[] =>
   findings.filter(
@@ -522,7 +637,20 @@ const checkLayout = (title: string, show: (page: Page) => Promise<void>): void =
     await animationsDone(page);
     expect(unexplained('placeholder', await page.evaluate(findFaintPlaceholders))).toEqual([]);
   });
+
+  test(`${title} field boundaries clear 3:1`, async ({ page }) => {
+    await show(page);
+    await animationsDone(page);
+    expect(unexplained('boundary', (await page.evaluate(findFaintBoundaries)).findings)).toEqual([]);
+  });
 };
+
+// A selector that stops matching would let the boundary check pass by measuring nothing.
+test('the boundary check measures the fields of the input types fixture', async ({ page }) => {
+  await show(page, '01-input-types', 'editable');
+  await animationsDone(page);
+  expect((await page.evaluate(findFaintBoundaries)).measured).toBeGreaterThan(0);
+});
 
 for (const fixture of FIXTURES)
   for (const mode of MODES) checkLayout(`${fixture} ${mode}`, (page) => show(page, fixture, mode));
