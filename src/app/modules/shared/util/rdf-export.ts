@@ -361,6 +361,16 @@ const explained = (error: unknown): unknown => {
   return error;
 };
 
+/** The document a writer without an output stream passes to its end callback. */
+const written = (writer: Writer): Promise<string> =>
+  new Promise((resolve, reject) =>
+    writer.end((error, text) => {
+      if (error) reject(error);
+      else if (text === undefined) reject(new Error('The RDF writer ended without a document'));
+      else resolve(text);
+    }),
+  );
+
 /** The instance as N-Quads, one statement per line. */
 export const toNQuads = async (instance: JsonNode, schema?: JsonNode): Promise<string> => {
   const document = toRdfReady(asJson(instance), schema ? asJson(schema) : null);
@@ -421,9 +431,7 @@ export const toNQuads = async (instance: JsonNode, schema?: JsonNode): Promise<s
           ),
         ),
     );
-    nquads = await new Promise<string>((resolve, reject) =>
-      writer.end((error, text) => (error ? reject(error) : resolve(text))),
-    );
+    nquads = await written(writer);
   } catch (error) {
     throw explained(error);
   }
@@ -445,9 +453,7 @@ export const toTurtle = async (instance: JsonNode, schema?: JsonNode): Promise<s
     throw new Error('Turtle cannot preserve named graphs; use N-Quads.');
   const writer = new Writer({ format: 'Turtle', prefixes: declaredPrefixes(asJson(instance)) });
   writer.addQuads(quads);
-  return new Promise((resolve, reject) =>
-    writer.end((error: Error | null, result: string) => (error ? reject(error) : resolve(result))),
-  );
+  return written(writer);
 };
 
 /** Every term of the instance's context that names a namespace: an IRI ending in `/` or `#`. */
