@@ -403,7 +403,7 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
 
   private get authorityLink() {
     return (
-      landingLink(this.selectedData?.resource) ??
+      landingLink(this.selectedData?.presentation) ??
       this.resources?.termLink(this.component.controlledInfo, this.selectedData?.iri)
     );
   }

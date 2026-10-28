@@ -1,37 +1,29 @@
 import { describe, expect, it } from 'vitest';
-import { landingLink, sourceReference, termReference, ResourceDescription } from '@cee/models/terminology-resource';
+import { landingLink, sourceReference, termReference, Presentation } from '@cee/models/terminology-resource';
 import { ControlledInfo } from '@cee/models/info/controlled-info.model';
 
-const resource = (href: string): ResourceDescription => ({
-  ref: {
-    kind: 'term',
-    sourceSystem: 'future',
-    sourceAcronym: 'X',
-    resourceIri: 'urn:example:one',
-    versionId: 'hash-1',
-  },
-  status: 'available',
-  authorityLabel: 'Future registry',
-  capabilities: ['members', 'unknown-future-capability'],
-  links: [{ rel: 'landing', href, label: 'Future registry', versionScope: 'current' }],
-});
+const page = (href: string): Presentation => ({ href, label: 'Future registry', versionScope: 'current' });
 
 describe('generic terminology descriptions', () => {
   it('uses the supplied landing page independently of the identifier or provider', () => {
-    expect(landingLink(resource('https://unknown.example/record/123'))?.href).toBe(
-      'https://unknown.example/record/123',
-    );
+    expect(landingLink(page('https://unknown.example/record/123'))?.href).toBe('https://unknown.example/record/123');
   });
   it.each(['javascript:alert(1)', 'data:text/html,hello', '/relative', 'https://user:password@example.org/'])(
     'rejects unsafe link %s',
     (href) => {
-      expect(landingLink(resource(href))).toBeNull();
+      expect(landingLink(page(href))).toBeNull();
     },
   );
-  it('keeps unavailable resources and resources with no landing page unlinked', () => {
-    expect(landingLink({ ...resource('https://example.org'), status: 'unavailable' })).toBeNull();
-    expect(landingLink({ ...resource('https://example.org'), links: [] })).toBeNull();
+  it('keeps absent metadata and resources with no landing page unlinked', () => {
+    expect(landingLink(null)).toBeNull();
+    expect(landingLink({})).toBeNull();
   });
+  it.each(['epa', 'bioportal', 'capabilities', 'description', 'resourceIri'])(
+    'rejects the additional presentation keyword %s',
+    (key) => {
+      expect(landingLink({ ...page('https://example.org'), [key]: 'custom' } as Presentation)).toBeNull();
+    },
+  );
   it('preserves each set reference, source identity and exact pin', () => {
     for (const uri of ['urn:set:one', 'urn:set:two']) {
       expect(
@@ -46,12 +38,12 @@ describe('generic terminology descriptions', () => {
           versionId: 'hash-1',
         }),
       ).toEqual({
-        kind: 'valueSet',
+        type: 'valueSet',
         sourceAcronym: 'X',
         sourceSystem: 'future',
         sourceIri: 'urn:source:x',
-        resourceIri: uri,
-        versionId: 'hash-1',
+        termBaseIri: uri,
+        version: { id: 'hash-1' },
       });
     }
   });
@@ -65,11 +57,11 @@ describe('generic terminology descriptions', () => {
       })),
     });
     expect(termReference(controlled, 'urn:term:3')).toEqual({
-      kind: 'term',
+      type: 'class',
       sourceAcronym: 'X',
       sourceSystem: 'future',
-      versionId: 'hash-1',
-      resourceIri: 'urn:term:3',
+      version: { id: 'hash-1' },
+      termIri: 'urn:term:3',
     });
     expect(controlled.valueSets).toHaveLength(2);
   });

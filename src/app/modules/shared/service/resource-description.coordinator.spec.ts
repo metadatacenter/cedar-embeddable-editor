@@ -3,16 +3,16 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { GlobalSettingsContextService } from './global-settings-context.service';
 import { ResourceDescriptionService } from './resource-description.service';
-import { ResourceReference } from '../models/terminology-resource';
+import { ConstraintReference } from '../models/terminology-resource';
 
 describe('resource descriptions on reopening', () => {
-  const ref: ResourceReference = {
-    kind: 'valueSet',
+  const ref: ConstraintReference = {
+    type: 'valueSet',
     sourceSystem: 'unknown-provider',
     sourceAcronym: 'FUTURE',
     sourceIri: 'urn:source:future',
-    resourceIri: 'urn:set:1',
-    versionId: 'pinned-hash',
+    termBaseIri: 'urn:set:1',
+    version: { id: 'pinned-hash' },
   };
 
   beforeEach(() => TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] }));
@@ -30,16 +30,11 @@ describe('resource descriptions on reopening', () => {
     const request = TestBed.inject(HttpTestingController).expectOne((req) =>
       req.url.endsWith('/resources/description'),
     );
-    expect(request.request.params.get('versionId')).toBe('pinned-hash');
-    expect(request.request.params.get('sourceIri')).toBe('urn:source:future');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual(ref);
     const description = {
-      ref,
-      label: 'The upstream label',
-      status: 'available',
-      capabilities: ['members'],
-      links: [
-        { rel: 'landing', href: 'https://future.example/one', label: 'Future registry', versionScope: 'current' },
-      ],
+      constraint: ref,
+      presentation: { href: 'https://future.example/one', label: 'Future registry', versionScope: 'current' },
     };
     request.flush(description);
     expect(service.describe(ref)).toEqual(description);
@@ -51,9 +46,10 @@ describe('resource descriptions on reopening', () => {
     const service = TestBed.inject(ResourceDescriptionService);
     service.describe(ref);
     TestBed.inject(HttpTestingController)
-      .expectOne((req) => req.params.get('versionId') === 'pinned-hash')
-      .flush({ ref, status: 'unavailable', reason: 'versionNotHeld', links: [], capabilities: [] });
-    expect(service.describe(ref)?.reason).toBe('versionNotHeld');
+      .expectOne((req) => req.body.version.id === 'pinned-hash')
+      .flush({}, { status: 404, statusText: 'Version not held' });
+    expect(service.describe(ref)).toBeNull();
+    TestBed.inject(HttpTestingController).expectNone((req) => req.url.endsWith('/resources/description'));
   });
 
   it('tolerates a failed lookup without a request loop', () => {

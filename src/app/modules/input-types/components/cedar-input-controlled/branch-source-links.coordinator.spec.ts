@@ -35,31 +35,26 @@ for (const surface of ['spec box', 'controlled input'] as const) {
       for (const request of TestBed.inject(HttpTestingController).match((req) =>
         req.url.endsWith('/resources/description'),
       )) {
-        const p = request.request.params;
-        const iri = p.get('resourceIri') ?? '';
-        const acronym = p.get('sourceAcronym') ?? '';
-        const kind = p.get('kind');
-        const epa = p.get('sourceSystem') === 'epa';
+        const p = request.request.body;
+        const iri = p.termIri ?? p.termBaseIri ?? '';
+        const acronym = p.sourceAcronym ?? '';
+        const kind = p.type;
+        const epa = p.sourceSystem === 'epa';
         const href =
           declaredPages.get(iri) ??
           (epa
             ? iri
             : 'https://bioportal.bioontology.org/ontologies/' +
               encodeURIComponent(acronym) +
-              (['term', 'branch'].includes(kind ?? '') ? '?p=classes&conceptid=' + encodeURIComponent(iri) : ''));
+              (['class', 'branch'].includes(kind ?? '') ? '?p=classes&conceptid=' + encodeURIComponent(iri) : ''));
         request.flush({
-          ref: Object.fromEntries(p.keys().map((k) => [k, p.get(k)])),
-          status: 'available',
-          capabilities: [],
-          links: [
-            {
-              rel: 'landing',
-              href,
-              label: epa ? 'EPA' : 'BioPortal',
-              versionScope: 'current',
-              ...(epa ? {} : { icon: 'bioportal' }),
-            },
-          ],
+          constraint: p,
+          presentation: {
+            href,
+            label: epa ? 'EPA' : 'BioPortal',
+            versionScope: 'current',
+            ...(epa ? {} : { icon: 'bioportal' }),
+          },
         });
       }
     };

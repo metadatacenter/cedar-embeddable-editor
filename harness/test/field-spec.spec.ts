@@ -301,9 +301,9 @@ describe('what a controlled-term field states', () => {
       },
     ]);
     expect(sourceReference(specTermSourcesOf(field)[0])).toEqual({
-      kind: 'branch',
+      type: 'branch',
       sourceAcronym: 'MESH',
-      resourceIri: field.controlledInfo.branches[0].uri,
+      termBaseIri: field.controlledInfo.branches[0].uri,
     });
   });
 
@@ -320,7 +320,7 @@ describe('what a controlled-term field states', () => {
 
     const source = specTermSourcesOf(field)[0];
     expect(source.container).toBe('Exposure Value Set (EVS)');
-    expect(sourceReference(source)).toEqual({ kind: 'branch', sourceAcronym: 'EVS', resourceIri: uri });
+    expect(sourceReference(source)).toEqual({ type: 'branch', sourceAcronym: 'EVS', termBaseIri: uri });
   });
 
   it('drops an ontology name that is only the word "undefined", as the HuBMAP corpus carries', () => {

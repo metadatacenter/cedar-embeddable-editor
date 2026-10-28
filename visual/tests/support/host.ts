@@ -20,22 +20,20 @@ const stubDescriptions = async (page: Page): Promise<void> => {
   if (descriptionStubs.has(page)) return;
   descriptionStubs.add(page);
   // Public descriptions are supplied by the terminology service, not inferred by the widget.
-  await page.route('**/unused/resources/description?**', (route) => {
-    const p = new URL(route.request().url()).searchParams;
-    const acronym = p.get('sourceAcronym') ?? '';
-    const kind = p.get('kind');
+  await page.route('**/unused/resources/description', (route) => {
+    const p = route.request().postDataJSON();
+    const acronym = p.sourceAcronym ?? '';
+    const kind = p.type;
     const href =
       'https://bioportal.bioontology.org/ontologies/' +
       encodeURIComponent(acronym) +
-      (['term', 'branch'].includes(kind ?? '')
-        ? '?p=classes&conceptid=' + encodeURIComponent(p.get('resourceIri') ?? '')
+      (['class', 'branch'].includes(kind ?? '')
+        ? '?p=classes&conceptid=' + encodeURIComponent(p.termIri ?? p.termBaseIri ?? '')
         : '');
     return route.fulfill({
       json: {
-        ref: Object.fromEntries(p),
-        status: 'available',
-        capabilities: [],
-        links: [{ rel: 'landing', href, label: 'BioPortal', versionScope: 'current', icon: 'bioportal' }],
+        constraint: p,
+        presentation: { href, label: 'BioPortal', versionScope: 'current', icon: 'bioportal' },
       },
     });
   });

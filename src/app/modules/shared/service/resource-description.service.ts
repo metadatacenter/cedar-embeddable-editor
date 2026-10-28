@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { GlobalSettingsContextService } from './global-settings-context.service';
 import {
   ResourceDescription,
-  ResourceReference,
+  ConstraintReference,
   landingLink,
   sourceReference,
   termReference,
@@ -19,7 +19,7 @@ export class ResourceDescriptionService {
   private readonly retryAfter = new Map<string, number>();
   private readonly descriptions = signal(new Map<string, ResourceDescription | null>());
 
-  describe(ref: ResourceReference | null): ResourceDescription | null {
+  describe(ref: ConstraintReference | null): ResourceDescription | null {
     const base = this.settings.terminologyBaseUrl;
     if (!ref || !base || !this.http) return null;
     const key = base + JSON.stringify(ref);
@@ -28,11 +28,7 @@ export class ResourceDescriptionService {
     if (cached.has(key)) return cached.get(key) ?? null;
     // Mark in flight without notifying the view that is currently reading this signal.
     cached.set(key, null);
-    const params = Object.fromEntries(Object.entries(ref).filter(([, value]) => value !== undefined)) as Record<
-      string,
-      string
-    >;
-    this.http.get<ResourceDescription>(base + 'resources/description', { params }).subscribe({
+    this.http.post<ResourceDescription>(base + 'resources/description', ref).subscribe({
       next: (description) =>
         this.descriptions.update((old) => {
           const next = new Map(old);
@@ -50,10 +46,10 @@ export class ResourceDescriptionService {
   }
 
   sourceLink(source: SpecTermSource): string | null {
-    return landingLink(this.describe(sourceReference(source)))?.href ?? null;
+    return landingLink(this.describe(sourceReference(source))?.presentation)?.href ?? null;
   }
 
   termLink(controlled: ControlledInfo, iri: string | null | undefined) {
-    return landingLink(this.describe(termReference(controlled, iri)));
+    return landingLink(this.describe(termReference(controlled, iri))?.presentation);
   }
 }
