@@ -60,22 +60,26 @@ export default defineConfig({
       exclude: ['src/**/*.spec.ts', 'src/main.ts', 'src/polyfills.ts', 'src/test.ts', 'src/environments/**'],
       thresholds: {
         // Each widget must clear its own floor; other widgets cannot compensate for missing tests.
+        // Vitest 5 applies perFile only to the thresholds beside it, so each glob below repeats it.
         perFile: true,
         // Host-input coordination is small, stateful and release-critical. Keep
         // regressions visible even when the broad component total barely moves.
         'src/app/modules/shared/util/artifact-input-coordinator.ts': {
+          perFile: true,
           statements: 90,
           branches: 85,
           functions: 90,
           lines: 90,
         },
         'src/app/modules/shared/util/wrapper-config-coordinator.ts': {
+          perFile: true,
           statements: 95,
           branches: 95,
           functions: 95,
           lines: 95,
         },
         'src/app/modules/shared/components/cedar-embeddable-metadata-editor-wrapper/*.ts': {
+          perFile: true,
           statements: 70,
           branches: 60,
         },
@@ -93,6 +97,7 @@ export default defineConfig({
         // Authority wrappers delegate their behavior to the shared implementation;
         // it must meet the same floor independently of those wrappers.
         'src/app/modules/input-types/components/**/{cedar-input-*,abstract-authority-input}.component.ts': {
+          perFile: true,
           statements: 62,
           branches: 40,
           functions: 50,

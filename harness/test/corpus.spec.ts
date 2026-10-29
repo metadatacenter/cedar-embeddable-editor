@@ -112,14 +112,14 @@ describe('real corpus templates', () => {
    * what a reader of the form would notice: structure, types, cardinality,
    * constraints. A change of parsing implementation must not move it.
    */
-  it.each(templates.map((t) => [t.id, t] as const))('template-%s has a stable component tree', (id, artifact) => {
+  it.each(templates.map((t) => [t.id, t] as const))('template-%s has a stable component tree', async (id, artifact) => {
     const driver = new CeeDriver(artifact.json);
     // An explicit marker rather than an empty file: three corpus templates
     // legitimately render nothing — one is empty, two hold a single
     // `_ui.hidden` field — and a blank snapshot cannot be told apart from one
     // that failed to write.
     const tree = describeTree(driver.representation).join('\n') || '(no rendered children)';
-    expect(tree).toMatchFileSnapshot(`./__snapshots__/corpus/template-${id}.txt`);
+    await expect(tree).toMatchFileSnapshot(`./__snapshots__/corpus/template-${id}.txt`);
   });
 
   it.each(templates.map((t) => [t.id, t] as const))('template-%s builds an instance skeleton', (_id, artifact) => {
