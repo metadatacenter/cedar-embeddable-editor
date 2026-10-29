@@ -1,9 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ControlledInfo } from '../models/info/controlled-info.model';
-import { bioPortalTermLink, termAcronymOf } from './bioportal-term-link';
-
+import { termAcronymOf } from './bioportal-term-link';
 const HRAVS_TERM = 'https://purl.humanatlas.io/vocab/hravs#HRAVS_0000123';
-
 const constraints = (shape: Partial<ControlledInfo>): ControlledInfo => Object.assign(new ControlledInfo(), shape);
 
 describe('termAcronymOf', () => {
@@ -37,24 +35,5 @@ describe('termAcronymOf', () => {
     expect(termAcronymOf(several, HRAVS_TERM)).toBeNull();
     expect(termAcronymOf(withValueSet, HRAVS_TERM)).toBeNull();
     expect(termAcronymOf(none, HRAVS_TERM)).toBeNull();
-  });
-});
-
-describe('bioPortalTermLink', () => {
-  it('links a listed class to its own ontology, not the first one the field names', () => {
-    const controlled = constraints({
-      ontologies: [{ acronym: 'NCIT' }],
-      classes: [{ uri: 'http://purl.obolibrary.org/obo/DOID_2841', source: 'DOID' }],
-    });
-    expect(bioPortalTermLink(controlled, 'http://purl.obolibrary.org/obo/DOID_2841')).toBe(
-      'https://bioportal.bioontology.org/ontologies/DOID?p=classes&conceptid=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FDOID_2841',
-    );
-  });
-
-  it('keeps linking an unsettled term to the first ontology the field names', () => {
-    const controlled = constraints({ ontologies: [{ acronym: 'NCIT' }, { acronym: 'DOID' }] });
-    expect(bioPortalTermLink(controlled, HRAVS_TERM)).toMatch(
-      /^https:\/\/bioportal\.bioontology\.org\/ontologies\/NCIT\?/,
-    );
   });
 });

@@ -209,6 +209,15 @@
   margin-right: ui-tokens.$space-4;
 }
 
+/*
+ * The current page's chip is tinted, and a tint never marks a state alone, so it also takes the
+ * theme-colour line. A chip draws the focus ring as its outline, so the line is the inset frame.
+ * Both pagers, a field's and the template's, are the only chip listboxes CEE draws.
+ */
+mat-chip-listbox .mat-mdc-chip-selected {
+  @include patterns.selected-frame(var(--cedar-color-primary, #{tokens.$color-primary}));
+}
+
 .pager-actions {
   display: flex;
   align-items: center;
@@ -462,6 +471,19 @@ app-cedar-component-renderer:has(> mat-accordion) + app-cedar-component-renderer
   font-style: italic;
   white-space: normal;
   line-height: tokens.$control-line-height-default;
+}
+
+/**
+ * The focused date in an open calendar.
+ *
+ * Material takes the outline off a calendar's date cells and marks the focused one with a
+ * background alone, which here is the selection tint, about 1.2:1 against the calendar. The focused
+ * date also takes the shared focus ring, whether or not it is the selected date. Global for the
+ * same reason as the row above: the calendar is rendered into the overlay container.
+ */
+.cdk-keyboard-focused .mat-calendar-body-active > .mat-calendar-body-cell-content,
+.cdk-program-focused .mat-calendar-body-active > .mat-calendar-body-cell-content {
+  @include controls.focus-ring(var(--cedar-control-focus, var(--cedar-color-primary, #{tokens.$color-primary})));
 }
 
 /*

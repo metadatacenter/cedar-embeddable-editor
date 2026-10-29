@@ -1,3 +1,4 @@
+import type { ConstraintLinks } from 'cedar-model-typescript-library';
 /**
  * A controlled field's `_valueConstraints`, as CEDAR declares them.
  *
@@ -12,6 +13,10 @@
  * acronym. Only `uri` is reliably present on all four.
  */
 export interface OntologyConstraint {
+  links?: ConstraintLinks;
+  sourceSystem?: string;
+  iri?: string;
+  version?: { id: string } | 'latest';
   uri?: string;
   acronym?: string;
   name?: string;
@@ -19,6 +24,10 @@ export interface OntologyConstraint {
 }
 
 export interface BranchConstraint {
+  links?: ConstraintLinks;
+  sourceSystem?: string;
+  iri?: string;
+  version?: { id: string } | 'latest';
   uri?: string;
   source?: string;
   acronym?: string;
@@ -27,6 +36,10 @@ export interface BranchConstraint {
 }
 
 export interface ClassConstraint {
+  links?: ConstraintLinks;
+  sourceSystem?: string;
+  iri?: string;
+  version?: { id: string } | 'latest';
   uri?: string;
   source?: string;
   label?: string;
@@ -35,6 +48,10 @@ export interface ClassConstraint {
 }
 
 export interface ValueSetConstraint {
+  links?: ConstraintLinks;
+  sourceSystem?: string;
+  iri?: string;
+  version?: { id: string } | 'latest';
   uri?: string;
   vsCollection?: string;
   name?: string;

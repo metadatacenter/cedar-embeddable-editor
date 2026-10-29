@@ -470,6 +470,11 @@ test('an open calendar, in its month view and its multi-year view', async ({ pag
   await dayPicker.getByRole('button', { name: 'Open calendar' }).click();
   await expect(page.locator('mat-month-view')).toBeVisible();
   await expectAccessible(page, 'calendar month view');
+  // The focused date carries the shared focus ring, because its tint is too faint to show focus.
+  await page.keyboard.press('ArrowRight');
+  const focused = page.locator('.mat-calendar-body-active > .mat-calendar-body-cell-content');
+  await expect(focused).toHaveCSS('outline-style', 'solid');
+  await expect(focused).toHaveCSS('outline-color', 'rgb(15, 118, 134)');
   await page.locator('.mat-calendar-period-button').click();
   await expect(page.locator('mat-multi-year-view')).toBeVisible();
   await expectAccessible(page, 'calendar multi-year view');

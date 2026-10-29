@@ -7,7 +7,7 @@
  * Constraint counts quoted here come from the 51 HuBMAP assay templates, 1,416 fields.
  */
 import { describe, expect, it } from 'vitest';
-import { bioPortalSourceLink } from '@cee/util/bioportal-term-link';
+import { sourceReference } from '@cee/models/terminology-resource';
 import { SingleFieldComponent } from '@cee/models/field/single-field-component.model';
 import { ChoiceOption } from '@cee/models/info/choice-option.model';
 import { FieldComponent } from '@cee/models/component/field-component.model';
@@ -300,10 +300,11 @@ describe('what a controlled-term field states', () => {
         uri: 'http://purl.bioontology.org/ontology/MESH/D005796',
       },
     ]);
-    expect(bioPortalSourceLink(specTermSourcesOf(field)[0])).toBe(
-      'https://bioportal.bioontology.org/ontologies/MESH?p=classes&conceptid=' +
-        encodeURIComponent(field.controlledInfo.branches[0].uri!),
-    );
+    expect(sourceReference(specTermSourcesOf(field)[0])).toEqual({
+      type: 'branch',
+      sourceAcronym: 'MESH',
+      termBaseIri: field.controlledInfo.branches[0].uri,
+    });
   });
 
   it.each([
@@ -319,9 +320,7 @@ describe('what a controlled-term field states', () => {
 
     const source = specTermSourcesOf(field)[0];
     expect(source.container).toBe('Exposure Value Set (EVS)');
-    expect(bioPortalSourceLink(source)).toBe(
-      'https://bioportal.bioontology.org/ontologies/EVS?p=classes&conceptid=' + encodeURIComponent(uri),
-    );
+    expect(sourceReference(source)).toEqual({ type: 'branch', sourceAcronym: 'EVS', termBaseIri: uri });
   });
 
   it('drops an ontology name that is only the word "undefined", as the HuBMAP corpus carries', () => {

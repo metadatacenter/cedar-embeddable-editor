@@ -16,6 +16,8 @@ import { AuthorityTerm } from '../models/authority/authority-search-response.mod
  * Every word instead, in any order. "Mark Musen" keeps "Mark A. Musen"; "Musen
  * Mark" keeps it too; "Marcus" keeps nothing, which is the case the narrowing is
  * for.
+ * A terminology match can instead be an alias or identifier. Keep the matching
+ * names supplied by the authority too, while still displaying its preferred label.
  */
 export function narrowByQuery(results: readonly AuthorityTerm[], query: string): AuthorityTerm[] {
   const words = query.toLowerCase().split(/\s+/).filter(Boolean);
@@ -23,7 +25,7 @@ export function narrowByQuery(results: readonly AuthorityTerm[], query: string):
     return [...results];
   }
   return results.filter((option) => {
-    const label = (option?.label ?? '').toLowerCase();
-    return words.every((word) => label.includes(word));
+    const names = [option?.label ?? '', ...(option?.matchedNames ?? [])];
+    return names.some((name) => words.every((word) => name.toLowerCase().includes(word)));
   });
 }

@@ -1,3 +1,5 @@
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { GlobalSettingsContextService } from '../../../shared/service/global-settings-context.service';
 import { vi } from 'vitest';
 import { ControlledInfo } from '../../../shared/models/info/controlled-info.model';
 import { TestBed } from '@angular/core/testing';
@@ -19,13 +21,41 @@ for (const surface of ['spec box', 'controlled input'] as const) {
     beforeEach(async () => {
       await TestBed.configureTestingModule({
         imports: [SharedModule, InputTypesModule],
-        providers: [provideHttpClient(), provideTranslateService()],
+        providers: [provideHttpClient(), provideHttpClientTesting(), provideTranslateService()],
       }).compileComponents();
+      TestBed.inject(GlobalSettingsContextService).terminologyBaseUrl = 'https://terms.example/';
       TestBed.inject(UserPreferencesService).setReadOnlyMode(true);
       const translate = TestBed.inject(TranslateService);
       translate.setTranslation('en', { Spec: { TermKind: { branch: 'branch' }, TermIn: 'of the {{container}}' } });
       translate.use('en');
     });
+
+    const declaredPages = new Map<string, string>();
+    const answerDescriptions = () => {
+      for (const request of TestBed.inject(HttpTestingController).match((req) =>
+        req.url.endsWith('/resources/description'),
+      )) {
+        const p = request.request.body;
+        const iri = p.termIri ?? p.termBaseIri ?? '';
+        const acronym = p.sourceAcronym ?? '';
+        const kind = p.type;
+        const epa = p.sourceSystem === 'epa';
+        const href =
+          declaredPages.get(iri) ??
+          (epa
+            ? iri
+            : 'https://bioportal.bioontology.org/ontologies/' +
+              encodeURIComponent(acronym) +
+              (['class', 'branch'].includes(kind ?? '') ? '?p=classes&conceptid=' + encodeURIComponent(iri) : ''));
+        request.flush({
+          constraint: p,
+          links: {
+            landingPage: href,
+            ...(epa ? {} : { icon: 'https://terms.example/resources/icons/bioportal.png' }),
+          },
+        });
+      }
+    };
 
     const renderConstraints = async (constraints: Partial<ControlledInfo>) => {
       const field = new SingleFieldComponent();
@@ -42,7 +72,9 @@ for (const surface of ['spec box', 'controlled input'] as const) {
         fixture.componentInstance.handlerContext = { statesSpecification: false } as HandlerContext;
       }
       fixture.detectChanges();
+      answerDescriptions();
       await fixture.whenStable();
+      fixture.detectChanges();
       return fixture.nativeElement as HTMLElement;
     };
 
@@ -133,5 +165,78 @@ for (const surface of ['spec box', 'controlled input'] as const) {
       expect(root.textContent).toContain('Sampled Environmental Media');
       expect(root.textContent).toContain('Exposure Value Set');
     });
+
+    it('links each of two selected EPA value sets to its own list page', async () => {
+      const pages = [
+        ['PFAS — EPA Method 533', 'https://cdxapps.epa.gov/oms-substance-registry-services/substance-list-details/477'],
+        [
+          'PFAS — EPA Method 537.1',
+          'https://cdxapps.epa.gov/oms-substance-registry-services/substance-list-details/475',
+        ],
+      ];
+      const root = await renderConstraints({
+        valueSets: pages.map(([name, uri]) => ({
+          sourceSystem: 'epa',
+          vsCollection: 'EPA-PFAS',
+          name,
+          uri,
+        })),
+      });
+      const links = [...root.querySelectorAll<HTMLAnchorElement>('a[href*="cdxapps.epa.gov"]')];
+      expect(links).toHaveLength(2);
+      for (const [index, [name, uri]] of pages.entries()) {
+        expect(links[index].href).toBe(uri);
+        expect(links[index].textContent).toContain(name);
+        expect(links[index].target).toBe('_blank');
+        expect(links[index].rel).toContain('noopener');
+      }
+      expect(root.querySelector('a[href*="bioportal.bioontology.org"]')).toBeNull();
+    });
+
+    it('renders an unknown provider using only the supplied descriptor, retaining two independent sets', async () => {
+      declaredPages.set('urn:future:set:1', 'https://future.example/lists/one');
+      declaredPages.set('urn:future:set:2', 'https://future.example/lists/two');
+      const root = await renderConstraints({
+        valueSets: [1, 2].map((id) => ({
+          sourceSystem: 'unknown-future-provider',
+          vsCollection: 'FUTURE',
+          iri: 'urn:future:source',
+          version: { id: 'exact-release' },
+          uri: 'urn:future:set:' + id,
+          name: 'Selected set ' + id,
+        })),
+      });
+      expect([...root.querySelectorAll<HTMLAnchorElement>('a')].map((a) => a.href)).toEqual([
+        'https://future.example/lists/one',
+        'https://future.example/lists/two',
+      ]);
+      expect(root.textContent).toContain('Selected set 1');
+      expect(root.textContent).toContain('Selected set 2');
+    });
+
+    if (surface === 'controlled input') {
+      it.each([false, true])('links a selected chemical to CompTox (read-only=%s)', async (readOnly) => {
+        TestBed.inject(UserPreferencesService).setReadOnlyMode(readOnly);
+        const field = new SingleFieldComponent();
+        field.basicInfo.inputType = InputType.controlled;
+        field.controlledInfo.valueSets = [{ sourceSystem: 'epa', vsCollection: 'EPA-PFAS', name: 'Method 533' }];
+        const fixture = TestBed.createComponent(CedarInputControlledComponent);
+        fixture.componentInstance.componentToRender = field;
+        fixture.componentInstance.handlerContext = { statesSpecification: false } as HandlerContext;
+        fixture.detectChanges();
+        const iri = 'https://comptox.epa.gov/dashboard/chemical/details/DTXSID8031865';
+        fixture.componentInstance.setCurrentValue({ iri, label: 'Perfluorooctanoic acid' });
+        fixture.detectChanges();
+        answerDescriptions();
+        await fixture.whenStable();
+        fixture.detectChanges();
+        const root = fixture.nativeElement as HTMLElement;
+        const link = root.querySelector<HTMLAnchorElement>(`a[href="${iri}"]`);
+        expect(link).not.toBeNull();
+        expect(link!.target).toBe('_blank');
+        expect(link!.rel).toContain('noopener');
+        expect(root.querySelector('a[href*="bioportal.bioontology.org"]')).toBeNull();
+      });
+    }
   });
 }

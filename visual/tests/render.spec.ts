@@ -3340,6 +3340,17 @@ test.describe('host input timing', () => {
  * is what the instance records, the BioPortal mark is the term's page in its ontology.
  */
 test.describe('a term rendered as a value', () => {
+  test('keeps the landing link usable when a supplied icon cannot load', async ({ page }) => {
+    await open(page, '04-controlled-terms', 'readonly', '04-controlled-terms-instance');
+    const controlled = page.locator('app-cedar-input-controlled').first();
+    const link = controlled.locator('a[termLinkPrefix]');
+    await expect(link.locator('img')).toBeVisible();
+    const landingPage = await link.getAttribute('href');
+    await link.locator('img').dispatchEvent('error');
+    await expect(link.locator('img')).toHaveCount(0);
+    await expect(link.locator('mat-icon')).toBeVisible();
+    await expect(link).toHaveAttribute('href', landingPage!);
+  });
   test('links the identifier and keeps the authority icon', async ({ page }) => {
     await open(page, '04-controlled-terms', 'readonly', '04-controlled-terms-instance');
 
@@ -3348,7 +3359,7 @@ test.describe('a term rendered as a value', () => {
     const identifier = controlled.locator('a.cee-term-link-iri');
     await expect(identifier).toHaveAttribute('href', 'http://purl.obolibrary.org/obo/DOID_4');
     await expect(identifier).toHaveAttribute('rel', 'noopener');
-    const authorityPage = controlled.locator('a.cee-bioportal-term-link');
+    const authorityPage = controlled.locator('a.cee-authority-icon-link');
     expect(
       await authorityPage.getAttribute('href'),
       'the BioPortal mark goes to the term in its ontology, not to the IRI',
@@ -3359,12 +3370,13 @@ test.describe('a term rendered as a value', () => {
       return {
         width: box.width,
         height: box.height,
-        backgroundImage: getComputedStyle(element).backgroundImage,
+        image: element.querySelector('img')?.getAttribute('src'),
       };
     });
     expect(logo.width).toBe(60);
     expect(logo.height).toBe(20);
-    expect(logo.backgroundImage).toContain('data:image/png;base64');
+    expect(logo.image).toBe('https://terms.example/resources/icons/bioportal.png');
+    await expect(authorityPage.locator('img')).toBeVisible();
 
     const orcid = page.locator('app-cedar-input-orcid').first();
     await expect(orcid.locator('a.cee-term-link-iri')).toHaveAttribute('href', 'https://orcid.org/0000-0002-1825-0097');

@@ -3,7 +3,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { languageTag, textLanguageOf, uiLanguageOf } from '../../a11y/language-tag';
 import { GlobalSettingsContextService } from '../../service/global-settings-context.service';
 import { FieldComponent } from '../../models/component/field-component.model';
-import { bioPortalSourceLink, bioPortalTermLink } from '../../util/bioportal-term-link';
+import { ResourceDescriptionService } from '../../service/resource-description.service';
 import {
   SpecDefaultTerm,
   SpecFact,
@@ -41,6 +41,7 @@ import {
   standalone: false,
 })
 export class CedarSpecBoxComponent {
+  private readonly resources = inject(ResourceDescriptionService, { optional: true });
   private readonly translate = inject(TranslateService, { optional: true });
   private readonly globalSettings = inject(GlobalSettingsContextService, { optional: true });
 
@@ -119,15 +120,17 @@ export class CedarSpecBoxComponent {
   /** Where that term can be read about, built the way the field's own value link is. */
   get defaultTermLink(): string | null {
     const term = this.defaultTerm;
-    return term === null ? null : bioPortalTermLink(this.fieldToDescribe.controlledInfo, term.uri);
+    return term === null
+      ? null
+      : (this.resources?.termLink(this.fieldToDescribe.controlledInfo, term.uri)?.landingPage ?? null);
   }
 
   get termSources(): ReadonlyArray<SpecTermSource> {
     return specTermSourcesOf(this.fieldToDescribe);
   }
 
-  /** Where the authority can be read about, or null when it names no acronym to address it by. */
+  /** Where the authority can be read about, or null when no public destination is known. */
   linkFor(source: SpecTermSource): string | null {
-    return bioPortalSourceLink(source);
+    return this.resources?.sourceLink(source) ?? null;
   }
 }

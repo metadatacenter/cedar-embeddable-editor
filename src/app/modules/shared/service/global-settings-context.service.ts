@@ -4,6 +4,7 @@ import { Injectable } from '@angular/core';
   providedIn: 'root',
 })
 export class GlobalSettingsContextService {
+  public terminologyBaseUrl: string | null = null;
   public static DEFAULT_LANGUAGE = 'en';
   public languageMapPathPrefix: string | null = null;
   /** The language each loaded map is written in, keyed by the language it was loaded for. */

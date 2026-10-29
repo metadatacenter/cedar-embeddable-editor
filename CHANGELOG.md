@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.31] - 2026-10-29
+
+Aligns with `cedar-model-typescript-library@1.0.26`.
+
+- Resolves terminology links generically, retains alias matches, and displays appropriate landing pages and icons for controlled terms.
+- Uses the shared control outlines and calendar focus indicators, with rendered contrast and shared-token contract checks.
+- Updates the embedded framework and dependency graph while preserving the existing field layouts.
+
 ## [2.0.30] - 2026-10-27
 
 Aligns with `cedar-model-typescript-library@1.0.25`.

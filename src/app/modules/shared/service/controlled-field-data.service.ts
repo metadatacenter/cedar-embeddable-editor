@@ -101,6 +101,11 @@ export class ControlledFieldDataService {
       this.messageHandlerService.errorObject(query || 'empty string', response);
       return [];
     }
-    return response.collection.map((item) => ({ iri: item['@id'], label: item.prefLabel ?? '' }));
+    return response.collection.map((item) => ({
+      iri: item['@id'],
+      label: item.prefLabel ?? '',
+      ...(item.links ? { links: item.links } : {}),
+      ...(Array.isArray(item.matchedSynonyms) ? { matchedNames: item.matchedSynonyms } : {}),
+    }));
   }
 }

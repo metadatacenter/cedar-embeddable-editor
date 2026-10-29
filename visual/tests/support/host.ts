@@ -15,6 +15,36 @@ export const BUNDLE_VERSION = String(fs.statSync(BUNDLE_PATH).mtimeMs);
 /** CEE seeds temporal controls from the current time, so tests pin one instant. */
 export const FROZEN = new Date('2026-01-01T09:30:00Z');
 
+const descriptionStubs = new WeakSet<Page>();
+const stubDescriptions = async (page: Page): Promise<void> => {
+  if (descriptionStubs.has(page)) return;
+  descriptionStubs.add(page);
+  await page.route('https://terms.example/resources/icons/bioportal.png', (route) =>
+    route.fulfill({
+      contentType: 'image/png',
+      path: path.join(path.dirname(url.fileURLToPath(import.meta.url)), 'bioportal.png'),
+    }),
+  );
+  // Public descriptions are supplied by the terminology service, not inferred by the widget.
+  await page.route('**/unused/resources/description', (route) => {
+    const p = route.request().postDataJSON();
+    const acronym = p.sourceAcronym ?? '';
+    const kind = p.type;
+    const href =
+      'https://bioportal.bioontology.org/ontologies/' +
+      encodeURIComponent(acronym) +
+      (['class', 'branch'].includes(kind ?? '')
+        ? '?p=classes&conceptid=' + encodeURIComponent(p.termIri ?? p.termBaseIri ?? '')
+        : '');
+    return route.fulfill({
+      json: {
+        constraint: p,
+        links: { landingPage: href, icon: 'https://terms.example/resources/icons/bioportal.png' },
+      },
+    });
+  });
+};
+
 /** Load a fixture through the same host page and custom-element inputs an embedder uses. */
 export const open = async (
   page: Page,
@@ -24,6 +54,7 @@ export const open = async (
   mode?: 'separate' | 'combined' | 'template-first',
   extra?: string,
 ): Promise<void> => {
+  await stubDescriptions(page);
   await page.clock.setFixedTime(FROZEN);
   await page.goto(
     `/host.html?t=${fixture}${preset ? `&c=${preset}` : ''}${instance ? `&i=${instance}` : ''}` +
@@ -156,6 +187,7 @@ export const addAttributeRow = async (page: Page): Promise<void> => {
 };
 
 export const openTwoEditors = async (page: Page, fixture: string): Promise<void> => {
+  await stubDescriptions(page);
   await page.clock.setFixedTime(FROZEN);
   await page.goto(`/host.html?host=multi&t=${fixture}&b=${BUNDLE_VERSION}`);
   await page.waitForFunction(() => window.__ceeReady === true || window.__ceeError, null, {

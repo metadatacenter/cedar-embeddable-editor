@@ -186,18 +186,20 @@ export default defineConfig({
        * gates. Angular components and REST/view models remain in the report for
        * visibility but do not dilute or satisfy these floors.
        *
-       * Branches sit at 85 rather than 90 because Vitest 4 counts them
-       * differently, not because the suite got worse. Vitest 4 dropped the old
-       * V8 mapping for AST-aware remapping and offers no way back, and the same
-       * source that cleared 90 everywhere under Vitest 1 now measures 90.62
-       * (factory), 87.7 (handler), 86.6 (util) and 91.51 (validation). No test
-       * was removed and no branch stopped being exercised — branches that the
-       * old mapping never counted are now in the denominator.
+       * Branches sit at 85 rather than 90 because Vitest has counted them
+       * differently since version 4, not because the suite got worse. Vitest 4
+       * dropped the old V8 mapping for AST-aware remapping and offers no way
+       * back, and the same source that cleared 90 everywhere under Vitest 1
+       * measured 90.62 (factory), 87.7 (handler), 86.6 (util) and 91.51
+       * (validation) under 4. No test was removed and no branch stopped being
+       * exercised — branches that the old mapping never counted are now in the
+       * denominator. Under Vitest 5 on 2026-10-28 they measure 97.03, 88.73,
+       * 85.54 and 90.71.
        *
        * Uniform at 85 rather than tuned per directory, because a floor a
        * fraction under today's number is a tripwire for noise rather than for
-       * regression. Statements stay at 90: the lowest is 94.98, so that floor
-       * still bites.
+       * regression. Statements stay at 90. The lowest, util's, is 90.69, so that
+       * floor still bites.
        */
       thresholds: {
         'src/app/modules/shared/factory/**': { statements: 90, branches: 85 },

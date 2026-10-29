@@ -1,113 +1,86 @@
-/**
- * The link a controlled field offers out to BioPortal.
- *
- * It was built from `bioPortalPrefix`, a configuration key named as a prefix and
- * used as a link base — and only for class and ontology constraints. A branch was
- * linked through its own `source`, which is not a URL: across the corpus a branch
- * carries `"Medical Subject Headings (MESH)"`, or the FDC-GDMT ontology's full
- * name, or occasionally a bioportal.bioontology.org URL. Two of those three
- * produced a relative link resolved against whatever page CEE was embedded in.
- *
- * Nothing covered it, which is why the shapes below are taken from real corpus
- * templates rather than invented.
- */
 import { describe, expect, it } from 'vitest';
-import { bioPortalSourceLink, bioPortalTermLink } from '@cee/util/bioportal-term-link';
-import { SpecTermSource } from '@cee/util/field-spec';
+import { landingLink, sourceReference, termReference, ConstraintLinks } from '@cee/models/terminology-resource';
 import { ControlledInfo } from '@cee/models/info/controlled-info.model';
 
-const controlled = (over: Partial<ControlledInfo>): ControlledInfo => Object.assign(new ControlledInfo(), over);
+const page = (href: string): ConstraintLinks => ({ landingPage: href });
 
-const TERM = 'http://purl.bioontology.org/ontology/MESH/D055641';
-
-describe('the BioPortal link', () => {
-  it('names the ontology by acronym when a branch carries a display name', () => {
-    // template-023: source is "Medical Subject Headings (MESH)", which is not a URL.
-    const link = bioPortalTermLink(
-      controlled({ branches: [{ source: 'Medical Subject Headings (MESH)', acronym: 'MESH', uri: TERM }] }),
-      TERM,
-    );
-
-    expect(link).toBe(
-      'https://bioportal.bioontology.org/ontologies/MESH?p=classes&conceptid=' + encodeURIComponent(TERM),
-    );
-    expect(link, 'a display name must not reach the URL').not.toContain('Medical Subject');
-  });
-
-  it('gives the same link when the branch happens to carry a URL', () => {
-    // template-029: source is a bioportal URL. The acronym says the same thing.
-    const link = bioPortalTermLink(
-      controlled({
-        branches: [{ source: 'https://bioportal.bioontology.org/ontologies/FDC-GDMT', acronym: 'FDC-GDMT' }],
-      }),
-      TERM,
-    );
-
-    expect(link).toBe(
-      'https://bioportal.bioontology.org/ontologies/FDC-GDMT?p=classes&conceptid=' + encodeURIComponent(TERM),
+describe('generic terminology descriptions', () => {
+  it('uses the supplied landing page independently of the identifier or provider', () => {
+    expect(landingLink(page('https://unknown.example/record/123'))?.landingPage).toBe(
+      'https://unknown.example/record/123',
     );
   });
-
-  it('reads a class constraint, whose acronym lives in source', () => {
-    const link = bioPortalTermLink(controlled({ classes: [{ source: 'MESH', uri: TERM }] }), TERM);
-    expect(link).toContain('/ontologies/MESH?');
+  it.each(['javascript:alert(1)', 'data:text/html,hello', '/relative', 'https://user:password@example.org/'])(
+    'rejects unsafe link %s',
+    (href) => {
+      expect(landingLink(page(href))).toBeNull();
+    },
+  );
+  it('keeps absent metadata and resources with no landing page unlinked', () => {
+    expect(landingLink(null)).toBeNull();
+    expect(landingLink({})).toBeNull();
   });
-
-  it('reads an ontology constraint', () => {
-    const link = bioPortalTermLink(controlled({ ontologies: [{ acronym: 'DOID' }] }), TERM);
-    expect(link).toContain('/ontologies/DOID?');
+  it.each(['epa', 'bioportal', 'capabilities', 'description', 'resourceIri'])(
+    'rejects the additional links keyword %s',
+    (key) => {
+      expect(landingLink({ ...page('https://example.org'), [key]: 'custom' } as ConstraintLinks)).toBeNull();
+    },
+  );
+  it('preserves each set reference, source identity and exact pin', () => {
+    for (const uri of ['urn:set:one', 'urn:set:two']) {
+      expect(
+        sourceReference({
+          kind: 'valueSet',
+          acronym: 'X',
+          name: 'Set',
+          container: null,
+          uri,
+          sourceSystem: 'future',
+          sourceIri: 'urn:source:x',
+          versionId: 'hash-1',
+        }),
+      ).toEqual({
+        type: 'valueSet',
+        sourceAcronym: 'X',
+        sourceSystem: 'future',
+        sourceIri: 'urn:source:x',
+        termBaseIri: uri,
+        version: { id: 'hash-1' },
+      });
+    }
   });
-
-  it('prefers the branch when a field is constrained more than one way', () => {
-    const link = bioPortalTermLink(
-      controlled({ branches: [{ acronym: 'MESH' }], ontologies: [{ acronym: 'DOID' }] }),
-      TERM,
-    );
-    expect(link).toContain('/ontologies/MESH?');
+  it('resolves a selected term across two sets from one collection without combining the sets', () => {
+    const controlled = Object.assign(new ControlledInfo(), {
+      valueSets: ['one', 'two'].map((id) => ({
+        uri: 'urn:set:' + id,
+        vsCollection: 'X',
+        sourceSystem: 'future',
+        version: { id: 'hash-1' },
+      })),
+    });
+    expect(termReference(controlled, 'urn:term:3')).toEqual({
+      type: 'class',
+      sourceAcronym: 'X',
+      sourceSystem: 'future',
+      version: { id: 'hash-1' },
+      termIri: 'urn:term:3',
+    });
+    expect(controlled.valueSets).toHaveLength(2);
   });
-
-  it('is null with no term selected, and with no constraint to name one', () => {
-    expect(bioPortalTermLink(controlled({ branches: [{ acronym: 'MESH' }] }), null)).toBeNull();
-    expect(bioPortalTermLink(controlled({}), TERM)).toBeNull();
-    expect(bioPortalTermLink(controlled({ ontologies: [{}] }), TERM)).toBeNull();
+  it('does not guess between sources or different pins of the same source', () => {
+    const controlled = Object.assign(new ControlledInfo(), {
+      branches: [
+        { acronym: 'X', version: { id: 'one' } },
+        { acronym: 'X', version: { id: 'two' } },
+      ],
+    });
+    expect(termReference(controlled, 'urn:term:3')).toBeNull();
   });
-
-  it('escapes an acronym rather than letting it shape the URL', () => {
-    const link = bioPortalTermLink(controlled({ ontologies: [{ acronym: 'A/B?x=1' }] }), TERM);
-    expect(link).toContain('/ontologies/A%2FB%3Fx%3D1?');
-  });
-});
-
-describe('the specification source link', () => {
-  const source = (over: Partial<SpecTermSource> = {}): SpecTermSource => ({
-    kind: 'branch',
-    name: 'A branch',
-    container: 'Exposure Value Set (EVS)',
-    acronym: 'EVS',
-    uri: TERM,
-    ...over,
-  });
-
-  it.each([null, ''])('does not invent an ontology when the acronym is %s', (acronym) => {
-    expect(bioPortalSourceLink(source({ acronym }))).toBeNull();
-  });
-
-  it.each(['branch', 'class'] as const)('links a %s to its exact concept', (kind) => {
-    const uri = 'https://example.org/term?a=1&b=two words#part';
-    const url = new URL(bioPortalSourceLink(source({ kind, uri, acronym: 'A/B?x=1' }))!);
-    expect(url.pathname).toBe('/ontologies/A%2FB%3Fx%3D1');
-    expect([...url.searchParams.entries()]).toEqual([
-      ['p', 'classes'],
-      ['conceptid', uri],
-    ]);
-    expect(url.hash).toBe('');
-  });
-
-  it.each(['ontology', 'valueSet', 'value'] as const)('links a %s to the collection page', (kind) => {
-    expect(bioPortalSourceLink(source({ kind }))).toBe('https://bioportal.bioontology.org/ontologies/EVS');
-  });
-
-  it('falls back to the known ontology when no concept URI is available', () => {
-    expect(bioPortalSourceLink(source({ uri: null }))).toBe('https://bioportal.bioontology.org/ontologies/EVS');
+  it('uses an explicit class source ahead of an ambiguous field-wide source', () => {
+    const controlled = Object.assign(new ControlledInfo(), {
+      classes: [{ uri: 'urn:term:3', source: 'X' }],
+      ontologies: [{ acronym: 'Y' }],
+    });
+    expect(termReference(controlled, 'urn:term:3')?.sourceAcronym).toBe('X');
   });
 });

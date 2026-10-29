@@ -38,7 +38,11 @@ const canonical = async (quads: Quad[]): Promise<string> => {
   const writer = new Writer({ format: 'N-Quads' });
   writer.addQuads(quads);
   const nquads = await new Promise<string>((resolve, reject) =>
-    writer.end((error, text) => (error ? reject(error) : resolve(text))),
+    writer.end((error, text) => {
+      if (error) reject(error);
+      else if (text === undefined) reject(new Error('The writer ended without a document'));
+      else resolve(text);
+    }),
   );
   // @types/jsonld predates the supported N-Quads input form.
   const canonizeNQuads = jsonld.canonize as unknown as (

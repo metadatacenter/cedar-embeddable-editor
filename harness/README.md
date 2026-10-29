@@ -4,7 +4,7 @@ A headless, generative test harness for the CEDAR Embeddable Editor's domain
 layer — template parsing, instance construction, path resolution, value writes,
 multi-instance mechanics, and the data quality report.
 
-> **Status: 2,560 tests, all passing** on Node 24.22.1 / Vitest 4.1.
+> **Status: 5,821 tests, all passing** on Node 24.22.1 / Vitest 5.0.
 > Verified non-vacuous by mutation testing — see [Does it have teeth?](#does-it-have-teeth).
 > Four CEE defects found, all four fixed. See [What it found](#what-it-found).
 
