@@ -31,19 +31,6 @@ import { JsonSourcePolicy } from 'cedar-model-typescript-library';
 
 const validTemplate = inputTypesTemplate as unknown as CeeJsonObject;
 
-/**
- * Jasmine's `toHaveBeenCalledOnceWith`, in the two assertions it stood for.
- *
- * Vitest 1.x has no single matcher for "called exactly once, and with these
- * arguments". Both halves are load-bearing below: the test asserts that config is
- * applied identically whether Angular supplies it before or after `ngOnInit`, so a
- * second, identical call would be a real failure rather than a harmless repeat.
- */
-const expectCalledOnceWith = (spy: Mock, ...args: unknown[]): void => {
-  expect(spy).toHaveBeenCalledTimes(1);
-  expect(spy).toHaveBeenCalledWith(...args);
-};
-
 describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
   interface Mocks {
     setIntegratedSearchUrl: Mock;
@@ -194,11 +181,14 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
     after.component.ngOnInit();
     after.component.config = config;
 
+    // Exactly once: a second, identical call would be a real failure rather than a harmless repeat.
     for (const candidate of [before, after]) {
-      expectCalledOnceWith(candidate.mocks.setIntegratedSearchUrl, '/terminology/' + INTEGRATED_SEARCH_PATH);
+      expect(candidate.mocks.setIntegratedSearchUrl).toHaveBeenCalledExactlyOnceWith(
+        '/terminology/' + INTEGRATED_SEARCH_PATH,
+      );
       expect(candidate.mocks.globalSettings.languageMapPathPrefix).toBe('/languages/');
-      expectCalledOnceWith(candidate.mocks.setFallbackLang, 'fr');
-      expectCalledOnceWith(candidate.mocks.use, 'hu');
+      expect(candidate.mocks.setFallbackLang).toHaveBeenCalledExactlyOnceWith('fr');
+      expect(candidate.mocks.use).toHaveBeenCalledExactlyOnceWith('hu');
       expect(candidate.component.handlerContext.readOnlyMode).toBe(true);
     }
   });
@@ -221,8 +211,8 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
 
     expect(component.editorDataReady(), 'a template alone did not build the editor').toBe(true);
     // The languages a host did not choose, which is what a blank editor never reached.
-    expectCalledOnceWith(mocks.setFallbackLang, 'en');
-    expectCalledOnceWith(mocks.use, 'en');
+    expect(mocks.setFallbackLang).toHaveBeenCalledExactlyOnceWith('en');
+    expect(mocks.use).toHaveBeenCalledExactlyOnceWith('en');
     expect(component.handlerContext.readOnlyMode).toBe(false);
   });
 
