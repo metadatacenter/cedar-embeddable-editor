@@ -43,6 +43,16 @@ const CONTRACTS = {
   "authoring-table-cell": {
     "line-height": "--cedar-control-line-height-authoring"
   },
+  "body-text": {
+    "line-height": "--cedar-control-line-height-default"
+  },
+  "disabled-control": {
+    "opacity": "--cedar-control-disabled-opacity"
+  },
+  "motion": {
+    "animation-timing-function": "--cedar-motion-ease-standard",
+    "transition-timing-function": "--cedar-motion-ease-standard"
+  },
   "page": {}
 };
 const SCALE = {
@@ -126,9 +136,11 @@ const TOKEN_DEFAULTS = {
   "--cedar-dialog-backdrop": "rgba(0, 0, 0, 0.4)",
   "--cedar-control-line-height-default": "21px",
   "--cedar-control-line-height-authoring": "18px",
+  "--cedar-control-disabled-opacity": "0.45",
   "--cedar-radius": "4px",
   "--cedar-radius-pill": "9999px",
-  "--cedar-shadow-overlay": "0 4px 18px rgba(0, 0, 0, 0.13)"
+  "--cedar-shadow-overlay": "0 4px 18px rgba(0, 0, 0, 0.13)",
+  "--cedar-motion-ease-standard": "cubic-bezier(0.2, 0, 0, 1)"
 };
 // Central implementation. Consumer copies are generated; the adoption gate checks their bytes.
 import assert from 'node:assert/strict';
@@ -157,6 +169,7 @@ export async function checkSurface(page, surface, state, expect, testInfo) {
   const target = page.locator(surface.selector);
   await expect(target, surface.id).toHaveCount(1);
   await expect(target, surface.id).toBeVisible();
+  if (surface.contract === 'disabled-control') await expect(target, surface.id).toBeDisabled();
   await page.evaluate(() => document.fonts.ready);
   if (state === 'collapsed') await expect(target).not.toHaveAttribute('open', '');
   if (state === 'expanded') {
