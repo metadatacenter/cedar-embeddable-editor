@@ -209,6 +209,15 @@
   margin-right: ui-tokens.$space-4;
 }
 
+/*
+ * The current page's chip is tinted, and a tint never marks a state alone, so it also takes the
+ * theme-colour line. A chip draws the focus ring as its outline, so the line is the inset frame.
+ * Both pagers, a field's and the template's, are the only chip listboxes CEE draws.
+ */
+mat-chip-listbox .mat-mdc-chip-selected {
+  @include patterns.selected-frame(var(--cedar-color-primary, #{tokens.$color-primary}));
+}
+
 .pager-actions {
   display: flex;
   align-items: center;
