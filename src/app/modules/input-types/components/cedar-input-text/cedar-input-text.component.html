@@ -61,19 +61,25 @@
       }
       @if (inputValueControl.getError('minlength') && !readOnlyMode) {
         <mat-error>{{
-          'Validation.Text.MinLength' | ceeCountKey: constraintMinLength | translate: { constraintMinLength }
+          'Validation.Text.MinLength'
+            | ceeCountKey: constraintMinLength
+            | translate: { constraintMinLength }
+            | ceeWarned
         }}</mat-error>
       }
       @if (inputValueControl.getError('maxlength') && !readOnlyMode) {
         <mat-error>{{
-          'Validation.Text.MaxLength' | ceeCountKey: constraintMaxLength | translate: { constraintMaxLength }
+          'Validation.Text.MaxLength'
+            | ceeCountKey: constraintMaxLength
+            | translate: { constraintMaxLength }
+            | ceeWarned
         }}</mat-error>
       }
       @if (inputValueControl.hasError('regexEvaluation') && !readOnlyMode) {
-        <mat-error>{{ 'Validation.Text.PatternUnavailable' | translate }}</mat-error>
+        <mat-error>{{ 'Validation.Text.PatternUnavailable' | translate | ceeWarned }}</mat-error>
       }
       @if (inputValueControl.hasError('pattern') && !readOnlyMode) {
-        <mat-error>{{ 'Validation.Text.Pattern' | translate }}</mat-error>
+        <mat-error>{{ 'Validation.Text.Pattern' | translate | ceeWarned }}</mat-error>
       }
       @if (inputValueControl.hasError('required') && !readOnlyMode && !quietEmptyPreview(inputValueControl.value)) {
         <mat-error>{{ 'Validation.Required' | translate }}</mat-error>

@@ -44,14 +44,14 @@ test.beforeEach(async ({ page }) => {
 
 test('states every stored problem at its field as soon as the form opens', async ({ page }) => {
   const expected: Array<[string, string]> = [
-    ['email', 'Value should be a valid email address.'],
+    ['email', 'Warning: Value should be a valid email address.'],
     ['website', 'Value should be a valid URL.'],
-    ['phone', 'Value should be a valid phone number.'],
-    ['code', 'Value should be at least 8 chars long.'],
+    ['phone', 'Warning: Value should be a valid phone number.'],
+    ['code', 'Warning: Value should be at least 8 chars long.'],
     ['count', 'The value should be an integer.'],
-    ['region', '"Elsewhere" is not one of the options for this field.'],
-    ['answer', '"Maybe" is not one of the options for this field.'],
-    ['consent', '"Unsure" is not one of the options for this field.'],
+    ['region', 'Warning: "Elsewhere" is not one of the options for this field.'],
+    ['answer', 'Warning: "Maybe" is not one of the options for this field.'],
+    ['consent', 'Warning: "Unsure" is not one of the options for this field.'],
     ['contributor', 'The stored identifier is not a valid IRI.'],
     ['organism', 'The stored term is missing its label or its IRI.'],
   ];
@@ -90,7 +90,7 @@ test('turns to the page and the entries that hold a problem', async ({ page }) =
       .locator('app-cedar-input-email')
       .filter({ has: page.locator('input:focus') })
       .locator('mat-error'),
-  ).toHaveText(['Value should be a valid email address.']);
+  ).toHaveText(['Warning: Value should be a valid email address.']);
 });
 
 test('reaches the second entry of a repeating element even when its panel is collapsed', async ({ page }) => {
@@ -156,7 +156,9 @@ test('a repeated field shows both its missing-entry and length findings as amber
   await open(page, FIXTURE, undefined, INSTANCE);
   expect(await reveal(page, { path: ['_aliases'], occurrences: [0] })).toBe(true);
   const aliases = component(page, 'aliases');
-  await expect(aliases.locator('app-cedar-input-text mat-error')).toHaveText('Value should be at least 12 chars long.');
+  await expect(aliases.locator('app-cedar-input-text mat-error')).toHaveText(
+    'Warning: Value should be at least 12 chars long.',
+  );
   await expect(aliases.locator('app-cedar-input-text mat-error')).toHaveCSS('color', 'rgb(180, 83, 9)');
   await expect(aliases.locator('.cee-field-problem')).toHaveText('Warning: At least 3 entries are required.');
   await expect(aliases.locator('.cee-field-problem')).toHaveCSS('color', 'rgb(180, 83, 9)');

@@ -33,17 +33,19 @@
     <!-- Resolve type/precision errors first; avoid repeating their range as a second error. -->
     @if (inputValueControl.getError('min') && !inputValueControl.getError('pattern') && !readOnlyMode) {
       <mat-error class="mat-error align-start">{{
-        'Validation.Numeric.MinValue' | translate: { constraintMinValue }
+        'Validation.Numeric.MinValue' | translate: { constraintMinValue } | ceeWarned
       }}</mat-error>
     }
     @if (inputValueControl.getError('max') && !inputValueControl.getError('pattern') && !readOnlyMode) {
       <mat-error class="mat-error align-start">{{
-        'Validation.Numeric.MaxValue' | translate: { constraintMaxValue }
+        'Validation.Numeric.MaxValue' | translate: { constraintMaxValue } | ceeWarned
       }}</mat-error>
     }
     @if (inputValueControl.getError('pattern') && !readOnlyMode) {
       <mat-error class="mat-error align-start">{{
-        patternErrorMessage === null ? '' : (patternErrorMessage.key | translate: patternErrorMessage.params)
+        patternErrorMessage === null
+          ? ''
+          : (patternErrorMessage.key | translate: patternErrorMessage.params | ceeWarned)
       }}</mat-error>
     }
     @if (inputValueControl.getError('required') && !readOnlyMode && !quietEmptyPreview(inputValueControl.value)) {
