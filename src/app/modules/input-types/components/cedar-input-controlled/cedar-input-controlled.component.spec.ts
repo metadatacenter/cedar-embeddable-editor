@@ -10,6 +10,7 @@ import { ActiveComponentRegistryService } from '../../../shared/service/active-c
 import { UserPreferencesService } from '../../../shared/service/user-preferences.service';
 import { InputType } from '../../../shared/models/input-type.model';
 import { AuthorityTerm } from '../../../shared/models/authority/authority-search-response.model';
+import { HandlerContext } from '../../../shared/util/handler-context';
 import { CedarInputControlledComponent } from './cedar-input-controlled.component';
 
 describe('CedarInputControlledComponent model-to-view sync', () => {
@@ -323,7 +324,7 @@ describe('CedarInputControlledComponent', () => {
     const written: { iri: string | null; label: string | null }[] = [];
     component.handlerContext = {
       changeControlledValue: (_c: unknown, iri: string | null, label: string | null) => written.push({ iri, label }),
-    } as never;
+    } as unknown as HandlerContext;
     component.ngOnInit();
     return { component, written };
   };
