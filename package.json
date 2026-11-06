@@ -50,7 +50,7 @@
     "@angular/forms": "~22.2.0",
     "@angular/material": "22.2.6",
     "@angular/platform-browser": "~22.2.0",
-    "@ngx-translate/core": "~18.0.0",
+    "@ngx-translate/core": "~18.1.0",
     "cedar-model-typescript-library": "npm:@org.metadatacenter/cedar-model-typescript-library@1.0.28-dev.20261106.5b1a8b2",
     "dompurify": "^3.4.16",
     "jsonld": "^9.0.0",
