@@ -225,12 +225,12 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
-  /** The hint stands for a few seconds, matching the authority widgets. */
+  /**
+   * The hint stands until the author next types, picks a term or clears the box, or the widget shows
+   * another occurrence, however long reading it takes (WCAG 2.2.1). The authority widgets' does too.
+   */
   private showRevertHint(): void {
     this.justReverted = true;
-    timer(5000)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => (this.justReverted = false));
   }
 
   /**
@@ -265,6 +265,7 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     if (!isUserInput) {
       return;
     }
+    this.dismissNotices();
     this.selectionInProgress = false;
     // `|| null` because a term arriving without a label is a state this component
     // already handles — `filter` drops such items from the list — and null is what
@@ -275,6 +276,7 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     }
   }
   inputChanged(event: Event): void {
+    this.dismissNotices();
     if (!(event.target as HTMLTextAreaElement).value) {
       this.clearValue();
     }
@@ -309,12 +311,15 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     }
   }
 
-  /** Explain a discarded value without leaving an already-cleared field invalid. */
+  /** Explain a discarded value without leaving an already-cleared field invalid. It stands as the hint does. */
   private showClearedWarning(): void {
     this.justCleared = true;
-    timer(5000)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => (this.justCleared = false));
+  }
+
+  /** Withdraw a notice about the last edit, once the author has done something after it. */
+  private dismissNotices(): void {
+    this.justCleared = false;
+    this.justReverted = false;
   }
   protected override revealedControls(): AbstractControl[] {
     return [this.options];
@@ -326,7 +331,11 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
 
   setCurrentValue(currentValue: unknown): void {
     this.valueRevision++;
-    if (this.lookupContext.changed(this.handlerContext, this.component)) this.scopeRevision++;
+    if (this.lookupContext.changed(this.handlerContext, this.component)) {
+      this.scopeRevision++;
+      // A notice about the last edit belongs to the occurrence it was made in.
+      this.dismissNotices();
+    }
     // Remember the term itself, not only its rendering. It is what the BioPortal
     // link is built from, and read-write selection records it the same way.
     const term = isAuthorityTerm(currentValue) ? currentValue : null;
@@ -423,6 +432,7 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
   }
 
   clearValue(): void {
+    this.dismissNotices();
     this.selectedData = null;
     this.inputValueControl.setValue(null);
     this.handlerContext.changeControlledValue(this.component, null, null);

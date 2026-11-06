@@ -15,6 +15,7 @@ import { fieldTypeIcon } from '../../util/field-type-icon';
 import { DescriptionLink, FIELD_CONTROLS } from '../../a11y/message-links';
 import { FieldComponent } from '../../models/component/field-component.model';
 import { StaticFieldComponent } from '../../models/static/static-field-component.model';
+import { FieldSeverity } from '../../a11y/field-severity';
 
 /**
  * Where a field's description is in the page: the visually hidden text in its header while editing,
@@ -31,8 +32,10 @@ const DESCRIPTION_TEXT =
   styleUrls: ['./cedar-field-presentation.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
+  // The messages its widget draws mark a warning by what this field shows, not by a field around it.
+  providers: [{ provide: FieldSeverity, useExisting: CedarFieldPresentationComponent }],
 })
-export class CedarFieldPresentationComponent implements AfterViewChecked, OnDestroy {
+export class CedarFieldPresentationComponent implements AfterViewChecked, OnDestroy, FieldSeverity {
   private readonly description = new DescriptionLink();
   @Input({ required: true }) handlerContext!: HandlerContext;
   @Input() showContent = true;

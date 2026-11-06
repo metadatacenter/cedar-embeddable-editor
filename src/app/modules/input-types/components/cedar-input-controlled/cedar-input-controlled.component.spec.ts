@@ -10,6 +10,7 @@ import { ActiveComponentRegistryService } from '../../../shared/service/active-c
 import { UserPreferencesService } from '../../../shared/service/user-preferences.service';
 import { InputType } from '../../../shared/models/input-type.model';
 import { AuthorityTerm } from '../../../shared/models/authority/authority-search-response.model';
+import { HandlerContext } from '../../../shared/util/handler-context';
 import { CedarInputControlledComponent } from './cedar-input-controlled.component';
 
 describe('CedarInputControlledComponent model-to-view sync', () => {
@@ -98,7 +99,6 @@ describe('CedarInputControlledComponent model-to-view sync', () => {
 
     expect(getData).not.toHaveBeenCalled();
     expect(setCurrentValue).not.toHaveBeenCalled();
-    expect(component.justReverted, 'the destroyed component was mutated by its old hint timer').toBe(true);
     expect(subscription.closed).toBe(true);
     vi.useRealTimers();
   });
@@ -323,7 +323,7 @@ describe('CedarInputControlledComponent', () => {
     const written: { iri: string | null; label: string | null }[] = [];
     component.handlerContext = {
       changeControlledValue: (_c: unknown, iri: string | null, label: string | null) => written.push({ iri, label }),
-    } as never;
+    } as unknown as HandlerContext;
     component.ngOnInit();
     return { component, written };
   };
@@ -392,6 +392,70 @@ describe('CedarInputControlledComponent', () => {
       component.inputChanged({ target: { value: 'can' } } as unknown as Event);
 
       expect(written).toEqual([]);
+    });
+  });
+
+  describe('a notice about a discarded edit', () => {
+    const discarded = (): CedarInputControlledComponent => {
+      const { component } = makeComponent();
+      component.inputValueControl.setValue('canc');
+      component.onInputBlur();
+      expect(component.justCleared).toBe(true);
+      return component;
+    };
+
+    it('stands however long the author takes to read it', () => {
+      vi.useFakeTimers();
+      const component = discarded();
+
+      vi.advanceTimersByTime(60_000);
+
+      expect(component.justCleared).toBe(true);
+      vi.useRealTimers();
+    });
+
+    it('is withdrawn when the author types again', () => {
+      const component = discarded();
+
+      component.inputChanged({ target: { value: 'a' } } as unknown as Event);
+
+      expect(component.justCleared).toBe(false);
+    });
+
+    it('is withdrawn when the author picks a term', () => {
+      const component = discarded();
+
+      component.onSelectionChange(TERM, { isUserInput: true });
+
+      expect(component.justCleared).toBe(false);
+    });
+
+    it('is withdrawn when the author clears the box', () => {
+      const component = discarded();
+
+      component.clearValue();
+
+      expect(component.justCleared).toBe(false);
+    });
+
+    it('is withdrawn when the widget shows another occurrence, and only then', () => {
+      const { component } = makeComponent();
+      let occurrence = 0;
+      component.handlerContext = {
+        changeControlledValue: vi.fn(),
+        multiInstanceObjectService: { getDataPathNode: () => ({ currentIndex: occurrence }) },
+      } as unknown as HandlerContext;
+      component.setCurrentValue(TERM);
+      component.inputValueControl.setValue('canc');
+      component.onInputBlur();
+      expect(component.justReverted).toBe(true);
+
+      component.setCurrentValue(TERM);
+      expect(component.justReverted, 'the same occurrence, shown again').toBe(true);
+
+      occurrence = 1;
+      component.setCurrentValue(TERM);
+      expect(component.justReverted).toBe(false);
     });
   });
 

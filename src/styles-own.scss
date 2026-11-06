@@ -624,6 +624,8 @@ app-cedar-component-renderer:has(> mat-accordion) + app-cedar-component-renderer
   justify-content: center;
   width: ui-tokens.$icon-size-default;
   height: ui-tokens.$icon-size-default;
+  // Clear of the identifier it follows, so neither target overlaps the other's 24px (WCAG 2.5.8).
+  margin-inline-start: ui-tokens.$space-1;
   color: inherit;
   text-decoration: none;
 

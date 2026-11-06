@@ -279,12 +279,14 @@ export abstract class AbstractAuthorityInputComponent
     if (!option || !isUserInput) {
       return;
     }
+    this.dismissNotices();
     this.selectionInProgress = false;
     this.selectedData = option;
     this.handlerContext.changeControlledValue(this.component, option.iri || null, option.label || null);
   }
 
   inputChanged(event: Event): void {
+    this.dismissNotices();
     if (!(event.target as HTMLInputElement).value) {
       this.clearValue();
     } else if (!this.readOnlyMode) {
@@ -372,7 +374,11 @@ export abstract class AbstractAuthorityInputComponent
 
   setCurrentValue(value: AuthorityTerm): void {
     this.valueRevision++;
-    if (this.lookupContext.changed(this.handlerContext, this.component)) this.scopeRevision++;
+    if (this.lookupContext.changed(this.handlerContext, this.component)) {
+      this.scopeRevision++;
+      // A notice about the last edit belongs to the occurrence it was made in.
+      this.dismissNotices();
+    }
     this.selectedData = value;
     this.inputValueControl.setValue(this.getCompoundValue(value), { emitEvent: true });
   }
@@ -387,6 +393,7 @@ export abstract class AbstractAuthorityInputComponent
    * reporting itself satisfied over nothing — and the notice under it unlit.
    */
   clearValue(): void {
+    this.dismissNotices();
     this.selectedData = null;
     this.inputValueControl.setValue(null);
     this.handlerContext.changeControlledValue(this.component, null, null);
@@ -499,23 +506,25 @@ export abstract class AbstractAuthorityInputComponent
   }
 
   /**
-   * Show the "edit discarded, previous value restored" hint for a few seconds.
+   * Show the "edit discarded, previous value restored" hint until the author next types, picks a
+   * term or clears the box, or the widget shows another occurrence, however long reading it takes
+   * (WCAG 2.2.1).
    *
    * ORCID and ROR had this; the other five had the message in their templates
    * with nothing to trigger it.
    */
   protected showRevertHint(): void {
     this.justReverted = true;
-    timer(5000)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => (this.justReverted = false));
   }
 
-  /** The text was discarded, but the now-empty optional field is not invalid. */
+  /** The text was discarded, but the now-empty optional field is not invalid. It stands as the hint does. */
   private showClearedWarning(): void {
     this.justCleared = true;
-    timer(5000)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => (this.justCleared = false));
+  }
+
+  /** Withdraw a notice about the last edit, once the author has done something after it. */
+  private dismissNotices(): void {
+    this.justCleared = false;
+    this.justReverted = false;
   }
 }

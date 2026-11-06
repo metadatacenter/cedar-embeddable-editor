@@ -95,7 +95,6 @@ describe('AbstractAuthorityInputComponent teardown', () => {
     expect(lookup.search).not.toHaveBeenCalled();
     expect(openPanel).not.toHaveBeenCalled();
     expect(setCurrentValue).not.toHaveBeenCalled();
-    expect(component.justReverted, 'the destroyed component was mutated by its old hint timer').toBe(true);
     expect(subscription.closed).toBe(true);
     vi.useRealTimers();
   });
@@ -229,6 +228,70 @@ describe('AbstractAuthorityInputComponent', () => {
   };
 
   const TERM = { iri: 'https://example.org/DTXSID7020182', label: 'Bisphenol A' };
+
+  describe('a notice about a discarded edit', () => {
+    const discarded = (): ConfigurableAuthorityComponent => {
+      const { component } = makeComponent();
+      component.inputValueControl.setValue('Bisphen');
+      component.onInputBlur();
+      expect(component.justCleared).toBe(true);
+      return component;
+    };
+
+    it('stands however long the author takes to read it', () => {
+      vi.useFakeTimers();
+      const component = discarded();
+
+      vi.advanceTimersByTime(60_000);
+
+      expect(component.justCleared).toBe(true);
+      vi.useRealTimers();
+    });
+
+    it('is withdrawn when the author types again', () => {
+      const component = discarded();
+
+      component.inputChanged({ target: { value: 'a' } } as unknown as Event);
+
+      expect(component.justCleared).toBe(false);
+    });
+
+    it('is withdrawn when the author picks a term', () => {
+      const component = discarded();
+
+      component.onSelectionChange(TERM, { isUserInput: true });
+
+      expect(component.justCleared).toBe(false);
+    });
+
+    it('is withdrawn when the author clears the box', () => {
+      const component = discarded();
+
+      component.clearValue();
+
+      expect(component.justCleared).toBe(false);
+    });
+
+    it('is withdrawn when the widget shows another occurrence, and only then', () => {
+      const { component } = makeComponent();
+      let occurrence = 0;
+      component.handlerContext = {
+        changeControlledValue: vi.fn(),
+        multiInstanceObjectService: { getDataPathNode: () => ({ currentIndex: occurrence }) },
+      } as unknown as HandlerContext;
+      component.setCurrentValue(TERM);
+      component.inputValueControl.setValue('Bisphen');
+      component.onInputBlur();
+      expect(component.justReverted).toBe(true);
+
+      component.setCurrentValue(TERM);
+      expect(component.justReverted, 'the same occurrence, shown again').toBe(true);
+
+      occurrence = 1;
+      component.setCurrentValue(TERM);
+      expect(component.justReverted).toBe(false);
+    });
+  });
 
   describe('leaving the field', () => {
     it('discards text that names no term, and tells the model', () => {

@@ -652,7 +652,7 @@ test("a quoted stored value is marked with its own language inside CEE's sentenc
     ['answer', 'Maybe', 'de'],
     ['region', 'Elsewhere', 'fr'],
   ] as const) {
-    const message = `„${value}” nem szerepel a mező választási lehetőségei között.`;
+    const message = `Figyelmeztetés: „${value}” nem szerepel a mező választási lehetőségei között.`;
     const renderer = inEditor(page, `app-cedar-component-renderer:has(.title-label:text-is("${field}"))`);
     const problems = renderer.locator('app-cedar-field-problems');
     await expect(problems).toHaveText(message);
@@ -673,7 +673,7 @@ test('a quoted stored value that states no language is said as one text', async 
   const problems = inEditor(page, 'app-cedar-component-renderer:has(.title-label:text-is("answer"))').locator(
     'app-cedar-field-problems',
   );
-  await expect(problems).toHaveText('„Maybe” nem szerepel a mező választási lehetőségei között.');
+  await expect(problems).toHaveText('Figyelmeztetés: „Maybe” nem szerepel a mező választási lehetőségei között.');
   await expect(problems.locator('[lang]')).toHaveCount(0);
 });
 

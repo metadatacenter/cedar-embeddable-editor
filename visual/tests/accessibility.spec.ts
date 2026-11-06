@@ -112,15 +112,7 @@ const SETTLED: readonly Settled[] = [
  * Violations that cannot be fixed without changing what is on screen. Each is listed so the gate
  * passes, and remains a known failure until the screen changes.
  */
-const KNOWN_VIOLATIONS: readonly { readonly rule: string; readonly target: RegExp; readonly reason: string }[] = [
-  {
-    // WCAG 2.5.8. At 480px the link-out icon is 20px square and sits directly after the IRI link,
-    // so a 24px circle on it overlaps that link. Passing needs a 24px target or 4px between the two.
-    rule: 'target-size',
-    target: /cee-term-link-action/,
-    reason: "A read-only term's 20px link-out icon touches the term's IRI link at narrow widths.",
-  },
-];
+const KNOWN_VIOLATIONS: readonly { readonly rule: string; readonly target: RegExp; readonly reason: string }[] = [];
 
 const settledEntry = (rule: string, target: string): Settled | undefined =>
   SETTLED.find((entry) => entry.rule === rule && entry.target.test(target));

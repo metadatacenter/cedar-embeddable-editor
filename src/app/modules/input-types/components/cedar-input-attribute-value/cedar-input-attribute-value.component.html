@@ -27,7 +27,7 @@
     }
     @if (attributeNameError) {
       <mat-error class="mat-error align-start">{{
-        attributeNameError.key | translate: attributeNameError.params
+        attributeNameError.key | translate: attributeNameError.params | ceeWarned
       }}</mat-error>
     }
   </mat-form-field>

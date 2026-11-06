@@ -1,3 +1,4 @@
+import { integrationFiles } from './build-integration.mjs';
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -47,6 +48,9 @@ export const packageMetadata = (rootPackage = readJson(resolve(ROOT, 'package.js
     // `document.querySelector('cedar-embeddable-editor')` typed on its own.
     types: 'cedar-embeddable-editor.d.ts',
     files: [
+      'integration.mjs',
+      'integration-manifest.json',
+      'integration-licenses.txt',
       'cedar-embeddable-editor.js',
       'cedar-embeddable-editor.host-fonts.js',
       'bundle-manifest.host-fonts.json',
@@ -143,6 +147,7 @@ const readTypes = () => {
 };
 
 export const expectedFiles = () => ({
+  ...integrationFiles(),
   'cedar-embeddable-editor.js': readFileSync(SOURCE_BUNDLE),
   'cedar-embeddable-editor.host-fonts.js': readFileSync(SOURCE_BUNDLE.replace('.js', '.host-fonts.js')),
   'bundle-manifest.host-fonts.json': readFileSync(SOURCE_MANIFEST.replace('.json', '.host-fonts.json')),

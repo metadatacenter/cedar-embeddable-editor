@@ -509,3 +509,14 @@ and superseded lookup success/error/completion (324 cases). It runs in `npm test
 with real wrappers, artifact coordination, controllers and lookup streams; rendering
 and HTTP are substituted. The Angular coordinator suite separately verifies rendered
 controls, simultaneous wrappers, host events and malformed assignments.
+
+### Coordinated host build
+
+The package also includes `integration.mjs`, an AOT-compiled ES module with host fonts and external
+Angular, RxJS, translation and model dependencies. It is an input to a coordinated Angular application
+build, not a script to load directly in a browser. `integration-manifest.json` records its digest and
+exact runtime versions (including the model content digest); the host must verify those identities
+before combining components. The Template Designer demonstrates this build.
+
+The default package entry, standalone script, host-fonts script and public element APIs are unchanged.
+Standalone consumers do not need to install Angular or change their embedding code.
