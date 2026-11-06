@@ -10,7 +10,7 @@
     "ng": "ng",
     "start": "node scripts/compile-shadow-root-styles.mjs --development --watch ng serve",
     "build": "node scripts/compile-shadow-root-styles.mjs --development && ng build",
-    "build:production": "node scripts/compile-shadow-root-styles.mjs && ng build --configuration=production && ng build --configuration=production,host-fonts",
+    "build:production": "node scripts/compile-shadow-root-styles.mjs && ng build --configuration=production && ng build --configuration=production,host-fonts && node scripts/build-integration.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:unit:ci": "node --test scripts/coverage-policy.test.mjs && vitest run --coverage.enabled --coverage.reporter=text-summary",
@@ -78,6 +78,7 @@
     "prettier": "^3.1.0",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.66.0",
-    "vitest": "^5.0.5"
+    "vitest": "^5.0.5",
+    "esbuild": "^0.28.2"
   }
 }
