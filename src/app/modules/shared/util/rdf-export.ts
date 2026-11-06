@@ -1,6 +1,6 @@
-import jsonld from 'jsonld';
-import type { JsonLdDocument } from 'jsonld';
-import { DataFactory, Parser, Writer } from 'n3';
+import type { JsonLdDocument, Options } from 'jsonld';
+import type { Writer } from 'n3';
+import { loadRdfRuntime } from './rdf-runtime';
 import type { JsonNode } from 'cedar-model-typescript-library';
 
 /**
@@ -377,10 +377,11 @@ export const toNQuads = async (instance: JsonNode, schema?: JsonNode): Promise<s
   if (!isObject(document)) {
     throw new Error('An instance is a JSON object');
   }
+  const { jsonld, DataFactory, Parser, Writer } = await loadRdfRuntime();
   // jsonld's safe handler uses a URI-only regular expression. Defer identifier warnings
   // to our RFC 3987 check on expanded IRIs; every other warning still refuses export.
   type Event = { code: string; message: string; details: Record<string, unknown> };
-  const options: jsonld.Options.ToRdf & { eventHandler: (input: { event: Event }) => void } = {
+  const options: Options.ToRdf & { eventHandler: (input: { event: Event }) => void } = {
     format: 'application/n-quads',
     documentLoader: refuseRemoteContexts,
     eventHandler: ({ event }) => {
@@ -406,7 +407,7 @@ export const toNQuads = async (instance: JsonNode, schema?: JsonNode): Promise<s
   try {
     const expanded = await jsonld.expand(document, options);
     const protectedRdf = protectExpanded(asJson(expanded));
-    const rdfOptions: jsonld.Options.ToRdf & { skipExpansion: boolean } = { ...options, skipExpansion: true };
+    const rdfOptions: Options.ToRdf & { skipExpansion: boolean } = { ...options, skipExpansion: true };
     nquads = await jsonld.toRDF(protectedRdf.document as JsonLdDocument, rdfOptions);
     if (typeof nquads !== 'string') throw new Error('Expected N-Quads.');
     const restore = (term: ReturnType<typeof DataFactory.namedNode> | import('n3').Term): import('n3').Term => {
@@ -448,6 +449,7 @@ export const toNQuads = async (instance: JsonNode, schema?: JsonNode): Promise<s
  * ones the instance's own context declares, which keeps the Turtle as readable as the JSON-LD.
  */
 export const toTurtle = async (instance: JsonNode, schema?: JsonNode): Promise<string> => {
+  const { Parser, Writer } = await loadRdfRuntime();
   const quads = new Parser({ format: 'N-Quads', blankNodePrefix: '' }).parse(await toNQuads(instance, schema));
   if (quads.some((q) => q.graph.termType !== 'DefaultGraph'))
     throw new Error('Turtle cannot preserve named graphs; use N-Quads.');

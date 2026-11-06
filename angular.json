@@ -112,12 +112,32 @@
                 "rxjs",
                 "tslib",
                 "zone.js",
-                "cedar-model-typescript-library"
+                "cedar-model-typescript-library",
+                "jsonld",
+                "n3"
               ],
               "polyfills": [],
               "index": false,
               "styles": [],
-              "assets": []
+              "assets": [],
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                },
+                {
+                  "replace": "src/app/modules/shared/components/cedar-font-registrar/cedar-font-registrar.component.ts",
+                  "with": "src/app/modules/shared/components/cedar-font-registrar/cedar-font-registrar.host-fonts.ts"
+                },
+                {
+                  "replace": "src/app/modules/shared/directives/shadow-root-css.ts",
+                  "with": "dist-styles/shadow-root-css.ts"
+                },
+                {
+                  "replace": "src/app/modules/shared/util/rdf-runtime.ts",
+                  "with": "src/app/modules/shared/util/rdf-runtime.integration.ts"
+                }
+              ]
             }
           }
         },
