@@ -29,7 +29,7 @@ import { textLanguageOf } from '../../a11y/language-tag';
   standalone: false,
 })
 export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
-  private static INNER_VERSION = '2026-11-06 12:29';
+  private static INNER_VERSION = '2026-11-06 12:56 c16ea875';
 
   dataContext: DataContext | null = null;
   handlerContext: HandlerContext | null = null;
