@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.32] - 2026-11-06
+
+Aligns with `cedar-model-typescript-library@1.0.27`.
+
+- Exposes compiled editor modules for coordinated host builds, with verified shared-runtime compatibility across public and development packages.
+- Marks every field warning in words, keeps edit notices until the next edit, and spaces the terminology link-out.
+- Reduces standalone and host-font bundle budgets and updates the framework and build dependencies.
+
 ## [2.0.31] - 2026-10-29
 
 Aligns with `cedar-model-typescript-library@1.0.26`.
