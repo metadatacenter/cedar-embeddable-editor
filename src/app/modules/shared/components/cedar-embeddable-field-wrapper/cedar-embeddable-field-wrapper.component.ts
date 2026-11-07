@@ -294,7 +294,7 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
       const template = templateForField(field as JsonNode, required);
       dataContext = new DataContext();
       handlerContext = new HandlerContext(dataContext, this.messageHandlerService);
-      dataContext.setInputTemplate(template, handlerContext, null);
+      dataContext.setInputTemplate(template.source, handlerContext, null, template.parser);
     } catch (error) {
       const detail = error instanceof Error ? error.message : String(error);
       this.messageHandlerService.error(

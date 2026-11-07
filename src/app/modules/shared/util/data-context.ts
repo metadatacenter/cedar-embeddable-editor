@@ -89,8 +89,8 @@ export class DataContext {
      */
     pageBreakPaginatorService: PageBreakPaginatorService | null,
     // Which parser turns the template's JSON into the component tree. Left
-    // unset in production; the parity suite passes both in turn to check they
-    // agree. See `factory/template-parser.ts`.
+    // unset for external templates; a single field supplies its already-read model.
+    // The parity suite also passes alternatives. See `factory/template-parser.ts`.
     templateParser?: TemplateParser,
     // Which reader works out occurrence counts from an injected instance.
     // Unset in production; the parity run passes both in turn. See

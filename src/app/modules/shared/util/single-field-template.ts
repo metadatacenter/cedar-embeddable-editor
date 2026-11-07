@@ -8,6 +8,8 @@ import {
   SchemaVersion,
   TemplateField,
 } from 'cedar-model-typescript-library';
+import { ModelLibraryTemplateParser } from '../factory/model-library-template-parser';
+import { TemplateParser } from '../factory/template-parser';
 
 /**
  * The property the synthetic template deploys its one field under.
@@ -51,7 +53,7 @@ const SINGLE_FIELD_TEMPLATE_ID = 'urn:cedar:cee:single-field-template';
  * is reported as missing exactly as it is in a form. A field type that keeps no
  * requirement, such as an attribute-value field or a static one, takes none.
  */
-export function templateForField(fieldJson: JsonNode, required = false): JsonNode {
+export function templateForField(fieldJson: JsonNode, required = false): { source: JsonNode; parser: TemplateParser } {
   const field: TemplateField = CedarReaders.json().getStrict().getTemplateFieldReader().readFromObject(fieldJson).field;
   const template = CedarBuilders.templateBuilder()
     .withAtId(SINGLE_FIELD_TEMPLATE_ID)
@@ -72,5 +74,18 @@ export function templateForField(fieldJson: JsonNode, required = false): JsonNod
    */
   template.addChild(field, deployment.build());
 
-  return CedarWriters.json().getStrict().getTemplateWriter().getAsJsonNode(template);
+  const source = CedarWriters.json().getStrict().getTemplateWriter().getAsJsonNode(template);
+  return {
+    source,
+    parser: {
+      parse(_source, representation) {
+        // The field has already passed the strict reader, and its deployment was built above.
+        // Re-reading our own serialized wrapper repeats that work for every field summary.
+        // Use the same model-to-component mapper as the ordinary template reader, retaining
+        // the canonical source for validation and the model for instance construction.
+        ModelLibraryTemplateParser.mapParsedTemplate(template, representation);
+        representation.stored = source;
+      },
+    },
+  };
 }
