@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.33] - 2026-11-07
+
+Aligns with `cedar-model-typescript-library@1.0.27`.
+
+- Defers RDF processors in coordinated host builds and adopts the hosted-font design tokens.
+- Isolates editor and field translation state and reuses strictly parsed field models during initialization.
+
 ## [2.0.32] - 2026-11-06
 
 Aligns with `cedar-model-typescript-library@1.0.27`.
