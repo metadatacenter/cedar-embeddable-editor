@@ -17,6 +17,7 @@ import { CedarWriters, JsonNode } from 'cedar-model-typescript-library';
 import { FIELD_KINDS, FieldKind } from '../src/axes';
 import { buildField, ChildSpec } from '../src/generate';
 import { RecordingMessageHandler } from '../src/driver';
+import { describeTree } from '../src/corpus';
 import { DataContext } from '@cee/util/data-context';
 import { HandlerContext } from '@cee/util/handler-context';
 import { CedarComponent } from '@cee/models/component/cedar-component.model';
@@ -46,14 +47,15 @@ const fieldArtifact = (kind: FieldKind, extra: Partial<ChildSpec> = {}): JsonNod
 };
 
 /** What the element does with a field before anything is rendered from it. */
-const mount = (artifact: JsonNode, readOnlyMode = false) => {
+const mount = (artifact: JsonNode, readOnlyMode = false, reread = false, required = false) => {
   const messages = new RecordingMessageHandler();
   const dataContext = new DataContext();
   const handlerContext = new HandlerContext(dataContext, messages);
   if (readOnlyMode) {
     handlerContext.enableReadOnlyMode();
   }
-  dataContext.setInputTemplate(templateForField(artifact), handlerContext, null);
+  const prepared = templateForField(artifact, required);
+  dataContext.setInputTemplate(prepared.source, handlerContext, null, reread ? undefined : prepared.parser);
   const children = dataContext.templateRepresentation?.children ?? [];
   return { messages, dataContext, handlerContext, children };
 };
@@ -453,4 +455,56 @@ describe('controller editability', () => {
       expect(readFieldValue(field, handlerContext)).toEqual({ kind: 'none' });
     },
   );
+});
+
+describe('single-field initialization reuses its strictly read model', () => {
+  for (const required of [false, true]) {
+    for (const readOnly of [false, true]) {
+      it.each(FIELD_KINDS.map((kind) => [kind.key, kind] as const))(
+        `matches the JSON round trip for %s, required=${required}, readOnly=${readOnly}`,
+        (_key, kind) => {
+          const artifact = fieldArtifact(kind);
+          const before = structuredClone(artifact);
+          const direct = mount(artifact, readOnly, false, required);
+          const reread = mount(artifact, readOnly, true, required);
+          expect(describeTree(direct.dataContext.templateRepresentation)).toEqual(
+            describeTree(reread.dataContext.templateRepresentation),
+          );
+          for (const property of [
+            'basicInfo',
+            'labelInfo',
+            'valueInfo',
+            'numberInfo',
+            'choiceInfo',
+            'controlledInfo',
+            'multiInfo',
+          ] as const) {
+            expect((direct.children[0] as FieldComponent)[property]).toEqual(
+              (reread.children[0] as FieldComponent)[property],
+            );
+          }
+          expect(direct.dataContext.instanceExtractData).toEqual(reread.dataContext.instanceExtractData);
+          expect(direct.dataContext.dataQualityReport).toEqual(reread.dataContext.dataQualityReport);
+          expect(direct.messages.errors).toEqual(reread.messages.errors);
+          expect(artifact).toEqual(before);
+          direct.handlerContext.validation.dispose();
+          reread.handlerContext.validation.dispose();
+        },
+      );
+    }
+  }
+
+  it('keeps separate instances independent when the host supplies the same field object', () => {
+    const kind = FIELD_KINDS.find((candidate) => candidate.key === 'text') as FieldKind;
+    const artifact = fieldArtifact(kind, { defaultValue: 'original' });
+    const first = mount(artifact);
+    const second = mount(artifact);
+    writeFieldValue({ kind: 'literal', value: 'changed' }, valuedField(first.children), first.handlerContext);
+    expect(readFieldValue(valuedField(second.children), second.handlerContext)).toEqual({
+      kind: 'literal',
+      value: 'original',
+    });
+    first.handlerContext.validation.dispose();
+    second.handlerContext.validation.dispose();
+  });
 });

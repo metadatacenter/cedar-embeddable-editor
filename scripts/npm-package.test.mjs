@@ -1,7 +1,25 @@
 import { strict as assert } from 'node:assert';
 import { describe, it } from 'node:test';
+import { readFileSync } from 'node:fs';
 
 import { packageMetadata } from './npm-package.mjs';
+
+it('the integration build preserves every hosted style replacement while deferring RDF', () => {
+  const angular = JSON.parse(readFileSync(new URL('../angular.json', import.meta.url), 'utf8'));
+  const configurations = angular.projects['cedar-embeddable-editor'].architect.build.configurations;
+  for (const replacement of configurations['host-fonts'].fileReplacements)
+    assert.ok(
+      configurations.integration.fileReplacements.some(
+        (candidate) => candidate.replace === replacement.replace && candidate.with === replacement.with,
+      ),
+    );
+  assert.ok(
+    configurations.integration.fileReplacements.some(
+      (candidate) =>
+        candidate.replace.endsWith('/rdf-runtime.ts') && candidate.with.endsWith('/rdf-runtime.integration.ts'),
+    ),
+  );
+});
 
 const source = (version) => ({
   version,

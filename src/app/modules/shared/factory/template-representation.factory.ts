@@ -21,9 +21,8 @@ import { selectTemplateParser } from './select-template-parser';
  */
 export class TemplateRepresentationFactory {
   /**
-   * `parser` is left unset in production, where the reader is chosen from the
-   * template's own shape. The parity suite passes one explicitly, to run the same
-   * artifact through both and compare.
+   * External templates select a reader from their shape. A single field supplies
+   * its already-read model; the parity suite supplies alternative readers.
    */
   static create(
     inputTemplate: CedarInputTemplate,

@@ -13,7 +13,7 @@ const json = (path) => JSON.parse(readFileSync(path, 'utf8'));
 const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const shared = (name) =>
   name.startsWith('@angular/') ||
-  ['@ngx-translate/core', 'rxjs', 'tslib', 'zone.js', 'cedar-model-typescript-library'].includes(name);
+  ['@ngx-translate/core', 'rxjs', 'tslib', 'zone.js', 'cedar-model-typescript-library', 'jsonld', 'n3'].includes(name);
 function fingerprint(base, paths) {
   const hash = createHash('sha256');
   function visit(path) {
@@ -118,6 +118,11 @@ async function main() {
       2,
     ) + '\n',
   );
-  writeFileSync(resolve(output, 'integration-licenses.txt'), readFileSync(resolve(output, '3rdpartylicenses.txt')));
+  // The standalone build includes the processors that this coordinated entry externalizes.
+  // Carry its complete notices so a host that emits those processors as lazy assets keeps them.
+  writeFileSync(
+    resolve(output, 'integration-licenses.txt'),
+    readFileSync(resolve(root, 'dist/cedar-embeddable-editor/3rdpartylicenses.txt')),
+  );
 }
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await main();

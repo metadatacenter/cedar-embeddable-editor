@@ -182,3 +182,36 @@ test('gates in concurrent builds stay within the pool they share', () => {
     assert.deepEqual(slots(pool), []);
   } finally { rmSync(pool, { recursive: true, force: true }); }
 });
+
+test('prebuilt visual shards test the restored candidate without rebundling', () => {
+  const directory = mkdtempSync(path.join(tmpdir(), 'cee-prebuilt-'));
+  const log = path.join(directory, 'calls');
+  writeFileSync(path.join(directory, 'npm'), `#!/bin/bash
+printf '%s\\n' "$*" >> "$DOCKER_TEST_LOG"
+`, { mode: 0o755 });
+  writeFileSync(path.join(directory, 'docker'), `#!${process.execPath}
+const {spawnSync}=require('node:child_process');
+const args=process.argv.slice(2);
+if(args[0]!=='run') process.exit(0);
+const env={...process.env};
+for(let i=0;i<args.length;i++) if(args[i]==='-e') {
+ const [k,...v]=args[++i].split('='); env[k]=v.join('=');
+}
+const index=args.indexOf('bash');
+const result=spawnSync('bash',['-c',args[index+2],...args.slice(index+3)],{env,stdio:'inherit'});
+process.exit(result.status);
+`, { mode: 0o755 });
+  try {
+    for (const prebuilt of [false, true]) {
+      writeFileSync(log, '');
+      const result = spawnSync('bash', [fileURLToPath(new URL('../visual/run-in-container.sh', import.meta.url)),
+        ...(prebuilt ? ['--prebuilt'] : []), '--shard=2/4'], {
+        env: {...process.env, PATH: `${directory}:${process.env.PATH}`, DOCKER_TEST_LOG: log}, encoding: 'utf8',
+      });
+      assert.equal(result.status, 0, result.stderr);
+      assert.deepEqual(readFileSync(log, 'utf8').trim().split('\n'), [
+        'ci --no-audit --no-fund', ...(prebuilt ? [] : ['run prepare:all']), 'test -- --shard=2/4',
+      ]);
+    }
+  } finally { rmSync(directory, {recursive: true, force: true}); }
+});
