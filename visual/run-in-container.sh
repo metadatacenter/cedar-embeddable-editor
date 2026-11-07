@@ -18,6 +18,14 @@
 # built for darwin-arm64 and its binaries do not run here.
 set -euo pipefail
 
+# A train shard restores the already-built bundle and fixtures. It must test those
+# exact bytes rather than rebuilding a second candidate inside the container.
+PREBUILT=0
+if [ "${1:-}" = --prebuilt ]; then
+  PREBUILT=1
+  shift
+fi
+
 IMAGE="mcr.microsoft.com/playwright:v1.64.1-noble"
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -44,6 +52,7 @@ trap 'exit 143' TERM
 docker run --name "$CONTAINER" --rm --init \
   --platform linux/arm64 \
   --ipc=host \
+  -e CEE_VISUAL_PREBUILT="$PREBUILT" \
   -e CEDAR_TEST_TRACE="${CEDAR_TEST_TRACE:-}" \
   -e CEDAR_TEST_WORKERS="${CEDAR_TEST_WORKERS:-}" \
   -v "$REPO":/repo \
@@ -52,4 +61,4 @@ docker run --name "$CONTAINER" --rm --init \
   -w /repo/visual \
   -e CI="${CI:-}" \
   "$IMAGE" \
-  bash -lc 'npm ci --no-audit --no-fund && npm run prepare:all && npm test -- "$@"' -- "$@"
+  bash -lc 'npm ci --no-audit --no-fund && { [ "$CEE_VISUAL_PREBUILT" = 1 ] || npm run prepare:all; } && npm test -- "$@"' -- "$@"
