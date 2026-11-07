@@ -30,7 +30,7 @@ import { HandlerContext, InstanceMutation } from '../../util/handler-context';
 import { InstanceSerializer } from '../../util/instance-serializer';
 import { captureInstanceSave } from '../../util/instance-save-snapshot';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
-import { TranslateLoader, TranslateService, provideChildTranslateService } from '@ngx-translate/core';
+import { TranslateLoader, TranslateService, provideTranslateService } from '@ngx-translate/core';
 import { DataContext } from '../../util/data-context';
 import { HttpClient } from '@angular/common/http';
 import { GlobalSettingsContextService } from '../../service/global-settings-context.service';
@@ -84,7 +84,8 @@ import { ShadowRootStyles } from '../../directives/shadow-root-styles.directive'
     // languages and separate maps. The service is the root of an isolated subtree:
     // it has no parent to inherit from, which is what stops one editor's language
     // from reaching the other.
-    ...provideChildTranslateService({
+    // A standalone editor's configured language must not change sibling editors or fields.
+    ...provideTranslateService({
       loader: {
         provide: TranslateLoader,
         useFactory: (

@@ -11,7 +11,7 @@ import {
 import { Overlay, OverlayContainer, OverlayPositionBuilder } from '@angular/cdk/overlay';
 import { AriaDescriber, LIVE_ANNOUNCER_ELEMENT_TOKEN, LiveAnnouncer } from '@angular/cdk/a11y';
 import { HttpClient } from '@angular/common/http';
-import { TranslateLoader, TranslateService, provideChildTranslateService } from '@ngx-translate/core';
+import { TranslateLoader, TranslateService, provideTranslateService } from '@ngx-translate/core';
 import type { JsonNode } from 'cedar-model-typescript-library';
 
 import * as fallbackMapEN from '../../../../../assets/i18n-cee/en.json';
@@ -108,7 +108,9 @@ interface FieldRuntime {
     RenderSchedulerService,
     TemplateTrustService,
     UserPreferencesService,
-    ...provideChildTranslateService({
+    // Each embedded field owns its language. A child service forwards use() to its parent,
+    // changing sibling fields and broadcasting another refresh to every existing summary.
+    ...provideTranslateService({
       loader: {
         provide: TranslateLoader,
         useFactory: (
