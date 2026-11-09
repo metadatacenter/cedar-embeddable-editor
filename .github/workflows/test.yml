@@ -252,12 +252,12 @@ jobs:
   performance:
     name: Standalone performance
     needs: prepare
-    uses: metadatacenter/cedar-development/.github/workflows/frontend-performance-paired.yml@da481d46035a8d8cfac0a088d4ed860da2498073
+    uses: metadatacenter/cedar-development/.github/workflows/frontend-performance-paired.yml@0e9af74805cd28961c8ecbc74d49466cfad9605a
     with:
       component: cee
       baseline-ref: ${{ github.event.pull_request.base.sha || github.event.before }}
       candidate-artifact: cee-npm-package
-      harness-ref: da481d46035a8d8cfac0a088d4ed860da2498073
+      harness-ref: 0e9af74805cd28961c8ecbc74d49466cfad9605a
 
   # Every merge to develop reaches the Nexus dev channel. Until this existed CEE was
   # published only by a release train, so between releases its dev channel stood
