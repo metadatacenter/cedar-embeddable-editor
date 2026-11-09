@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { BUNDLE_VERSION, open } from './support/host';
+import { fieldBox } from './support/field-box';
 
 for (const host of ['editor', 'field'] as const) {
   test(`M3 ${host} preserves compact overrides and comfortable focus`, async ({ page }) => {
@@ -8,7 +9,7 @@ for (const host of ['editor', 'field'] as const) {
     );
     await page.waitForFunction(() => window.__ceeReady);
     const element = page.locator(`cedar-embeddable-${host}`);
-    const input = element.locator('input[aria-label="short_text"]');
+    const input = fieldBox(element, 'short_text');
     await expect(input).toBeVisible();
     const box = input.locator('xpath=ancestor::mat-form-field').locator('.mat-mdc-text-field-wrapper');
     const outline = box.locator('.mdc-notched-outline__leading');
@@ -71,7 +72,7 @@ for (const host of ['editor', 'field'] as const) {
     );
     await page.waitForFunction(() => window.__ceeReady);
     const element = page.locator(`cedar-embeddable-${host}`);
-    const input = element.locator('input[aria-label="short_text"]');
+    const input = fieldBox(element, 'short_text');
     const box = input.locator('xpath=ancestor::mat-form-field').locator('.mat-mdc-text-field-wrapper');
     await expect.poll(async () => (await box.boundingBox())!.height).toBe(36);
     await element.evaluate((el) => el.setAttribute('density', 'authoring'));

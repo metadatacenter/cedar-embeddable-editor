@@ -3,7 +3,7 @@ import { aroundLabel, AroundLabel, LABEL_SLOT } from '../../a11y/joined-name';
 
 /**
  * A control's name that joins CEE's words to a label the template wrote, such as `date, select date`,
- * for the control to take through `aria-labelledby`.
+ * for the control to take through `aria-labelledby`. Without a key, the name is the label alone.
  *
  * An `aria-label` is one string, so it cannot say that its words and its label are in different
  * languages. This element holds the name as text instead, with the label in an element of its own
@@ -17,10 +17,12 @@ import { aroundLabel, AroundLabel, LABEL_SLOT } from '../../a11y/joined-name';
 @Component({
   selector: 'span[appCedarJoinedName]',
   template:
+    '@if (key) {' +
     '@let around = split(key | translate: slot);' +
     '{{ around.before }}' +
     '@if (around.labelled) {<span [attr.lang]="labelLanguage">{{ label }}</span>}' +
-    '{{ around.after }}',
+    '{{ around.after }}' +
+    '} @else {<span [attr.lang]="labelLanguage">{{ label }}</span>}',
   host: { class: 'cdk-visually-hidden', 'aria-hidden': 'true', '[id]': 'id' },
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
@@ -31,8 +33,8 @@ export class CedarJoinedNameComponent {
   /** The id the named control's `aria-labelledby` refers to. */
   readonly id = `cee-joined-name-${CedarJoinedNameComponent.nextId++}`;
 
-  /** The translation key of the name, whose `label` parameter the label fills. */
-  @Input({ required: true }) key!: string;
+  /** The translation key of the name, whose `label` parameter the label fills, or null for the label alone. */
+  @Input() key: string | null = null;
 
   /** The label the template wrote, as the form shows it. */
   @Input() label = '';

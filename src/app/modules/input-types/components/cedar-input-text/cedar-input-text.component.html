@@ -28,7 +28,7 @@
           (input)="inputChanged($event)"
           [readonly]="readOnlyMode"
           [attr.lang]="valueLanguageMark"
-          attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"
+          [attr.aria-labelledby]="boxName.id"
         />
       }
       @if (component.basicInfo.inputType === inputTextarea) {
@@ -42,7 +42,7 @@
           cdkTextareaAutosize
           [formControl]="inputValueControl"
           (input)="inputChanged($event)"
-          attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"
+          [attr.aria-labelledby]="boxName.id"
           [readonly]="readOnlyMode"
           [attr.lang]="valueLanguageMark"
         ></textarea>
@@ -95,3 +95,6 @@
     <p [attr.lang]="valueLanguageMark" [innerHTML]="inputValueControl.value || '' | safeHtml"></p>
   }
 </form>
+
+<!-- The boxes' name is the field's label, marked with the language the template declares for it. -->
+<span appCedarJoinedName #boxName [label]="fieldLabel" [labelLanguage]="textLanguage"></span>

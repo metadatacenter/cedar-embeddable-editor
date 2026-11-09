@@ -31,6 +31,9 @@ export class CedarTermLinkComponent {
   /** Named for assistive technology, since the box is a value and not a control. */
   @Input({ required: true }) fieldLabel!: string;
 
+  /** The language the template declares for its text, as a `lang` tag, or null where it declares none. */
+  @Input() fieldLabelLanguage: string | null = null;
+
   /**
    * Keep an unusually long human label from displacing the identifier. PubMed titles are the case:
    * the complete title remains in the DOM and in a hover title, while the visible label yields with

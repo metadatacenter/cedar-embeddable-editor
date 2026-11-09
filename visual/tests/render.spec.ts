@@ -29,6 +29,7 @@ import {
   passDebounceWindow,
   recordChanges,
 } from './support/host';
+import { fieldBox } from './support/field-box';
 
 const FIXTURES = [
   ['01-input-types', 'every simple input type'],
@@ -68,7 +69,7 @@ test.describe('host style isolation', () => {
       `,
     });
 
-    const inputStyle = await page.locator('input[aria-label="text"]').evaluate((input) => {
+    const inputStyle = await fieldBox(page, 'text').evaluate((input) => {
       const style = getComputedStyle(input);
       return { background: style.backgroundColor, fontSize: style.fontSize };
     });
@@ -130,7 +131,7 @@ test.describe('host style isolation', () => {
           typeTemplateDescription: read('.template-description', 'type'),
           typeVersion: read('.cee-version', 'type'),
           typeFieldLabel: read('app-cedar-component-header .title', 'type'),
-          typeValue: read('input[aria-label="Text Field"]', 'type'),
+          typeValue: read('app-cedar-input-text input', 'type'),
           typeHint: read('mat-hint', 'type'),
           typeClock: read('.cee-time-segment', 'type'),
           // And the boxes CEE sizes itself.
@@ -222,9 +223,9 @@ test.describe('host style isolation', () => {
 
     const empty = await heights();
 
-    await page.locator('input[aria-label="text"]').fill('a filled value');
-    await page.locator('input[aria-label="email"]').fill('someone@example.org');
-    await page.locator('input[aria-label="link"]').fill('https://example.org/thing');
+    await fieldBox(page, 'text').fill('a filled value');
+    await fieldBox(page, 'email').fill('someone@example.org');
+    await fieldBox(page, 'link').fill('https://example.org/thing');
     await page.locator('body').click({ position: { x: 5, y: 5 } });
     await page.waitForTimeout(300);
 
@@ -375,7 +376,7 @@ test.describe('multiple editor instances', () => {
 
     await openTwoEditors(page, '04-controlled-terms');
     const terminologyRequest = page.waitForRequest((request) => request.url().includes('/isolation/first/terminology'));
-    await page.locator('#editor-first input[aria-label="organism"]').pressSequentially('human', { delay: 40 });
+    await fieldBox(page.locator('#editor-first'), 'organism').pressSequentially('human', { delay: 40 });
     await passDebounceWindow(page);
     expect((await terminologyRequest).url()).toContain('/isolation/first/terminology');
 
@@ -383,7 +384,7 @@ test.describe('multiple editor instances', () => {
     const authorityRequest = page.waitForRequest((request) =>
       request.url().includes('/isolation/first/ext-auth/comp-tox/search-by-name'),
     );
-    await page.locator('#editor-first input[aria-label="chemical_pfas"]').pressSequentially('chemical', { delay: 40 });
+    await fieldBox(page.locator('#editor-first'), 'chemical_pfas').pressSequentially('chemical', { delay: 40 });
     await passDebounceWindow(page);
     expect((await authorityRequest).url()).toContain('/isolation/first/ext-auth/comp-tox/search-by-name');
   });
@@ -956,7 +957,7 @@ test.describe('validation states', () => {
     // phone fields as `type="text"` and validates them on the FormControl.
     const names = ['required_text', 'short_text', 'an_email', 'a_link', 'a_phone'];
     for (const name of names) {
-      const input = page.locator(`input[aria-label="${name}"]`);
+      const input = fieldBox(page, name);
       await expect(input).toBeVisible();
       await input.focus();
       await input.blur();
@@ -978,7 +979,7 @@ test.describe('validation states', () => {
     ];
 
     for (const entry of cases) {
-      const input = page.locator(`input[aria-label="${entry.name}"]`);
+      const input = fieldBox(page, entry.name);
       const error = input.locator('xpath=ancestor::mat-form-field').locator('mat-error');
 
       await input.fill(entry.invalid);
@@ -993,7 +994,7 @@ test.describe('validation states', () => {
   test('an invalid email shows its own error', async ({ page }) => {
     await open(page, '06-validation');
 
-    const email = page.locator('input[aria-label="an_email"]');
+    const email = fieldBox(page, 'an_email');
     await email.fill('not-an-email');
     await email.blur();
     await page.waitForTimeout(300);
@@ -1006,7 +1007,7 @@ test.describe('validation states', () => {
     await open(page, '06-validation');
 
     // `short_text` carries withMinLength(8).
-    const short = page.locator('input[aria-label="short_text"]');
+    const short = fieldBox(page, 'short_text');
     await short.fill('abc');
     await short.blur();
     await page.waitForTimeout(300);
@@ -1036,11 +1037,11 @@ test.describe('filled state', () => {
   test('values render in the fields that hold them', async ({ page }) => {
     await open(page, '01-input-types');
 
-    await page.locator('input[aria-label="text"]').fill('a filled value');
-    await page.locator('textarea[aria-label="textarea"]').fill('a longer\nfilled value');
-    await page.locator('input[aria-label="numeric"]').fill('42');
-    await page.locator('input[aria-label="email"]').fill('someone@example.org');
-    await page.locator('input[aria-label="link"]').fill('https://example.org/thing');
+    await fieldBox(page, 'text').fill('a filled value');
+    await fieldBox(page, 'textarea', 'textarea').fill('a longer\nfilled value');
+    await fieldBox(page, 'numeric').fill('42');
+    await fieldBox(page, 'email').fill('someone@example.org');
+    await fieldBox(page, 'link').fill('https://example.org/thing');
     await page.locator('body').click({ position: { x: 5, y: 5 } });
     await page.waitForTimeout(300);
 
@@ -1408,7 +1409,7 @@ test('numeric fields state their bounds in words', async ({ page }) => {
   const hintFor = (label: string) =>
     page
       .locator('app-cedar-input-numeric')
-      .filter({ has: page.locator(`input[aria-label="${label}"]`) })
+      .filter({ has: fieldBox(page, label) })
       .locator('mat-hint');
 
   await expect(hintFor('Numeric Field')).toHaveText('Minimum: 0, Maximum: 100');
@@ -1427,8 +1428,8 @@ test('numeric fields state their bounds in words', async ({ page }) => {
 test('the spinner steps a numeric field by its declared precision', async ({ page }) => {
   await open(page, '17-real-flat');
 
-  const twoPlaces = page.locator('input[aria-label="Numeric Decimal (2 dp)"]');
-  const fourPlaces = page.locator('input[aria-label="Numeric Decimal (4 dp)"]');
+  const twoPlaces = fieldBox(page, 'Numeric Decimal (2 dp)');
+  const fourPlaces = fieldBox(page, 'Numeric Decimal (4 dp)');
   await expect(twoPlaces).toHaveAttribute('step', '0.01');
   await expect(fourPlaces).toHaveAttribute('step', '0.0001');
 
@@ -1729,7 +1730,7 @@ test.describe('external authority fields', () => {
   test('typing does not raise an error', async ({ page }) => {
     await open(page, '04-controlled-terms');
 
-    const orcid = page.locator('input[aria-label="contributor"]');
+    const orcid = fieldBox(page, 'contributor');
     await expect(orcid).toBeVisible();
     await orcid.pressSequentially('dav', { delay: 60 });
     await page.waitForTimeout(600);
@@ -1740,7 +1741,7 @@ test.describe('external authority fields', () => {
   test('the character typed is not swallowed', async ({ page }) => {
     await open(page, '04-controlled-terms');
 
-    const orcid = page.locator('input[aria-label="contributor"]');
+    const orcid = fieldBox(page, 'contributor');
     await orcid.pressSequentially('dav', { delay: 60 });
     await page.waitForTimeout(600);
 
@@ -1754,7 +1755,7 @@ test.describe('external authority fields', () => {
   test('free text is reported once it has actually been discarded', async ({ page }) => {
     await open(page, '04-controlled-terms');
 
-    const orcid = page.locator('input[aria-label="contributor"]');
+    const orcid = fieldBox(page, 'contributor');
     await orcid.pressSequentially('not a real researcher', { delay: 20 });
     await page.waitForTimeout(600);
     await orcid.blur();
@@ -1796,7 +1797,7 @@ test.describe('every external authority widget', () => {
     test(`${label}: typing raises no error and keeps the text`, async ({ page }) => {
       await open(page, '08-authority');
 
-      const input = page.locator(`input[aria-label="${name}"]`);
+      const input = fieldBox(page, name);
       await expect(input).toBeVisible();
       await input.pressSequentially('dav', { delay: 40 });
       await page.waitForTimeout(500);
@@ -1814,7 +1815,7 @@ test.describe('every external authority widget', () => {
     test(`${label}: free text is discarded on blur, and said so`, async ({ page }) => {
       await open(page, '08-authority');
 
-      const input = page.locator(`input[aria-label="${name}"]`);
+      const input = fieldBox(page, name);
       await input.pressSequentially('zzz nonsense', { delay: 15 });
       await page.waitForTimeout(500);
       await input.blur();
@@ -1828,7 +1829,7 @@ test.describe('every external authority widget', () => {
 
     test(`${label}: missing lookup configuration shows a visible search error`, async ({ page }) => {
       await open(page, '08-authority');
-      const input = page.locator(`input[aria-label="${name}"]`);
+      const input = fieldBox(page, name);
       await input.fill('test search');
       await passDebounceWindow(page);
       await expect(page.locator('mat-option.lookup-failed')).toContainText('Search failed');
@@ -1841,7 +1842,7 @@ test.describe('every external authority widget', () => {
     test(`${label}: the message names the right authority`, async ({ page }) => {
       await open(page, '08-authority');
 
-      const input = page.locator(`input[aria-label="${name}"]`);
+      const input = fieldBox(page, name);
       await input.pressSequentially('zzz nonsense', { delay: 15 });
       await page.waitForTimeout(500);
       await input.blur();
@@ -2019,10 +2020,10 @@ test.describe('declared non-enumerated defaults', () => {
   }) => {
     await open(page, '23-declared-defaults');
 
-    await expect(page.locator('input[aria-label="title"]')).toHaveValue('Draft record');
-    await expect(page.locator('input[aria-label="measurement"]')).toHaveValue('42.5');
+    await expect(fieldBox(page, 'title')).toHaveValue('Draft record');
+    await expect(fieldBox(page, 'measurement')).toHaveValue('42.5');
     await expect(page.getByRole('textbox', { name: /, select date$/ })).not.toHaveValue('');
-    await expect(page.locator('input[aria-label="organism"]')).toHaveValue('Homo sapiens');
+    await expect(fieldBox(page, 'organism')).toHaveValue('Homo sapiens');
 
     const metadata = await page.evaluate(() => document.querySelector('cedar-embeddable-editor')!.currentMetadata);
     expect(valueOf(metadata, '_title')).toBe('Draft record');
@@ -2037,10 +2038,10 @@ test.describe('declared non-enumerated defaults', () => {
   test('rendering does not overwrite fields a supplied instance left blank', async ({ page }) => {
     await open(page, '23-declared-defaults', undefined, '23-declared-defaults-blank-instance');
 
-    await expect(page.locator('input[aria-label="title"]')).toHaveValue('');
-    await expect(page.locator('input[aria-label="measurement"]')).toHaveValue('');
+    await expect(fieldBox(page, 'title')).toHaveValue('');
+    await expect(fieldBox(page, 'measurement')).toHaveValue('');
     await expect(page.locator('app-cedar-input-datetime input')).toHaveValue('');
-    await expect(page.locator('input[aria-label="organism"]')).toHaveValue('');
+    await expect(fieldBox(page, 'organism')).toHaveValue('');
 
     const metadata = await page.evaluate(() => document.querySelector('cedar-embeddable-editor')!.currentMetadata);
     expect(JSON.stringify(metadata)).not.toContain('Draft record');
@@ -2536,7 +2537,7 @@ test.describe('external authority endpoints', () => {
 
       await open(page, '08-authority', 'authority');
 
-      const field = page.locator(`input[aria-label="${label}"]`);
+      const field = fieldBox(page, label);
       await expect(field, `no field labelled ${label} in 08-authority`).toBeVisible();
       // Typed rather than filled: the widget searches on input, and `fill` can land as
       // a single event that the debounce swallows.
@@ -2600,7 +2601,7 @@ test.describe('external authority endpoints', () => {
       });
 
       await open(page, '08-authority', 'authority');
-      const field = page.locator(`input[aria-label="${fieldName}"]`);
+      const field = fieldBox(page, fieldName);
       await field.pressSequentially('deterministic', { delay: 40 });
       await passDebounceWindow(page);
       const option = page.locator('mat-option').filter({ hasText: label });
@@ -2627,7 +2628,7 @@ test.describe('external authority endpoints', () => {
       const expected = `Open the ${name} page`;
       const suffix = page
         .locator('mat-form-field')
-        .filter({ has: page.locator(`input[aria-label="${fieldName}"]`) })
+        .filter({ has: fieldBox(page, fieldName) })
         .locator('a[mat-icon-button]')
         .first();
 
@@ -2685,7 +2686,7 @@ test.describe('controlled terminology selection', () => {
     });
 
     await open(page, '04-controlled-terms');
-    const field = page.locator('input[aria-label="organism"]');
+    const field = fieldBox(page, 'organism');
     await field.pressSequentially('Homo', { delay: 40 });
     await passDebounceWindow(page);
     const option = page.locator('mat-option').filter({ hasText: label });
@@ -2724,7 +2725,7 @@ test.describe('controlled terminology selection', () => {
 
     await open(page, '04-controlled-terms');
     const widget = page.locator('app-cedar-input-controlled').filter({
-      has: page.locator('input[aria-label="organism"]'),
+      has: fieldBox(page, 'organism'),
     });
     await widget.locator('input').pressSequentially('Homo', { delay: 40 });
     await passDebounceWindow(page);
@@ -2785,7 +2786,7 @@ test.describe('controlled terminology selection', () => {
     });
 
     await open(page, '04-controlled-terms');
-    const field = page.locator('input[aria-label="organism"]');
+    const field = fieldBox(page, 'organism');
     await field.pressSequentially('Homo', { delay: 40 });
     await passDebounceWindow(page);
     await page.locator('mat-option').filter({ hasText: terms[0].label }).click();
@@ -2807,7 +2808,7 @@ test.describe('controlled terminology selection', () => {
     await open(page, '04-controlled-terms', undefined, '04-controlled-terms-labelless-instance');
 
     const widget = page.locator('app-cedar-input-controlled').first();
-    const field = widget.locator('input[aria-label="organism"]');
+    const field = fieldBox(widget, 'organism');
     await expect(field).toHaveValue(iri);
     await expect(field).toHaveAttribute('aria-invalid', 'false');
     const clear = widget.getByRole('button', { name: 'Clear', exact: true });
@@ -2830,7 +2831,7 @@ test.describe('controlled terminology selection', () => {
       });
     });
     await open(page, '04-controlled-terms', undefined, '04-controlled-terms-instance');
-    const field = page.locator('input[aria-label="organism"]');
+    const field = fieldBox(page, 'organism');
     await field.fill('Homo');
     await passDebounceWindow(page);
     const option = page.locator('mat-option').filter({ hasText: label });
@@ -2865,7 +2866,7 @@ test.describe('controlled terminology selection', () => {
   test('free text is discarded on blur, and said so', async ({ page }) => {
     await open(page, '04-controlled-terms');
 
-    const field = page.locator('input[aria-label="organism"]');
+    const field = fieldBox(page, 'organism');
     await field.pressSequentially('zzz nonsense', { delay: 15 });
     await page.waitForTimeout(500);
     await field.blur();
@@ -2921,7 +2922,7 @@ test.describe('a numeric type error', () => {
   ] as const) {
     test(`reads in ${preset ?? 'en'}`, async ({ page }) => {
       await open(page, '01-input-types', preset);
-      const input = page.locator('input[aria-label="numeric"]');
+      const input = fieldBox(page, 'numeric');
       await input.fill('1.5');
       await input.blur();
 
@@ -3026,7 +3027,7 @@ test.describe('what a host page reads back', () => {
 
   test('an edit reaches both outputs', async ({ page }) => {
     await open(page, '01-input-types');
-    await page.locator('input[aria-label="text"]').fill('typed into the form');
+    await fieldBox(page, 'text').fill('typed into the form');
     await page.locator('body').click({ position: { x: 5, y: 5 } });
     await page.waitForTimeout(300);
 
@@ -3133,7 +3134,7 @@ test.describe('what a host page reads back', () => {
 
   test('dataQualityReport follows an invalid value and its correction', async ({ page }) => {
     await open(page, '06-validation');
-    const email = page.locator('input[aria-label="an_email"]');
+    const email = fieldBox(page, 'an_email');
     await email.fill('not-an-email');
     await email.blur();
 
@@ -3402,7 +3403,7 @@ test.describe('a term rendered as a value', () => {
   test('keeps the control where the field is editable', async ({ page }) => {
     await open(page, '04-controlled-terms', undefined, '04-controlled-terms-instance');
 
-    await expect(page.locator('app-cedar-input-controlled input[aria-label="organism"]')).toBeVisible();
+    await expect(fieldBox(page.locator('app-cedar-input-controlled'), 'organism')).toBeVisible();
     await expect(page.locator('app-cedar-input-controlled .cee-term-link')).toHaveCount(0);
   });
 });
@@ -3614,15 +3615,15 @@ test.describe('read-only belongs to the host', () => {
 
     // Nothing to type into, because a form read with no instance behind it states each field rather
     // than offering a box for it.
-    await expect(page.locator('input[aria-label="text"]')).toHaveCount(0);
+    await expect(fieldBox(page, 'text')).toHaveCount(0);
     await expect(page.locator('.cee-spec-box').first()).toBeVisible();
   });
 
   test('renders populated controls from a supplied instance, and none of them editable', async ({ page }) => {
     await open(page, '01-input-types', 'readonly', '14-markup-in-a-value');
 
-    await expect(page.locator('input[aria-label="email"]')).toHaveAttribute('readonly', 'true');
-    await expect(page.locator('input[aria-label="numeric"]')).toHaveAttribute('readonly', 'true');
+    await expect(fieldBox(page, 'email')).toHaveAttribute('readonly', 'true');
+    await expect(fieldBox(page, 'numeric')).toHaveAttribute('readonly', 'true');
     await expect(
       page.locator('input[placeholder]:not([placeholder=""]), textarea[placeholder]:not([placeholder=""])'),
     ).toHaveCount(0);
@@ -3701,7 +3702,7 @@ test.describe('read-only belongs to the host', () => {
   test('leaves the form editable when the host does not ask for read-only', async ({ page }) => {
     await open(page, '01-input-types');
 
-    await expect(page.locator('input[aria-label="text"]')).not.toHaveAttribute('readonly', '');
+    await expect(fieldBox(page, 'text')).not.toHaveAttribute('readonly', '');
   });
 });
 
@@ -4037,7 +4038,7 @@ test.describe('the host event handler', () => {
     const events = await page.evaluate(() => window.__ceeEvents);
     expect(events, 'no handler was attached, so nothing should have been recorded').toEqual([]);
     // The point of the negative case: the same code path runs, and is harmless.
-    await expect(page.locator('input[aria-label="text"]')).toBeVisible();
+    await expect(fieldBox(page, 'text')).toBeVisible();
   });
 
   /**
@@ -4220,7 +4221,7 @@ test.describe('preview host heading', () => {
       await expect(page.locator('.template-provenance')).toHaveCount(0);
       await expect(page.locator('.template-content')).toHaveCSS('padding', '0px');
       await expect(page.locator('.template-description')).toHaveCount(1);
-      if (!readOnly) await expect(page.locator('input[aria-label="text"]')).toBeEditable();
+      if (!readOnly) await expect(fieldBox(page, 'text')).toBeEditable();
     });
   }
 });

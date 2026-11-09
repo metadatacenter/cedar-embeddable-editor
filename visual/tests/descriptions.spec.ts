@@ -1,5 +1,6 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { addAttributeRow, open } from './support/host';
+import { fieldBox } from './support/field-box';
 
 /**
  * WCAG 1.3.1, Info and Relationships, and 4.1.2, Name, Role, Value, for a field's description.
@@ -54,11 +55,9 @@ test("editing, a temporal row's date and time boxes are all described by their f
 
 test('editing, a term box, an authority box and attribute boxes are described by their field', async ({ page }) => {
   await open(page, '04-controlled-terms');
-  await expect(page.locator('input[aria-label="organism"]')).toHaveAccessibleDescription(described('organism'));
+  await expect(fieldBox(page, 'organism')).toHaveAccessibleDescription(described('organism'));
   await open(page, '08-authority');
-  await expect(page.locator('input[aria-label="contributor_orcid"]')).toHaveAccessibleDescription(
-    described('contributor_orcid'),
-  );
+  await expect(fieldBox(page, 'contributor_orcid')).toHaveAccessibleDescription(described('contributor_orcid'));
   await open(page, '10-attribute-values');
   await addAttributeRow(page);
   for (const name of ['Attribute Name', 'Attribute Value'])

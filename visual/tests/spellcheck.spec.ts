@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { open } from './support/host';
+import { fieldBox } from './support/field-box';
 
 for (const host of ['editor', 'field']) {
   test(`browser spellchecking stays off in embedded ${host}`, async ({ page }) => {
@@ -24,7 +25,7 @@ for (const host of ['editor', 'field']) {
 
 test('scientific authority names do not enable browser spelling', async ({ page }) => {
   await open(page, '08-authority');
-  const pfas = page.locator('input[aria-label="chemical_pfas"]');
+  const pfas = fieldBox(page, 'chemical_pfas');
   await expect(pfas).toBeVisible();
   await expect(pfas).toHaveAttribute('spellcheck', 'false');
   await expect(pfas).toHaveJSProperty('spellcheck', false);

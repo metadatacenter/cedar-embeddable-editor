@@ -9,6 +9,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
 import { open } from './support/host';
+import { fieldBox } from './support/field-box';
 
 const values: Record<string, [label: string, iri: string]> = {
   _contributor_orcid: ['Josefina Maria Fernández-Castellanos de la Torre', 'https://orcid.org/0000-0002-1825-0097'],
@@ -49,7 +50,7 @@ async function openWithLongTerms(page: Page): Promise<void> {
 }
 
 const box = (page: Page, property: string) =>
-  page.locator('mat-form-field').filter({ has: page.locator(`input[aria-label="${property.slice(1)}"]`) });
+  page.locator('mat-form-field').filter({ has: fieldBox(page, property.slice(1)) });
 
 test('every authority shows its whole identifier while its box is not being edited', async ({ page }) => {
   await openWithLongTerms(page);

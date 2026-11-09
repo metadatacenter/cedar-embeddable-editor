@@ -9,6 +9,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { open } from './support/host';
 import { valueOf } from './values';
+import { fieldBox } from './support/field-box';
 
 const errorsByPage = new WeakMap<Page, string[]>();
 
@@ -39,7 +40,7 @@ test('registers the production custom element and renders inside Shadow DOM', as
     };
   });
   expect(state).toEqual({ defined: true, hasShadowRoot: true, hasAngularEditor: true });
-  await expect(page.locator('input[aria-label="text"]')).toBeVisible();
+  await expect(fieldBox(page, 'text')).toBeVisible();
 });
 
 test('publishes edits through a composed change event and currentMetadata', async ({ page }) => {
@@ -53,7 +54,7 @@ test('publishes edits through a composed change event and currentMetadata', asyn
     });
   });
 
-  const field = page.locator('input[aria-label="text"]');
+  const field = fieldBox(page, 'text');
   await field.fill('cross-browser edit');
   await field.blur();
 
@@ -207,12 +208,12 @@ test('honors read-only mode', async ({ page }) => {
   // specification and renders no control at all; populated fields in an instance keep their value
   // controls, read-only.
   await open(page, '01-input-types', 'readonly');
-  await expect(page.locator('input[aria-label="text"]')).toHaveCount(0);
+  await expect(fieldBox(page, 'text')).toHaveCount(0);
   await expect(page.locator('.cee-spec-box').first()).toBeVisible();
 
   await open(page, '01-input-types', 'readonly', '14-markup-in-a-value');
-  await expect(page.locator('input[aria-label="email"]')).toHaveAttribute('readonly', 'true');
-  await expect(page.locator('input[aria-label="phone"]')).toHaveAttribute('readonly', 'true');
+  await expect(fieldBox(page, 'email')).toHaveAttribute('readonly', 'true');
+  await expect(fieldBox(page, 'phone')).toHaveAttribute('readonly', 'true');
 });
 
 /**
@@ -298,7 +299,7 @@ test('bounded regex validation keeps the page responsive and separates validity 
     await route.fulfill({ json: template });
   });
   await open(page, '01-input-types');
-  const field = page.locator('input[aria-label="text"]');
+  const field = fieldBox(page, 'text');
   await expect(field).toBeVisible();
   await expect(page.locator('app-cedar-input-text mat-error')).toHaveCount(0);
   await page.evaluate(() => {

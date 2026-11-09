@@ -1,5 +1,6 @@
 import { expect, test, type APIResponse, type Page } from '@playwright/test';
 import { open, passDebounceWindow } from './support/host';
+import { fieldBox } from './support/field-box';
 
 /**
  * WCAG 1.4.10 Reflow, 1.4.4 Resize Text, 1.4.12 Text Spacing, 1.4.3 Contrast (Minimum) for
@@ -1246,7 +1247,7 @@ const OVERLAYS: readonly { readonly name: string; readonly show: (page: Page) =>
     show: async (page) => {
       await answerSearches(page);
       await open(page, '08-authority', 'authority');
-      await page.locator('input[aria-label="contributor_orcid"]').pressSequentially('maria', { delay: 20 });
+      await fieldBox(page, 'contributor_orcid').pressSequentially('maria', { delay: 20 });
       await passDebounceWindow(page);
       await expect(page.getByRole('option')).toHaveCount(2, { timeout: 5000 });
     },

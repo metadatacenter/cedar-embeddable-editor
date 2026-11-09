@@ -1,5 +1,6 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { addAttributeRow, open } from './support/host';
+import { fieldBox } from './support/field-box';
 
 /**
  * WCAG 2.4.3, Focus Order, and 2.1.1, Keyboard, where an action changes what can be focused.
@@ -74,14 +75,14 @@ test.describe('a clear button hands focus to the control it cleared', () => {
     await open(page, '04-controlled-terms', undefined, '04-controlled-terms-instance');
     const field = page.locator('app-cedar-input-controlled').first();
     await clearFromKeyboard(field);
-    await expect(field.locator('input[aria-label="organism"]')).toBeFocused();
+    await expect(fieldBox(field, 'organism')).toBeFocused();
   });
 
   test('an authority term', async ({ page }) => {
     await open(page, '08-authority', undefined, '08-authority-instance');
     const field = page.locator('app-cedar-input-pmid');
     await clearFromKeyboard(field);
-    await expect(field.locator('input[aria-label="citation_pmid"]')).toBeFocused();
+    await expect(fieldBox(field, 'citation_pmid')).toBeFocused();
   });
 
   test('an attribute name and its value', async ({ page }) => {
@@ -144,7 +145,7 @@ test.describe('a required-value message is not a Tab stop', () => {
 
   test('beside a controlled term', async ({ page }) => {
     await open(page, '04-controlled-terms');
-    const box = page.locator('app-cedar-input-controlled input[aria-label="organism"]');
+    const box = fieldBox(page.locator('app-cedar-input-controlled'), 'organism');
     await box.focus();
     await box.blur();
     const error = page.locator('app-cedar-input-controlled mat-error').first();
@@ -160,7 +161,7 @@ test.describe('a required-value message is not a Tab stop', () => {
       await route.fulfill({ json: template });
     });
     await open(page, '08-authority');
-    const box = page.locator('input[aria-label="contributor_orcid"]');
+    const box = fieldBox(page, 'contributor_orcid');
     await box.focus();
     await box.blur();
     const error = page.locator('app-cedar-input-orcid mat-error');
@@ -182,7 +183,9 @@ test.describe('the page-break chips', () => {
       await page.keyboard.press(key);
       await expect(chips(page).nth(1)).toHaveAttribute('aria-selected', 'true');
       await expect(firstPageText(page)).toHaveCount(0);
-      await expect(page.locator('cedar-embeddable-editor').getByText('second', { exact: true })).toBeVisible();
+      await expect(
+        page.locator('cedar-embeddable-editor app-cedar-component-header').getByText('second', { exact: true }),
+      ).toBeVisible();
       await expect(chips(page).nth(1)).toBeFocused();
     });
 

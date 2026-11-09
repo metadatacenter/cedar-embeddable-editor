@@ -22,7 +22,7 @@ import { CedarInputDatetimeComponent } from './cedar-input-datetime.component';
  * displayed "Parent sample ID" above a box announced as `parent_sample_id`.
  *
  * Here rather than in the widget's own spec because it is a claim about markup: the component
- * can hold the right label and still bind the wrong one into the attribute.
+ * can hold the right label and still bind the wrong one into the element that names the box.
  */
 describe('a read-only temporal field', () => {
   /** The production shape: named for its key, with the only legible name in `skos:prefLabel`. */
@@ -72,6 +72,8 @@ describe('a read-only temporal field', () => {
 
     const input = fixture.debugElement.query(By.css('input[readonly]'));
     expect(input, 'the read-only branch rendered no input to name').not.toBeNull();
-    expect((input.nativeElement as HTMLInputElement).getAttribute('aria-label')).toBe('Lab ID');
+    const nameId = (input.nativeElement as HTMLInputElement).getAttribute('aria-labelledby');
+    const name = (fixture.nativeElement as HTMLElement).querySelector(`[id="${nameId}"]`);
+    expect(name?.textContent).toBe('Lab ID');
   });
 });

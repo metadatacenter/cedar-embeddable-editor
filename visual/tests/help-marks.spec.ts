@@ -12,13 +12,20 @@ import { open } from './support/host';
  * out of the Tab order.
  */
 
-/** The innermost focused element, across shadow roots, by its role and name. */
+/** The innermost focused element, across shadow roots, by its role and accessible name. */
 const focused = (page: Page): Promise<string> =>
   page.evaluate(() => {
     let active: Element | null = document.activeElement;
     while (active?.shadowRoot?.activeElement) active = active.shadowRoot.activeElement;
     return active
-      ? `${active.getAttribute('role') ?? active.tagName.toLowerCase()} ${active.getAttribute('aria-label') ?? ''}`
+      ? `${active.getAttribute('role') ?? active.tagName.toLowerCase()} ${
+          active.getAttribute('aria-label') ??
+          (active.getAttribute('aria-labelledby') ?? '')
+            .split(/\s+/)
+            .map((id) => (active!.getRootNode() as ShadowRoot | Document).getElementById(id)?.textContent ?? '')
+            .join(' ')
+            .trim()
+        }`
       : '';
   });
 
