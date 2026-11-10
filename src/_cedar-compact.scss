@@ -74,6 +74,9 @@
   }
   .cee-time-segment {
     @include spacing.apply(padding-block, outlined-content-inset);
+  }
+  .cee-time-segment,
+  .cee-time-separator {
     line-height: var(--_cedar-line-height);
   }
   .cee-time-meridian {

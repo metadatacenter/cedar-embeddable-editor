@@ -48,6 +48,10 @@ CED must not target Material classes or CEF's internal DOM.
 The date/time widgets retain their existing format and precision logic: HH, HH:MM,
 seconds, fractional seconds, 12/24-hour display and optional timezone. Never replace
 those widgets with a generic text field to obtain a smaller box.
+Clock digits and colons share the density's text line: 21px for comfortable and
+default, 18px for authoring. Compact and authoring clocks also share the host's
+`--cedar-control-line-height` override. These text lines do not change the 48px,
+36px or 32px control boxes, their widths, or the AM/PM action size.
 
 Test empty, populated, focused and invalid controls in editable CEE, editable CEF
 and read-only CEE. A populated single-line control must remain the same height.

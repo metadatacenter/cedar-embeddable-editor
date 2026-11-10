@@ -113,13 +113,6 @@
       "value": "60px",
       "count": 2
     },
-    "c42915c9843f5dc24633": {
-      "file": "src/app/modules/shared/components/time-picker/time-picker.component.scss",
-      "rule": "typography",
-      "property": "line-height",
-      "value": "22px",
-      "count": 2
-    },
     "ca05b858ca9378732ce2": {
       "file": "src/_cee-material-theme.scss",
       "rule": "geometry",

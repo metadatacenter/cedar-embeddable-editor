@@ -51,7 +51,7 @@
   background: transparent;
   color: inherit;
   font: inherit;
-  line-height: 22px;
+  line-height: tokens.$control-line-height-default;
   text-align: center;
   font-variant-numeric: tabular-nums;
 
@@ -123,7 +123,7 @@
 }
 
 .cee-time-separator {
-  line-height: 22px;
+  line-height: tokens.$control-line-height-default;
   color: tokens.$text-muted;
   user-select: none;
 }
