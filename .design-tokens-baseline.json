@@ -85,13 +85,6 @@
       "value": "0 -1px",
       "count": 1
     },
-    "5ff8ef1a91fa17fad18c": {
-      "file": "src/_cee-material-theme.scss",
-      "rule": "typography",
-      "property": "expansion-overrides.container-text-line-height",
-      "value": "20px",
-      "count": 1
-    },
     "6b9a18466956dd746236": {
       "file": "src/app/modules/input-types/components/cedar-static-page-break/cedar-static-page-break.component.scss",
       "rule": "spacing",

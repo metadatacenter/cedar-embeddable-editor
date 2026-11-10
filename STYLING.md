@@ -15,6 +15,11 @@ Material outline uses the shared control border and accepts `--cedar-control-bor
 its sizing, typography, hover, focus and validation states retain the comfortable profile.
 The 48px height belongs to this control profile, not to unrelated headers or paginators.
 
+Expansion-panel body text uses the shared 21px body line in every density. Panel
+headings keep their separate typography and 48px header height. Nested labels add
+one pixel per line compared with the former 20px adapter value; wrapped read-only
+specifications can also grow. Editable control sizes do not change with this body line.
+
 ## Tokens
 
 Set these CSS custom properties on a common ancestor of CED, CEFD, CEE and CEF. They

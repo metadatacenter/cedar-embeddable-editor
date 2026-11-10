@@ -238,11 +238,11 @@ $_colors: (
       touch-target-display: none,
     )
   );
-  // CEE cards inside elements inherit this line box. M3's 24px body default
-  // adds 4px to every nested label and makes the real nested form 512px taller.
+  // Nested field labels and read-only text inherit the shared body line.
+  // Expansion headings keep their own typography; control sizes are independent.
   @include mat.expansion-overrides(
     (
-      container-text-line-height: 20px,
+      container-text-line-height: tokens.$control-line-height-default,
     )
   );
   @include mat.form-field-overrides(

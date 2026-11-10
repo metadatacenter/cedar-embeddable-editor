@@ -891,6 +891,9 @@ for (const preset of [undefined, 'readonly'] as const) {
       return {
         icon: box(field, '[data-field-type-icon]').left,
         title: box(heading, '.title-label').left,
+        bodyLine: getComputedStyle(field.querySelector('.title-label')!).lineHeight,
+        headingLine: getComputedStyle(heading.querySelector('.title-label')!).lineHeight,
+        headerHeight: heading.getBoundingClientRect().height,
         chevronIsFirstMark: trailing.firstElementChild!.hasAttribute('data-disclosure'),
         chevronRight: box(heading, '[data-disclosure]').right,
         nextMarkLeft: marks.length > 1 ? marks[1].left : Infinity,
@@ -899,6 +902,9 @@ for (const preset of [undefined, 'readonly'] as const) {
       };
     });
     expect(Math.abs(geometry.title - geometry.icon)).toBeLessThan(1);
+    expect(geometry.bodyLine).toBe('21px');
+    expect(geometry.headingLine).toBe('24px');
+    expect(geometry.headerHeight).toBe(48);
     expect(geometry.chevronIsFirstMark).toBe(true);
     expect(geometry.chevronRight).toBeLessThanOrEqual(geometry.nextMarkLeft);
     expect(Math.abs(geometry.headingEnd - geometry.fieldEnd)).toBeLessThan(1);
