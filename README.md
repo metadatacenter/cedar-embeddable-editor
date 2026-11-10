@@ -23,6 +23,32 @@ needs neither a CEDAR account nor a running CEDAR installation. The CEE ships as
 a single JavaScript file defining a standard Web Component, so it embeds in a
 plain HTML page as readily as in an Angular, React, or Ember application.
 
+## How the Components Fit Together
+
+CEDAR's three embeddable components support different parts of a metadata
+workflow:
+
+| Component | Role |
+|---|---|
+| [CEDAR Embeddable Designer (CED)](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-designer/) | Authors templates and reusable elements, defining the fields, structure, constraints, and defaults. Its bundle also includes the standalone Field Designer. |
+| [CEDAR Embeddable Term Picker (CETP)](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-term-picker/) | Searches vocabularies and selects the constraints and default terms used during template authoring. It can also select ontology properties for a host's own workflow. |
+| CEDAR Embeddable Editor (CEE) | Renders a template for metadata entry or read-only display and returns the resulting metadata instance. |
+
+An author uses CED to design a template, with CETP helping bind controlled-term
+fields to shared vocabularies. The host stores the template and supplies the
+chosen version to CEE, which collects the metadata. CEE also provides the form
+preview inside CED, while CEF supplies individual field controls.
+
+For metadata entry alone, the host loads CEE and supplies a template. CEE
+performs its own controlled-term lookup through the configured terminology
+service; CED and CETP are optional authoring components. The three packages are
+loaded separately, and the host owns authentication, storage, and version choices.
+
+To add authoring to an application, start with
+[Your First Embedded Designer](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-designer/first-designer/).
+For a vocabulary-selection interface on its own, see
+[Your First Embedded Term Picker](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-term-picker/first-picker/).
+
 ## Documentation
 
 For consistent compact controls across CEE, CEF and CED, see the
