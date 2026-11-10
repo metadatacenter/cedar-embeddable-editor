@@ -1,4 +1,5 @@
 @use '@org.metadatacenter/cedar-design-tokens/spacing';
+@use '@org.metadatacenter/cedar-design-tokens/controls';
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
 @use 'cee-material-theme' as theme;
 
@@ -68,7 +69,7 @@
     font-size: var(--_cedar-font-size);
     &:focus-within {
       border-color: var(--_cedar-focus);
-      box-shadow: inset 0 0 0 1px var(--_cedar-focus);
+      @include controls.focus-frame(var(--_cedar-focus));
     }
   }
   .cee-time-segment {

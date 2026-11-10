@@ -174,7 +174,7 @@
   align-items: center;
   margin-right: ui-tokens.$space-2;
   margin-top: -26px;
-  margin-bottom: -4px;
+  margin-bottom: -(ui-tokens.$space-1);
 }
 
 /*
@@ -513,7 +513,7 @@ app-cedar-component-renderer:has(> mat-accordion) + app-cedar-component-renderer
    * two-class rule written here, winning on order — so a selector fight is unwinnable and the tokens
    * are the supported API the density mixin itself uses.
    */
-  @include theme.control-size(36px, 6px);
+  @include theme.control-size(ui-tokens.$control-height-default, 6px);
 
   /*
    * A choice option is 28px while editing: a 20px control in 4px of padding,
@@ -526,7 +526,7 @@ app-cedar-component-renderer:has(> mat-accordion) + app-cedar-component-renderer
    */
   .mat-mdc-radio-button .mdc-radio,
   .mat-mdc-checkbox .mdc-checkbox {
-    padding: 2px;
+    @include spacing.apply(padding, compact);
   }
 
   /*
@@ -565,9 +565,9 @@ app-cedar-component-renderer:has(> mat-accordion) + app-cedar-component-renderer
    * mismatch the note above predicts when the compact height meets a 48px action.
    */
   .mat-mdc-form-field-icon-suffix .mat-mdc-icon-button.mat-mdc-button-base {
-    width: 36px;
-    height: 36px;
-    padding: 6px;
+    width: ui-tokens.$control-height-default;
+    height: ui-tokens.$control-height-default;
+    @include spacing.apply(padding, default-control-icon-inset);
   }
 }
 

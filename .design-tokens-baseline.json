@@ -29,13 +29,6 @@
       "value": "18px",
       "count": 1
     },
-    "25f117e26ad1f56b7d4a": {
-      "file": "src/app/modules/shared/components/cedar-multi-pager/cedar-multi-pager.component.scss",
-      "rule": "geometry",
-      "property": "height",
-      "value": "32px",
-      "count": 2
-    },
     "32af3f7cc6a03e766a99": {
       "file": "src/app/modules/shared/components/cedar-multi-pager/cedar-multi-pager.component.scss",
       "rule": "spacing",
@@ -57,13 +50,6 @@
       "value": "48px",
       "count": 1
     },
-    "44bd35c5ee14bd906769": {
-      "file": "src/styles-own.scss",
-      "rule": "geometry",
-      "property": "height",
-      "value": "36px",
-      "count": 1
-    },
     "44c5ec4cff9629fdd01e": {
       "file": "src/styles-own.scss",
       "rule": "spacing",
@@ -78,25 +64,11 @@
       "value": "black, ) )",
       "count": 1
     },
-    "4a9ce4a1b20512152502": {
-      "file": "src/styles-own.scss",
-      "rule": "spacing",
-      "property": "padding",
-      "value": "2px",
-      "count": 1
-    },
     "541b6eef243bea17f765": {
       "file": "src/app/modules/shared/components/time-picker/time-picker.component.scss",
       "rule": "spacing",
       "property": "padding-inline",
       "value": "10px",
-      "count": 1
-    },
-    "588686859fc186db2360": {
-      "file": "src/styles-own.scss",
-      "rule": "spacing",
-      "property": "margin-bottom",
-      "value": "-4px",
       "count": 1
     },
     "58cd2b3f9a209eef0da8": {
@@ -148,20 +120,6 @@
       "value": "60px",
       "count": 2
     },
-    "7c484e5cebedf6ce69af": {
-      "file": "src/styles-own.scss",
-      "rule": "spacing",
-      "property": "padding",
-      "value": "6px",
-      "count": 1
-    },
-    "c41c52b7335e6fe60f5d": {
-      "file": "src/app/modules/shared/components/time-picker/time-picker.component.scss",
-      "rule": "geometry",
-      "property": "box-shadow",
-      "value": "inset 0 0 0 1px tokens.$color-primary",
-      "count": 1
-    },
     "c42915c9843f5dc24633": {
       "file": "src/app/modules/shared/components/time-picker/time-picker.component.scss",
       "rule": "typography",
@@ -202,13 +160,6 @@
       "rule": "geometry",
       "property": "min-height",
       "value": "48px",
-      "count": 1
-    },
-    "fc4858f5ccba25c7a130": {
-      "file": "src/_cedar-compact.scss",
-      "rule": "geometry",
-      "property": "box-shadow",
-      "value": "inset 0 0 0 1px var(--_cedar-focus)",
       "count": 1
     }
   },

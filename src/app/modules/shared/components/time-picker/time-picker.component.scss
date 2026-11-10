@@ -1,4 +1,5 @@
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as ui-tokens;
+@use '@org.metadatacenter/cedar-design-tokens/controls';
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
 
 .cee-time-picker {
@@ -37,7 +38,7 @@
 
   &:focus-within {
     border-color: tokens.$color-primary;
-    box-shadow: inset 0 0 0 1px tokens.$color-primary;
+    @include controls.focus-frame(tokens.$color-primary);
   }
 }
 
