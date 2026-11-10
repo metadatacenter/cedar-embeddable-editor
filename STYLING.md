@@ -20,6 +20,13 @@ headings keep their separate typography and 48px header height. Nested labels ad
 one pixel per line compared with the former 20px adapter value; wrapped read-only
 specifications can also grow. Editable control sizes do not change with this body line.
 
+Occurrence chips retain their 26px height with 12px labels on the shared 18px line;
+their actions remain 32px. Template page chips retain their 32px height with 14px
+labels on the shared 21px line. Occurrence-range text uses the shared 12px/18px
+secondary text. Pagination bars, arrow sizes and responsive alignment retain their
+existing geometry. These are distinct CEE layout roles, not aliases for a control
+height or table-row token with the same numeric value.
+
 ## Tokens
 
 Set these CSS custom properties on a common ancestor of CED, CEFD, CEE and CEF. They

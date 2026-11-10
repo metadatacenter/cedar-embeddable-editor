@@ -201,6 +201,12 @@ $_colors: (
     (
       container-shape-radius: tokens.$radius-pill,
       touch-target-display: none,
+      label-text-line-height: tokens.$control-line-height-default,
+    )
+  );
+  @include mat.paginator-overrides(
+    (
+      container-text-line-height: tokens.$control-line-height-authoring,
     )
   );
   // The calendar panel is an overlay, so it takes the menu's shadow rather than Material's elevation.
@@ -314,6 +320,7 @@ $_colors: (
     (
       container-height: 26px,
       label-text-size: tokens.$font-size-small,
+      label-text-line-height: tokens.$control-line-height-authoring,
     )
   );
 }

@@ -574,12 +574,14 @@ test('multi-instance pager renders its chips without covering a narrow expansion
     const header = panel.querySelector('mat-expansion-panel-header')!.getBoundingClientRect();
     const controls = panel.querySelector('app-cedar-multi-pager')!.firstElementChild!.getBoundingClientRect();
     const chip = panel.querySelector('app-cedar-multi-pager mat-chip-option')!.getBoundingClientRect();
+    const label = getComputedStyle(panel.querySelector('app-cedar-multi-pager .mat-mdc-chip-action-label')!);
     const action = panel.querySelector('app-cedar-multi-pager button[mat-icon-button]')!.getBoundingClientRect();
     return {
       header: { top: header.top, bottom: header.bottom, center: header.top + header.height / 2 },
       controls: { top: controls.top, center: controls.top + controls.height / 2 },
       chip: { width: chip.width, height: chip.height, center: chip.top + chip.height / 2 },
-      action: { center: action.top + action.height / 2 },
+      label: { font: label.fontSize, line: label.lineHeight },
+      action: { height: action.height, center: action.top + action.height / 2 },
     };
   });
   if (testInfo.project.name === 'desktop') {
@@ -589,10 +591,9 @@ test('multi-instance pager renders its chips without covering a narrow expansion
       geometry.header.bottom,
     );
   }
-  // Material lands at 32.125px on this font/device scale; keep the visual
-  // circle within the intended compact 32px class rather than asserting away
-  // a sub-pixel rasterisation detail.
-  expect(Math.max(geometry.chip.width, geometry.chip.height)).toBeLessThanOrEqual(33);
+  expect(geometry.chip.height).toBe(26);
+  expect(geometry.label).toEqual({ font: '12px', line: '18px' });
+  expect(geometry.action.height).toBe(32);
   expect(Math.abs(geometry.chip.center - geometry.action.center)).toBeLessThan(1);
 
   await expect(pager).toHaveScreenshot('pager.png');
