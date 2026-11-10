@@ -10,7 +10,10 @@ CEE and CEF use this read-only-based sizing by default, independently of
 Use `density="authoring"` for the shared 32px authoring profile (12px text,
 18px line height, the shared 4px corner). CED/CEFD use that profile for settings and embedded
 CEF. Host overrides take precedence in both compact and authoring profiles.
-Use `density="comfortable"` only to request the older, larger editable sizing.
+Use `density="comfortable"` to request the larger 48px editable sizing. Its resting
+Material outline uses the shared control border and accepts `--cedar-control-border`;
+its sizing, typography, hover, focus and validation states retain the comfortable profile.
+The 48px height belongs to this control profile, not to unrelated headers or paginators.
 
 ## Tokens
 

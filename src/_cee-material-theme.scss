@@ -330,7 +330,7 @@ $_colors: (
 @mixin comfortable-outline() {
   @include mat.form-field-overrides(
     (
-      outlined-outline-color: black,
+      outlined-outline-color: var(--cedar-control-border, #{tokens.$control-border-default}),
     )
   );
 }

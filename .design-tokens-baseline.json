@@ -57,13 +57,6 @@
       "value": "-26px",
       "count": 1
     },
-    "47c406aae8e1d2bd2200": {
-      "file": "src/_cee-material-theme.scss",
-      "rule": "color",
-      "property": "outlined-outline-color",
-      "value": "black, ) )",
-      "count": 1
-    },
     "541b6eef243bea17f765": {
       "file": "src/app/modules/shared/components/time-picker/time-picker.component.scss",
       "rule": "spacing",

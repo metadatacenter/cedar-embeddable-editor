@@ -3,6 +3,41 @@ import { BUNDLE_VERSION, open } from './support/host';
 import { fieldBox } from './support/field-box';
 
 for (const host of ['editor', 'field'] as const) {
+  test(`comfortable ${host} shares the resting outline and retains size and feedback`, async ({ page }) => {
+    await page.goto(
+      `/host.html?t=06-validation${host === 'field' ? '&host=field&p=_short_text' : ''}&b=${BUNDLE_VERSION}`,
+    );
+    await page.waitForFunction(() => window.__ceeReady);
+    const element = page.locator(`cedar-embeddable-${host}`);
+    await element.evaluate((el) => el.setAttribute('density', 'comfortable'));
+    const input = fieldBox(element, 'short_text');
+    const box = input.locator('xpath=ancestor::mat-form-field').locator('.mat-mdc-text-field-wrapper');
+    const outline = box.locator('.mdc-notched-outline__leading');
+    await page.mouse.move(0, 0);
+    await expect(input).toBeVisible();
+    await expect.poll(async () => (await box.boundingBox())!.height).toBe(48);
+    await expect(outline).toHaveCSS('border-top-color', 'rgba(0, 0, 0, 0.45)');
+    await expect(element.locator('mat-error')).toHaveCount(0);
+
+    await input.fill('Retained');
+    await expect(outline).toHaveCSS('border-top-color', 'rgb(15, 118, 134)');
+    await input.blur();
+    await expect(outline).toHaveCSS('border-top-color', 'rgba(0, 0, 0, 0.45)');
+    await expect.poll(async () => (await box.boundingBox())!.height).toBe(48);
+    await expect(input).toHaveValue('Retained');
+
+    await page.evaluate(() => document.body.style.setProperty('--cedar-control-border', '#654321'));
+    await expect(outline).toHaveCSS('border-top-color', 'rgb(101, 67, 33)');
+    await input.focus();
+    await expect(outline).toHaveCSS('border-top-color', 'rgb(15, 118, 134)');
+    await input.fill('abc');
+    await input.blur();
+    const findingColor = host === 'editor' ? 'rgb(180, 83, 9)' : 'rgb(180, 35, 24)';
+    await expect(element.locator('mat-error').first()).toHaveCSS('color', findingColor);
+    await expect(outline).toHaveCSS('border-top-color', findingColor);
+    await expect.poll(async () => (await box.boundingBox())!.height).toBe(48);
+  });
+
   test(`M3 ${host} preserves compact overrides and comfortable focus`, async ({ page }) => {
     await page.goto(
       `/host.html?t=06-validation${host === 'field' ? '&host=field&p=_short_text' : ''}&b=${BUNDLE_VERSION}`,
