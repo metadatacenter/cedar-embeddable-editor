@@ -1,0 +1,46 @@
+@use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
+@use 'cee-layout' as layout;
+
+/* The marks are laid out by the row that holds them, as if this element were not there. */
+:host {
+  display: contents;
+}
+
+/* Drawn unseen, the marks keep their room in the row and take no focus or pointer. */
+:host(.holds-place) {
+  visibility: hidden;
+}
+
+/* Keep the Material help icon aligned with text, as a non-flexing fixed-size item. */
+.mat-icon.icon-questionmark {
+  height: tokens.$icon-size-small;
+  width: tokens.$icon-size-small;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  line-height: tokens.$line-height-tight;
+}
+
+/*
+ * The child's property IRI is quiet deployment metadata rather than an action.
+ * Keep the ontology glyph at the far edge of the heading and expose the full
+ * value through the tooltip without turning it into a link.
+ */
+.property-iri {
+  display: inline-flex;
+  flex: 0 0 layout.$cee-property-slot;
+  width: tokens.$icon-size-small;
+  height: tokens.$icon-size-small;
+  align-items: center;
+  justify-content: center;
+  cursor: help;
+}
+
+.property-iri-icon {
+  width: tokens.$icon-size-small;
+  height: tokens.$icon-size-small;
+  overflow: hidden;
+  line-height: tokens.$icon-size-small;
+}

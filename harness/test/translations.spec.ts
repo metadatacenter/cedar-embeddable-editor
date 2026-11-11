@@ -112,4 +112,35 @@ describe('the translation files', () => {
       }
     }
   });
+
+  /**
+   * A placeholder is one line that cannot wrap, and at 320 CSS px an authority's box has 264px for
+   * it. Six of the seven name what the box takes and say no more. Each used to open with an
+   * instruction to start typing, which cost the PubMed and RRID boxes their last letters.
+   */
+  it.each(LANGUAGES)('%s names what an authority box takes, with no instruction to start typing', (lang) => {
+    const instruction: Record<(typeof LANGUAGES)[number], RegExp> = { en: /^Start typing/, hu: /^Kezdjen el írni/ };
+    for (const authority of ['Orcid', 'Ror', 'Pfas', 'Pmid', 'Rrid', 'NihGrant']) {
+      expect(maps[lang][`Generic.Filter${authority}`]).not.toMatch(instruction[lang]);
+    }
+  });
+
+  it('en words the seven authority placeholders as agreed', () => {
+    expect(
+      Object.fromEntries(
+        ['Orcid', 'Ror', 'Pfas', 'NihGrant', 'Pmid', 'Rrid', 'Doi'].map((authority) => [
+          authority,
+          reference[`Generic.Filter${authority}`],
+        ]),
+      ),
+    ).toEqual({
+      Orcid: 'Researcher name or ORCID',
+      Ror: 'Institution name or ROR',
+      Pfas: 'Chemical name or PFAS ID',
+      NihGrant: 'Grant details or NIH Grant ID',
+      Pmid: 'Publication name or PubMed ID',
+      Rrid: 'Research resource name or RRID',
+      Doi: 'Search by title or enter DOI',
+    });
+  });
 });

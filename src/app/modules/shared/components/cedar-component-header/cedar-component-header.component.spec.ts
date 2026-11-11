@@ -1,6 +1,4 @@
-import { DestroyRef } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { of } from 'rxjs';
 import { describe, expect, it } from 'vitest';
 import { MultiElementComponent } from '../../models/element/multi-element-component.model';
 import { SingleElementComponent } from '../../models/element/single-element-component.model';
@@ -11,7 +9,6 @@ import { StaticFieldComponent } from '../../models/static/static-field-component
 import { CedarTemplate } from '../../models/template/cedar-template.model';
 import { ComponentDataService } from '../../service/component-data.service';
 import { GlobalSettingsContextService } from '../../service/global-settings-context.service';
-import { UserPreferencesService } from '../../service/user-preferences.service';
 import { CedarComponentHeaderComponent } from './cedar-component-header.component';
 
 /**
@@ -24,12 +21,7 @@ import { CedarComponentHeaderComponent } from './cedar-component-header.componen
  * changes its input, which is exactly when that matters — and it had no spec.
  */
 describe('CedarComponentHeaderComponent', () => {
-  const makeHeader = (): CedarComponentHeaderComponent =>
-    new CedarComponentHeaderComponent(
-      new ComponentDataService(),
-      { readOnlyMode$: of(false) } as unknown as UserPreferencesService,
-      { destroyed: false, onDestroy: () => () => undefined } as unknown as DestroyRef,
-    );
+  const makeHeader = (): CedarComponentHeaderComponent => new CedarComponentHeaderComponent(new ComponentDataService());
 
   const singleField = (inputType: string, requiredValue = false): SingleFieldComponent => {
     const field = new SingleFieldComponent();
@@ -218,8 +210,6 @@ describe('CedarComponentHeaderComponent', () => {
     const headerIn = (uiLanguage: string): CedarComponentHeaderComponent =>
       new CedarComponentHeaderComponent(
         new ComponentDataService(),
-        { readOnlyMode$: of(false) } as unknown as UserPreferencesService,
-        { destroyed: false, onDestroy: () => () => undefined } as unknown as DestroyRef,
         null,
         { currentLang: () => uiLanguage } as unknown as TranslateService,
         new GlobalSettingsContextService(),
@@ -244,17 +234,5 @@ describe('CedarComponentHeaderComponent', () => {
       expect(header.textLanguage).toBeNull();
       expect(header.uiLanguageMark).toBeNull();
     });
-  });
-
-  it('follows the read-only preference', () => {
-    const header = new CedarComponentHeaderComponent(
-      new ComponentDataService(),
-      { readOnlyMode$: of(true) } as unknown as UserPreferencesService,
-      { destroyed: false, onDestroy: () => () => undefined } as unknown as DestroyRef,
-    );
-
-    header.ngOnInit();
-
-    expect(header.readOnlyMode).toBe(true);
   });
 });

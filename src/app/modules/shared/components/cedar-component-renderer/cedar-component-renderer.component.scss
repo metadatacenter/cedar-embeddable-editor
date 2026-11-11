@@ -16,8 +16,13 @@ mat-accordion {
  * A nested element's heading takes the large size, as a section break does. The
  * element's panel header sets the two apart, so a section break inside an element
  * never outranks the heading of the element that contains it.
+ *
+ * The heading may be narrower than its name. Without a minimum of its own it kept the name's full
+ * width, and the header clipped the chevron and the marks off its end. It shrinks instead, and the
+ * name ends in an ellipsis, so the chevron and the marks stay in view.
  */
 .cee-element-heading {
+  min-width: 0;
   font-size: tokens.$font-size-large;
   font-weight: var(--cedar-font-weight-medium, #{ui-tokens.$font-weight-medium});
   margin-inline-end: 0;
@@ -52,6 +57,34 @@ $element-content-inset: tokens.$space-4;
 
 .mat-expansion-panel ::ng-deep .mat-expansion-panel-body {
   padding-inline: var(--_cee-element-body-inset);
+}
+
+/*
+ * An element's marks are drawn over the room its header keeps for them, outside the header, which
+ * is a button. The header and the marks share the panel's first grid cell, and the part that opens
+ * and closes takes the next one. The marks end at the header's inset, which resolves against the
+ * same width as the header's padding, and are centred on the row as the header centres its own
+ * content. Positioned, the marks are drawn over the header, which takes the pointer everywhere else
+ * in the row.
+ */
+.mat-expansion-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.mat-expansion-panel-header,
+.cee-element-marks {
+  grid-area: 1 / 1;
+}
+
+.cee-element-marks {
+  position: relative;
+  display: flex;
+  align-items: center;
+  align-self: center;
+  justify-self: end;
+  gap: tokens.$space-1;
+  margin-inline-end: var(--_cee-element-heading-inset);
 }
 
 .cee-element-content {

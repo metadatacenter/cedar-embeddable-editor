@@ -78,3 +78,49 @@ test('Material choice controls use the shared CEDAR primary palette', async ({ p
   await radio.locator('input').check();
   await expect(radio.locator('.mdc-radio__inner-circle')).toHaveCSS('background-color', 'rgb(15, 118, 134)');
 });
+
+/**
+ * Read only, a text, email or phone value is drawn in a box that grows, so that a long value wraps.
+ * A short value takes one row, and its box is the one-line box a numeric value keeps, in every
+ * density and after the density changes.
+ */
+test('a short read-only text, email or phone value keeps the one-line box of each density', async ({ page }) => {
+  await page.route('**/fixtures/01-input-types-instance.json', async (route) => {
+    const json = await (await route.fetch()).json();
+    Object.assign(json, {
+      _text: { '@value': 'A short value' },
+      _email: { '@value': 'curator@example.org' },
+      _phone: { '@value': '+1 650 555 0100' },
+      _numeric: { '@value': '42', '@type': 'xsd:decimal' },
+    });
+    await route.fulfill({ json });
+  });
+  await open(page, '01-input-types', 'readonly', '01-input-types-instance');
+  const editor = page.locator('cedar-embeddable-editor');
+  const boxOf = (widget: string) => editor.locator(`${widget} .mat-mdc-text-field-wrapper`);
+  const heightOf = async (widget: string) => (await boxOf(widget).boundingBox())!.height;
+  const lineValues = ['app-cedar-input-text', 'app-cedar-input-email', 'app-cedar-input-phone'];
+
+  await expect(boxOf('app-cedar-input-numeric').locator('input')).toHaveValue('42');
+  for (const widget of lineValues) await expect(boxOf(widget).first().locator('textarea')).toHaveCount(1);
+  for (const [density, height] of [
+    [null, 36],
+    ['authoring', 32],
+    ['comfortable', 36],
+    ['compact', 36],
+  ] as const) {
+    if (density) await editor.evaluate((el, profile) => el.setAttribute('density', profile), density);
+    await expect.poll(() => heightOf('app-cedar-input-numeric'), density ?? 'default').toBe(height);
+    for (const widget of lineValues)
+      await expect
+        .poll(
+          () =>
+            boxOf(widget)
+              .first()
+              .boundingBox()
+              .then((box) => box!.height),
+          widget,
+        )
+        .toBe(height);
+  }
+});

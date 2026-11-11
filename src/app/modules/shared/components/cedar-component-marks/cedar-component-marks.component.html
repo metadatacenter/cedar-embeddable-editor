@@ -1,0 +1,43 @@
+@if (holdsPlace) {
+  <!-- The same boxes as the marks below, so the room they keep is exactly the room the marks take. -->
+  @if (description !== null) {
+    <mat-icon class="icon-help icon-questionmark" cedarIcon="help" inline="false"></mat-icon>
+  }
+  @if (propertyIri !== null) {
+    <span class="property-iri"><mat-icon class="property-iri-icon" cedarIcon="property"></mat-icon></span>
+  }
+} @else {
+  <!--
+    Material hides an icon that states no `aria-hidden` of its own, so the help mark binds the
+    attribute away. The mark is named for what it holds. The description itself is in visually
+    hidden text in the title row, so the tooltip does not describe the mark as well.
+  -->
+  @if (description !== null) {
+    <mat-icon
+      cedarIcon="help"
+      [matTooltip]="description"
+      matTooltipPosition="right"
+      [cedarTooltipLanguage]="textLanguage"
+      tabindex="0"
+      [attr.aria-hidden]="null"
+      [attr.aria-label]="'Generic.Description' | translate"
+      data-cee-tooltip-text-in-page
+      class="icon-help icon-questionmark"
+      inline="false"
+    ></mat-icon>
+  }
+
+  @if (propertyIri !== null) {
+    <span
+      class="property-iri"
+      role="img"
+      [matTooltip]="propertyIri"
+      matTooltipPosition="above"
+      tabindex="0"
+      [attr.aria-label]="'Generic.PropertyIri' | translate: { iri: propertyIri }"
+      [attr.data-property-iri]="propertyIri"
+    >
+      <mat-icon class="property-iri-icon" cedarIcon="property"></mat-icon>
+    </span>
+  }
+}

@@ -9,14 +9,35 @@
             (closed)="panelOpenState = false; allExpanded = false"
             [expanded]="panelOpenState"
           >
-            <mat-expansion-panel-header>
-              <mat-panel-title class="cee-element-heading">
-                <app-cedar-component-header
-                  [componentToRender]="iterableComponent"
-                  [disclosure]="panelOpenState"
-                ></app-cedar-component-header>
-              </mat-panel-title>
-            </mat-expansion-panel-header>
+            <!--
+              The header is a button, so the element's marks follow it rather than sit in it, and take
+              focus after it. Projected with the header, they stay outside the part that closes.
+            -->
+            <ng-container ngProjectAs="mat-expansion-panel-header">
+              <!--
+                A header too narrow for the element's name ends it in an ellipsis and shows the whole
+                name in a tooltip, on hover and on keyboard focus. The name is the header's own text, so
+                the tooltip does not describe the header as well.
+              -->
+              <mat-expansion-panel-header
+                [matTooltip]="shortenedName?.text ?? ''"
+                [matTooltipDisabled]="shortenedName === null"
+                [cedarTooltipLanguage]="shortenedName?.language ?? null"
+                data-cee-tooltip-text-in-page
+              >
+                <mat-panel-title class="cee-element-heading">
+                  <app-cedar-component-header
+                    [componentToRender]="iterableComponent"
+                    [disclosure]="panelOpenState"
+                    (shortenedName)="shortenedName = $event"
+                  ></app-cedar-component-header>
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+              <app-cedar-component-marks
+                class="cee-element-marks"
+                [componentToRender]="iterableComponent"
+              ></app-cedar-component-marks>
+            </ng-container>
             @if (decision.multiComponent) {
               <app-cedar-multi-pager
                 [componentToRender]="decision.multiComponent"

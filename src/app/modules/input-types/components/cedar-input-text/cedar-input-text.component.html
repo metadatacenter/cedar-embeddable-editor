@@ -16,7 +16,7 @@
   @if (!isOrcid && !isRor && !isRichText) {
     <mat-form-field class="full-width">
       <!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
-      @if (component.basicInfo.inputType === inputText) {
+      @if (component.basicInfo.inputType === inputText && !readOnlyMode) {
         <input
           #valueBox
           spellcheck="false"
@@ -26,10 +26,28 @@
           type="text"
           [formControl]="inputValueControl"
           (input)="inputChanged($event)"
-          [readonly]="readOnlyMode"
           [attr.lang]="valueLanguageMark"
           [attr.aria-labelledby]="boxName.id"
         />
+      }
+      <!--
+        Read-only, a line of text is drawn in the box a paragraph grows in, so a value too long for
+        one line wraps onto further lines. `cee-line-value` keeps it to the one row a short value needs.
+      -->
+      @if (component.basicInfo.inputType === inputText && readOnlyMode) {
+        <textarea
+          #valueBox
+          class="cee-line-value"
+          spellcheck="false"
+          autocomplete="off"
+          matInput
+          [errorStateMatcher]="previewErrorStateMatcher"
+          cdkTextareaAutosize
+          [formControl]="inputValueControl"
+          readonly
+          [attr.lang]="valueLanguageMark"
+          [attr.aria-labelledby]="boxName.id"
+        ></textarea>
       }
       @if (component.basicInfo.inputType === inputTextarea) {
         <textarea

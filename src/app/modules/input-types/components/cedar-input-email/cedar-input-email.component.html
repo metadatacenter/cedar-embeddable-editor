@@ -1,26 +1,44 @@
 <form class="form-container" [formGroup]="options">
   <mat-form-field class="full-width">
     <!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
-    <input
-      spellcheck="false"
-      autocomplete="off"
-      #valueBox
-      matInput
-      [errorStateMatcher]="previewErrorStateMatcher"
-      type="text"
-      [formControl]="inputValueControl"
-      (input)="inputChanged($event)"
-      [readonly]="readOnlyMode"
-      [attr.lang]="valueLanguageMark"
-      [attr.aria-labelledby]="boxName.id"
-    />
+    @if (!readOnlyMode) {
+      <input
+        spellcheck="false"
+        autocomplete="off"
+        #valueBox
+        matInput
+        [errorStateMatcher]="previewErrorStateMatcher"
+        type="text"
+        [formControl]="inputValueControl"
+        (input)="inputChanged($event)"
+        [attr.lang]="valueLanguageMark"
+        [attr.aria-labelledby]="boxName.id"
+      />
+    } @else {
+      <!--
+        Read-only, the value is drawn in the box a paragraph grows in, so a value too long for one
+        line wraps onto further lines. `cee-line-value` keeps it to the one row a short value needs.
+      -->
+      <textarea
+        class="cee-line-value"
+        spellcheck="false"
+        autocomplete="off"
+        matInput
+        [errorStateMatcher]="previewErrorStateMatcher"
+        cdkTextareaAutosize
+        [formControl]="inputValueControl"
+        readonly
+        [attr.lang]="valueLanguageMark"
+        [attr.aria-labelledby]="boxName.id"
+      ></textarea>
+    }
     @if (inputValueControl.value && !readOnlyMode) {
       <button
         type="button"
         matSuffix
         mat-icon-button
         attr.aria-label="{{ 'Generic.Clear' | translate }}"
-        (click)="clearValue(); valueBox.focus()"
+        (click)="clearValue(); focusValueBox()"
       >
         <mat-icon cedarIcon="close"></mat-icon>
       </button>

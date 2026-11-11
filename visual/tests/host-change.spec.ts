@@ -130,7 +130,9 @@ test.describe('host change notifications', () => {
     // DOM event can be exercised.
     await open(page, '01-input-types', 'readonly', '14-markup-in-a-value');
     await recordChanges(page);
-    await fieldBox(page, 'email').dispatchEvent('change');
+    const email = fieldBox(page, 'email', 'textarea');
+    await email.dispatchEvent('change');
+    await email.dispatchEvent('input');
     expect(await changeDetails(page)).toEqual([]);
   });
 

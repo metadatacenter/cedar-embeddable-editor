@@ -1,4 +1,12 @@
-import { Component, Input, OnInit, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  Input,
+  OnInit,
+  ViewChild,
+  ViewEncapsulation,
+} from '@angular/core';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
@@ -27,6 +35,8 @@ export class CedarInputPhoneComponent extends CedarUIDirective implements OnInit
   options!: FormGroup;
   inputValueControl = new FormControl<string | null>(null, null);
   @Input({ required: true }) handlerContext!: HandlerContext;
+  /** The box the value is typed into. Read-only, the value is drawn in a box of its own. */
+  @ViewChild('valueBox') private valueBox?: ElementRef<HTMLInputElement>;
 
   constructor(
     private readonly fb: FormBuilder,
@@ -75,6 +85,11 @@ export class CedarInputPhoneComponent extends CedarUIDirective implements OnInit
 
   clearValue(): void {
     this.setValueUIAndModel(null);
+  }
+
+  /** Where focus goes once the clear button, which disappears with the value, has been used. */
+  focusValueBox(): void {
+    this.valueBox?.nativeElement.focus();
   }
 
   private setValueUIAndModel(value: string | null): void {

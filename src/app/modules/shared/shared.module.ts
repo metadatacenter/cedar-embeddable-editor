@@ -4,6 +4,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatMenuModule } from '@angular/material/menu';
 import { CedarComponentHeaderComponent } from './components/cedar-component-header/cedar-component-header.component';
+import { CedarComponentMarksComponent } from './components/cedar-component-marks/cedar-component-marks.component';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -65,6 +66,7 @@ import { CedarFontRegistrarComponent } from './components/cedar-font-registrar/c
   ],
   declarations: [
     CedarComponentHeaderComponent,
+    CedarComponentMarksComponent,
     CedarEmbeddableMetadataEditorComponent,
     CedarEmbeddableMetadataEditorWrapperComponent,
     CedarFontRegistrarComponent,

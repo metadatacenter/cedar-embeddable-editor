@@ -436,8 +436,8 @@ test.describe('field type markers', () => {
   test('fields and elements expose their property IRI from a quiet non-link marker', async ({ page }) => {
     await open(page, '03-nested-multi');
 
-    const elementHeader = page.locator('mat-expansion-panel-header').first();
-    const elementMarker = elementHeader.locator('[data-property-iri]');
+    // An element's marks follow its panel header, a button, rather than sit in it.
+    const elementMarker = page.locator('mat-expansion-panel > app-cedar-component-marks [data-property-iri]').first();
     const iri = await elementMarker.getAttribute('data-property-iri');
     expect(iri).toMatch(/^https:\/\/schema\.metadatacenter\.org\/properties\//);
     await expect(elementMarker).toHaveAttribute('aria-label', `Property IRI: ${iri}`);
@@ -448,7 +448,10 @@ test.describe('field type markers', () => {
 
     const alignment = await elementMarker.evaluate((marker) => {
       const markerBox = marker.getBoundingClientRect();
-      const headingBox = marker.closest('.flex-container')!.getBoundingClientRect();
+      const headingBox = marker
+        .closest('mat-expansion-panel')!
+        .querySelector(':scope > mat-expansion-panel-header .flex-container')!
+        .getBoundingClientRect();
       return headingBox.right - markerBox.right;
     });
     expect(alignment).toBe(0);
@@ -613,7 +616,8 @@ for (const mode of ['editable', 'readonly'] as const) {
       const root = document.querySelector('cedar-embeddable-editor')!.shadowRoot!;
       return Array.from(root.querySelectorAll('mat-expansion-panel'), (panel) => {
         const header = panel.querySelector(':scope > mat-expansion-panel-header app-cedar-component-header')!;
-        const marks = header.querySelectorAll('.header-trailing mat-icon');
+        // The marks follow the header, drawn over the room it keeps for them.
+        const marks = panel.querySelectorAll(':scope > app-cedar-component-marks mat-icon');
         const mark = marks[marks.length - 1].getBoundingClientRect();
         // The panel's own pager precedes the nested panels in document order.
         const pager = panel.querySelector('.aligned-up')!;
@@ -888,7 +892,9 @@ for (const preset of [undefined, 'readonly'] as const) {
       const field = panel.querySelector('.cee-element-content app-cedar-component-header')!;
       const box = (scope: Element, selector: string) => scope.querySelector(selector)!.getBoundingClientRect();
       const trailing = heading.querySelector('.header-trailing')!;
-      const marks = [...trailing.querySelectorAll(':scope > *')].map((mark) => mark.getBoundingClientRect());
+      // The marks follow the header, drawn over the room its trailing slot keeps for them.
+      const drawn = panel.querySelector(':scope > app-cedar-component-marks')!;
+      const marks = [trailing.firstElementChild!, ...drawn.children].map((mark) => mark.getBoundingClientRect());
       return {
         icon: box(field, '[data-field-type-icon]').left,
         title: box(heading, '.title-label').left,
@@ -898,7 +904,7 @@ for (const preset of [undefined, 'readonly'] as const) {
         chevronIsFirstMark: trailing.firstElementChild!.hasAttribute('data-disclosure'),
         chevronRight: box(heading, '[data-disclosure]').right,
         nextMarkLeft: marks.length > 1 ? marks[1].left : Infinity,
-        headingEnd: box(heading, '.property-iri').right,
+        headingEnd: box(drawn, '.property-iri').right,
         fieldEnd: box(field, '.property-iri').right,
       };
     });
@@ -3629,7 +3635,8 @@ test.describe('read-only belongs to the host', () => {
   test('renders populated controls from a supplied instance, and none of them editable', async ({ page }) => {
     await open(page, '01-input-types', 'readonly', '14-markup-in-a-value');
 
-    await expect(fieldBox(page, 'email')).toHaveAttribute('readonly', 'true');
+    // A read-only email value is drawn in a box that grows, so that a long address wraps.
+    await expect(fieldBox(page, 'email', 'textarea')).toHaveAttribute('readonly', 'true');
     await expect(fieldBox(page, 'numeric')).toHaveAttribute('readonly', 'true');
     await expect(
       page.locator('input[placeholder]:not([placeholder=""]), textarea[placeholder]:not([placeholder=""])'),

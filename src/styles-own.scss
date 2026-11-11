@@ -677,6 +677,16 @@ textarea.mat-mdc-input-element {
   resize: none;
 }
 
+/*
+ * A read-only line of text is drawn in a growing box, so that a long value wraps. Material centres
+ * a textarea on its line's x-height, which makes that line, and the field, a fraction of a pixel
+ * taller than the input the box replaces. Set at the top of its line, the box adds nothing, so a
+ * short value keeps that input's height.
+ */
+textarea.cee-line-value {
+  vertical-align: top;
+}
+
 // Select and autocomplete rows match the 28px choice rows.
 // Wrapped labels can grow without retaining Material's larger minimum height.
 :host .mat-mdc-option {

@@ -54,7 +54,10 @@ for a clear action. Keep focus visible and preserve keyboard navigation.
 `src/_cedar-compact.scss` is the shared adapter used by both CEE and CEF, including
 Material token mappings and the native segmented clock. Add presentation rules
 there rather than per input type. `ControlDensityDirective` applies paragraph row
-counts through CDK's public autosize API, preserving content-driven growth. Widget styles own only their structural layout.
+counts through CDK's public autosize API, preserving content-driven growth. A read-only
+text, email or phone value is drawn in the same growing box, marked `cee-line-value`.
+That box starts at one row, so a short value keeps the single-line height and a long one
+wraps. Widget styles own only their structural layout.
 CED must not target Material classes or CEF's internal DOM.
 
 The date/time widgets retain their existing format and precision logic: HH, HH:MM,

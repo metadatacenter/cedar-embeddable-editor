@@ -1,4 +1,4 @@
-import { expect, test, type APIResponse, type Page } from '@playwright/test';
+import { expect, test, type APIResponse, type Locator, type Page } from '@playwright/test';
 import { open, passDebounceWindow } from './support/host';
 import { fieldBox } from './support/field-box';
 
@@ -22,7 +22,8 @@ import { fieldBox } from './support/field-box';
  *   selection mark measures at least 3:1 against what it is drawn on, as the browser draws it.
  *
  * A placeholder is text too, and since it cannot wrap, a box that is too narrow for it clips it. So
- * is the value a read-only box shows on its one line.
+ * is the value a read-only box shows on its one line. Read only, a text, email or phone value is
+ * drawn in a box that grows, and that box has to show the whole of the value it wraps.
  *
  * Each check runs over the input types, choices, authority and temporal fixtures, a nested one and a
  * multi-page one, editable and read only, and over the field element showing one field of each of
@@ -130,34 +131,7 @@ interface Exception {
 }
 
 /** Findings that need a visible change, each with the change it needs. */
-const EXCEPTIONS: readonly Exception[] = [
-  /*
-   * At 320 CSS px an authority box has 264px for its placeholder, and the PubMed and RRID
-   * instructions need about 271px and 276px, so each loses its last letters. A placeholder is one
-   * line that cannot wrap, and its type and the box's padding are the shared control's.
-   */
-  {
-    check: 'reflow',
-    finding: /^placeholder is clipped: "Start typing (publication name or PubMed ID|research resource name or RRID)"/,
-    needs:
-      'a placeholder that fits a 320 CSS px box: a shorter instruction, or the instruction moved out of the box ' +
-      'into hint text that wraps',
-  },
-  /*
-   * Read only, a text, email or phone value is shown in a one-line box, which cuts off what does not
-   * fit with nothing to say that more follows. A reader reaches the rest only by putting the caret in
-   * the box and moving it. At 320 CSS px a sentence, a long address and a long number are each cut
-   * off, and at 640 and at 1280 under text spacing the sentence still is. A paragraph field's value
-   * already wraps, because its box grows to hold it.
-   */
-  ...(['reflow', 'resize', 'text spacing'] as const).map((check) => ({
-    check,
-    finding: /^value is clipped: the box "(text|email|phone)" /,
-    needs:
-      'a read-only value that wraps onto further lines, as a paragraph value does, rather than one cut off at ' +
-      'the edge of a one-line box',
-  })),
-];
+const EXCEPTIONS: readonly Exception[] = [];
 
 /**
  * What the page shows that breaks a check, one line per finding.
@@ -407,6 +381,17 @@ function findLayoutProblems(options: { scrolling: boolean; controls: boolean; te
         findings.push(
           `value is clipped: the box "${label}" holding "${box.value.slice(0, 40)}" ` +
             `needs ${Math.ceil(needed)}px of ${Math.floor(available)}px`,
+        );
+    }
+
+    // A read-only box that grows wraps its value and shows every line of it. One that shows fewer
+    // keeps the rest behind a scroll, or cuts it off where it does not scroll.
+    for (const box of root.querySelectorAll<HTMLTextAreaElement>('textarea[readonly]')) {
+      if (!box.value.trim() || !shown(box)) continue;
+      if (box.scrollHeight > box.clientHeight + 1 || box.scrollWidth > box.clientWidth + 1)
+        findings.push(
+          `value is clipped: the growing box holding "${box.value.slice(0, 40)}" shows ` +
+            `${box.clientWidth} by ${box.clientHeight}px of ${box.scrollWidth} by ${box.scrollHeight}px`,
         );
     }
   }
@@ -1164,6 +1149,230 @@ for (const { fixture, instance, values } of LONG_VALUES)
     await serveChanged(page, instance, (json) => Object.assign(json, values));
     await open(page, fixture, 'readonly', instance);
   });
+
+/**
+ * Read only, a text, email or phone value is drawn in the box a paragraph grows in. A value too long
+ * for one line wraps onto further lines, and the box shows all of them without scrolling.
+ */
+for (const { check, title, viewport } of CHECKS)
+  test(`long read-only text, email and phone values wrap and are shown whole: ${title}`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    const { fixture, instance, values } = LONG_VALUES[0];
+    await serveChanged(page, instance, (json) => Object.assign(json, values));
+    await open(page, fixture, 'readonly', instance);
+    await animationsDone(page);
+    if (check === 'text spacing') await forceTextSpacing(page);
+    for (const label of ['text', 'email', 'phone']) {
+      const box = fieldBox(page, label, 'textarea');
+      await expect(box).toHaveJSProperty('readOnly', true);
+      const shown = await box.evaluate((textarea: HTMLTextAreaElement) => {
+        const style = getComputedStyle(textarea);
+        const line = document.createElement('span');
+        for (const property of ['font', 'letter-spacing', 'word-spacing'])
+          line.style.setProperty(property, style.getPropertyValue(property));
+        Object.assign(line.style, { position: 'absolute', visibility: 'hidden', whiteSpace: 'pre' });
+        line.textContent = textarea.value;
+        textarea.parentElement!.appendChild(line);
+        const needed = line.getBoundingClientRect().width;
+        line.remove();
+        return {
+          lines: Math.round(textarea.clientHeight / parseFloat(style.lineHeight)),
+          wraps: needed > textarea.clientWidth + 1,
+          hidden: {
+            down: textarea.scrollHeight - textarea.clientHeight,
+            across: textarea.scrollWidth - textarea.clientWidth,
+          },
+        };
+      });
+      expect(shown.hidden, `${label}: the box shows its whole value`).toEqual({ down: 0, across: 0 });
+      if (shown.wraps) expect(shown.lines, `${label}: a value too long for one line takes more`).toBeGreaterThan(1);
+      else expect(shown.lines, `${label}: a value that fits takes one line`).toBe(1);
+    }
+    // Each is too long for one line at 320 CSS px, and the sentence is at every width.
+    const lines = (label: string) =>
+      fieldBox(page, label, 'textarea').evaluate((textarea) =>
+        Math.round(textarea.clientHeight / parseFloat(getComputedStyle(textarea).lineHeight)),
+      );
+    expect(await lines('text')).toBeGreaterThan(1);
+    if (viewport.width === 320) {
+      expect(await lines('email')).toBeGreaterThan(1);
+      expect(await lines('phone')).toBeGreaterThan(1);
+    }
+  });
+
+/**
+ * At 320 CSS px a nested element's header is narrower than its name. The name shrinks and ends in an
+ * ellipsis, and the chevron and both marks stay whole inside the header, in their order. The header
+ * used to keep the name whole and clip the property mark off its end.
+ */
+test("a nested element's header too narrow for its name ends the name in an ellipsis and keeps its marks in view", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 640 });
+  await open(page, '03-nested-multi');
+  await animationsDone(page);
+  const heading = await page.evaluate(() => {
+    const root = document.querySelector('cedar-embeddable-editor')!.shadowRoot!;
+    const panel = [...root.querySelectorAll('mat-expansion-panel')].find((candidate) =>
+      candidate
+        .querySelector(':scope > mat-expansion-panel-header .title-label')
+        ?.textContent?.trim()
+        .startsWith('affiliation'),
+    )!;
+    const header = panel.querySelector(':scope > mat-expansion-panel-header')!;
+    const label = header.querySelector('.title-label')!;
+    const text = document.createRange();
+    text.selectNodeContents(label);
+    const box = (element: Element) => {
+      const { left, right, top, bottom } = element.getBoundingClientRect();
+      return { left, right, top, bottom };
+    };
+    return {
+      ellipsis: getComputedStyle(label).textOverflow,
+      textWidth: text.getBoundingClientRect().width,
+      labelWidth: label.getBoundingClientRect().width,
+      // The header's content box, which clips what passes it.
+      clip: box(header.querySelector('.mat-content')!),
+      chevron: box(header.querySelector('[data-disclosure]')!),
+      marks: [...panel.querySelectorAll(':scope > app-cedar-component-marks > *')].map(box),
+    };
+  });
+  expect(heading.ellipsis).toBe('ellipsis');
+  expect(heading.textWidth, 'the name is shortened').toBeGreaterThan(heading.labelWidth + 1);
+  expect(heading.marks).toHaveLength(2);
+  for (const [name, part] of [
+    ['chevron', heading.chevron],
+    ['help mark', heading.marks[0]],
+    ['property mark', heading.marks[1]],
+  ] as const) {
+    expect(part.left, `${name} starts inside the header`).toBeGreaterThanOrEqual(heading.clip.left - 0.5);
+    expect(part.right, `${name} ends inside the header`).toBeLessThanOrEqual(heading.clip.right + 0.5);
+    expect(part.top, `${name} is inside the header`).toBeGreaterThanOrEqual(heading.clip.top - 0.5);
+    expect(part.bottom, `${name} is inside the header`).toBeLessThanOrEqual(heading.clip.bottom + 0.5);
+  }
+  expect(heading.chevron.right).toBeLessThanOrEqual(heading.marks[0].left);
+  expect(heading.marks[0].right).toBeLessThanOrEqual(heading.marks[1].left);
+});
+
+/** The panel header of the element whose name starts with `name`. */
+const elementHeader = (page: Page, name: string): Locator =>
+  page
+    .locator('mat-expansion-panel-header')
+    .filter({ has: page.locator('.title-label', { hasText: new RegExp(`^\\s*${name}\\b`) }) });
+
+/** The tooltips on screen showing exactly `text`. */
+const tooltipOf = (page: Page, text: string): Locator =>
+  page.locator('.mat-mdc-tooltip-surface').filter({ hasText: new RegExp(`^\\s*${text}\\s*$`) });
+
+/** Keyboard focus on an element's header, reached back from its help mark, which follows it. */
+const focusFromKeyboard = async (page: Page, header: Locator): Promise<void> => {
+  await header
+    .locator('xpath=..')
+    .locator(':scope > app-cedar-component-marks')
+    .getByRole('img', { name: 'Description', exact: true })
+    .focus();
+  await page.keyboard.press('Shift+Tab');
+  await expect(header).toBeFocused();
+};
+
+/**
+ * A header that shortens an element's name shows the whole name in a tooltip, on hover and on
+ * keyboard focus. A header whose name fits shows none, and the tooltip follows the header as the
+ * window narrows and widens.
+ */
+test('a shortened element name shows in full in a tooltip on hover and on keyboard focus', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 640 });
+  await open(page, '03-nested-multi');
+  await animationsDone(page);
+  const header = elementHeader(page, 'affiliation');
+  await expect(header).not.toHaveClass(/mat-mdc-tooltip-disabled/);
+
+  await header.locator('.title-label').hover();
+  await expect(tooltipOf(page, 'affiliation')).toBeVisible();
+  await page.mouse.move(0, 0);
+  await expect(tooltipOf(page, 'affiliation')).toHaveCount(0);
+
+  await focusFromKeyboard(page, header);
+  await expect(tooltipOf(page, 'affiliation')).toBeVisible();
+});
+
+test('an element name that fits its header shows no tooltip', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await open(page, '03-nested-multi');
+  await animationsDone(page);
+  for (const name of ['author', 'affiliation']) {
+    const header = elementHeader(page, name);
+    await expect(header).toHaveClass(/mat-mdc-tooltip-disabled/);
+    await header.locator('.title-label').hover();
+    await focusFromKeyboard(page, header);
+  }
+  // Long enough for a tooltip that was going to open to have opened.
+  await page.waitForTimeout(500);
+  await expect(page.locator('.mat-mdc-tooltip-surface')).toHaveCount(0);
+});
+
+test('an element name shortened by a narrower window shows its tooltip, and drops it once it fits', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await open(page, '03-nested-multi');
+  await animationsDone(page);
+  const header = elementHeader(page, 'affiliation');
+  await expect(header).toHaveClass(/mat-mdc-tooltip-disabled/);
+
+  await page.setViewportSize({ width: 320, height: 640 });
+  await expect(header).not.toHaveClass(/mat-mdc-tooltip-disabled/);
+  await header.locator('.title-label').hover();
+  await expect(tooltipOf(page, 'affiliation')).toBeVisible();
+
+  await page.mouse.move(0, 0);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await expect(header).toHaveClass(/mat-mdc-tooltip-disabled/);
+});
+
+/**
+ * An authority's placeholder is one line that cannot wrap, so it has to fit the box at 320 CSS px.
+ * The search box of each of the seven authorities is measured, in the language the checks run in.
+ */
+test('every authority placeholder fits its box at 320 CSS px', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 640 });
+  await open(page, '08-authority');
+  await animationsDone(page);
+  const placeholders = await page.evaluate(() => {
+    const root = document.querySelector('cedar-embeddable-editor')!.shadowRoot!;
+    const boxes = [...root.querySelectorAll<HTMLInputElement>('input[placeholder]')];
+    return boxes
+      .filter((box) => box.placeholder.trim() !== '')
+      .map((box) => {
+        const style = getComputedStyle(box, '::placeholder');
+        const line = document.createElement('span');
+        for (const property of ['font', 'letter-spacing', 'word-spacing', 'text-transform'])
+          line.style.setProperty(property, style.getPropertyValue(property));
+        Object.assign(line.style, { position: 'absolute', visibility: 'hidden', whiteSpace: 'pre' });
+        line.textContent = box.placeholder;
+        box.parentElement!.appendChild(line);
+        const needed = Math.ceil(line.getBoundingClientRect().width);
+        line.remove();
+        const own = getComputedStyle(box);
+        return {
+          placeholder: box.placeholder,
+          needed,
+          available: Math.floor(box.clientWidth - parseFloat(own.paddingLeft) - parseFloat(own.paddingRight)),
+        };
+      });
+  });
+  expect(placeholders.map(({ placeholder }) => placeholder).sort()).toEqual([
+    'Chemical name or PFAS ID',
+    'Grant details or NIH Grant ID',
+    'Institution name or ROR',
+    'Publication name or PubMed ID',
+    'Research resource name or RRID',
+    'Researcher name or ORCID',
+    'Search by title or enter DOI',
+  ]);
+  for (const { placeholder, needed, available } of placeholders)
+    expect(needed, `"${placeholder}" needs ${needed}px of ${available}px`).toBeLessThanOrEqual(available + 1);
+});
 
 /** An authority answers a search with two suggestions, the second with a name long enough to wrap. */
 const answerSearches = async (page: Page): Promise<void> => {

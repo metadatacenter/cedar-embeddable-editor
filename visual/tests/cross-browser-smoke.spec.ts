@@ -212,8 +212,43 @@ test('honors read-only mode', async ({ page }) => {
   await expect(page.locator('.cee-spec-box').first()).toBeVisible();
 
   await open(page, '01-input-types', 'readonly', '14-markup-in-a-value');
-  await expect(fieldBox(page, 'email')).toHaveAttribute('readonly', 'true');
-  await expect(fieldBox(page, 'phone')).toHaveAttribute('readonly', 'true');
+  await expect(fieldBox(page, 'email', 'textarea')).toHaveAttribute('readonly', 'true');
+  await expect(fieldBox(page, 'phone', 'textarea')).toHaveAttribute('readonly', 'true');
+});
+
+/**
+ * Read only, a text, email or phone value is drawn in a box that grows, so that a long value wraps.
+ * Each browser sizes that box itself, and a short value has to keep the one-line box a numeric value
+ * keeps.
+ */
+test('a short read-only text, email or phone value keeps the one-line box', async ({ page }) => {
+  await page.route('**/fixtures/01-input-types-instance.json', async (route) => {
+    const json = await (await route.fetch()).json();
+    Object.assign(json, {
+      _text: { '@value': 'A short value' },
+      _email: { '@value': 'curator@example.org' },
+      _phone: { '@value': '+1 650 555 0100' },
+      _numeric: { '@value': '42', '@type': 'xsd:decimal' },
+    });
+    await route.fulfill({ json });
+  });
+  await open(page, '01-input-types', 'readonly', '01-input-types-instance');
+  const heightOf = (widget: string) =>
+    page
+      .locator(`${widget} .mat-mdc-text-field-wrapper`)
+      .first()
+      .boundingBox()
+      .then((box) => box!.height);
+  await expect(fieldBox(page, 'numeric')).toHaveValue('42');
+  const oneLine = await heightOf('app-cedar-input-numeric');
+  for (const [widget, label] of [
+    ['app-cedar-input-text', 'text'],
+    ['app-cedar-input-email', 'email'],
+    ['app-cedar-input-phone', 'phone'],
+  ] as const) {
+    await expect(fieldBox(page, label, 'textarea')).toHaveJSProperty('readOnly', true);
+    await expect.poll(() => heightOf(widget), widget).toBe(oneLine);
+  }
 });
 
 /**

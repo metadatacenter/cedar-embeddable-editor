@@ -19,6 +19,7 @@ import { PageBreakPaginatorService } from '../../service/page-break-paginator.se
 import { ComponentRenderDecision, decideComponentRender } from './component-render-decision';
 import { specHeaderFactsOf } from '../../util/field-spec';
 import { FieldRevealService, RevealTarget } from '../../service/field-reveal.service';
+import { ShortenedName } from '../cedar-component-header/cedar-component-header.component';
 
 @Component({
   selector: 'app-cedar-component-renderer',
@@ -31,6 +32,8 @@ import { FieldRevealService, RevealTarget } from '../../service/field-reveal.ser
 export class CedarComponentRendererComponent implements OnChanges, OnDestroy, RevealTarget {
   renderDecision: ComponentRenderDecision | null = null;
   panelOpenState = false;
+  /** An element's name while its header shortens it, which the header then shows in a tooltip. */
+  shortenedName: ShortenedName | null = null;
   private shown: CedarComponent | null = null;
 
   /*

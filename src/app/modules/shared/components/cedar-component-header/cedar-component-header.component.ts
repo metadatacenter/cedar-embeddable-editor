@@ -1,16 +1,18 @@
 import {
   AfterViewChecked,
+  AfterViewInit,
   ChangeDetectionStrategy,
   Component,
-  DestroyRef,
   ElementRef,
+  EventEmitter,
   Input,
+  NgZone,
   OnDestroy,
-  OnInit,
   Optional,
+  Output,
+  ViewChild,
   ViewEncapsulation,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateService } from '@ngx-translate/core';
 import { CedarComponent } from '../../models/component/cedar-component.model';
 import { ComponentDataService } from '../../service/component-data.service';
@@ -22,10 +24,16 @@ import { MultiFieldComponent } from '../../models/field/multi-field-component.mo
 import { StaticFieldComponent } from '../../models/static/static-field-component.model';
 import { InputType } from '../../models/input-type.model';
 import { fieldTypeIcon } from '../../util/field-type-icon';
-import { UserPreferencesService } from '../../service/user-preferences.service';
 import { DescriptionLink } from '../../a11y/message-links';
 import { textLanguageOf, uiLanguageOf } from '../../a11y/language-tag';
 import { GlobalSettingsContextService } from '../../service/global-settings-context.service';
+
+/** An element's name, which its header shows in full in a tooltip while the header shortens it. */
+export interface ShortenedName {
+  readonly text: string;
+  /** The language the template declares for the name, as a `lang` tag, or null. */
+  readonly language: string | null;
+}
 
 @Component({
   selector: 'app-cedar-component-header',
@@ -35,7 +43,7 @@ import { GlobalSettingsContextService } from '../../service/global-settings-cont
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
-export class CedarComponentHeaderComponent implements OnInit, AfterViewChecked, OnDestroy {
+export class CedarComponentHeaderComponent implements AfterViewInit, AfterViewChecked, OnDestroy {
   private static nextId = 0;
   /** The id of the visually hidden text holding the description. Unique within the page. */
   readonly descriptionId = `cee-description-${CedarComponentHeaderComponent.nextId++}`;
@@ -45,15 +53,22 @@ export class CedarComponentHeaderComponent implements OnInit, AfterViewChecked, 
   shouldRenderRequiredMark = false;
   fieldTypeIcon: string | null = null;
   isOntologyField = false;
-  readOnlyMode = false;
   /**
    * The field whose specification belongs beside this label, or null for an element, a template or a
    * static field — none of which constrains a value. Set from the same two classes the renderer tests,
    * so the two agree about what a field is.
    */
   fieldToDescribe: FieldComponent | null = null;
-  userPreferencesService: UserPreferencesService;
   private readonly describedHeading = new DescriptionLink();
+  @ViewChild('titleLabel') private titleLabel?: ElementRef<HTMLElement>;
+  private nameObserver: ResizeObserver | null = null;
+  private nameShortened = false;
+
+  /**
+   * An element's name while its header is too narrow for it and ends it in an ellipsis, and null once
+   * the name fits again. Emitted when that changes, so the panel header can show the whole name.
+   */
+  @Output() readonly shortenedName = new EventEmitter<ShortenedName | null>();
 
   /**
    * Whether the description is drawn as text below this header, which read-only fields do. The header
@@ -63,19 +78,47 @@ export class CedarComponentHeaderComponent implements OnInit, AfterViewChecked, 
 
   constructor(
     public cds: ComponentDataService,
-    userPreferencesService: UserPreferencesService,
-    private readonly destroyRef: DestroyRef,
     // Optional, so a spec can build the component without a view.
     @Optional() private readonly elementRef: ElementRef<HTMLElement> | null = null,
     @Optional() private readonly translate: TranslateService | null = null,
     @Optional() private readonly globalSettings: GlobalSettingsContextService | null = null,
-  ) {
-    this.userPreferencesService = userPreferencesService;
+    @Optional() private readonly zone: NgZone | null = null,
+  ) {}
+
+  /**
+   * Watch an element's name for the ellipsis. A narrower header shrinks the label the name is clipped
+   * to. A face that loads late can widen the name without resizing the label, so the name is measured
+   * again once the fonts are in.
+   */
+  ngAfterViewInit(): void {
+    const label = this.titleLabel?.nativeElement;
+    if (this.disclosure === null || !label || typeof ResizeObserver === 'undefined') {
+      return;
+    }
+    const measure = () => this.measureName(label);
+    this.nameObserver = new ResizeObserver(measure);
+    this.nameObserver.observe(label);
+    void label.ownerDocument.fonts?.ready.then(measure);
   }
-  ngOnInit() {
-    this.userPreferencesService.readOnlyMode$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((mode) => {
-      this.readOnlyMode = mode;
-    });
+
+  /** Whether the name is wider than the label that clips it, and so ends in an ellipsis. */
+  private measureName(label: HTMLElement): void {
+    const text = label.ownerDocument.createRange();
+    text.selectNodeContents(label);
+    const shortened = text.getBoundingClientRect().width > label.getBoundingClientRect().width + 0.5;
+    if (shortened === this.nameShortened) {
+      return;
+    }
+    this.nameShortened = shortened;
+    const name: ShortenedName | null = shortened
+      ? { text: this.cds.getRenderingLabelForComponent(this.component), language: this.textLanguage }
+      : null;
+    // A resize is reported outside Angular's zone, and the panel header's tooltip is bound to this.
+    if (this.zone) {
+      this.zone.run(() => this.shortenedName.emit(name));
+    } else {
+      this.shortenedName.emit(name);
+    }
   }
 
   /**
@@ -90,6 +133,7 @@ export class CedarComponentHeaderComponent implements OnInit, AfterViewChecked, 
   }
 
   ngOnDestroy(): void {
+    this.nameObserver?.disconnect();
     this.describedHeading.clear();
   }
 
@@ -112,11 +156,6 @@ export class CedarComponentHeaderComponent implements OnInit, AfterViewChecked, 
     return this.textLanguage !== null && this.translate && this.globalSettings
       ? uiLanguageOf(this.translate, this.globalSettings)
       : null;
-  }
-
-  /** Whether the help and property marks take focus, which a mark inside an element's panel header cannot. */
-  get focusableMarks(): boolean {
-    return this.disclosure === null;
   }
 
   @Input({ required: true }) set componentToRender(componentToRender: CedarComponent) {
