@@ -120,6 +120,8 @@ $identity-text: 72px;
   color: tokens.$text-muted;
   font-size: tokens.$font-size;
   line-height: tokens.$control-line-height-default;
+  /* A word longer than the line, such as a DOI address, breaks rather than running past the page. */
+  overflow-wrap: anywhere;
 }
 
 /*

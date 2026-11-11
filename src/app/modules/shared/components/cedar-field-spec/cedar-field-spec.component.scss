@@ -73,4 +73,6 @@
   line-height: tokens.$control-line-height-default;
   margin: 0 0 tokens.$space-2;
   color: tokens.$text-primary;
+  /* A word longer than the line, such as a DOI address, breaks rather than running past the page. */
+  overflow-wrap: anywhere;
 }
