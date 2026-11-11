@@ -1085,7 +1085,9 @@ async function inspect(request) {
    *   outlines, borders and shadows of the control, of the six boxes around it and of their indicator
    *   layers is the indicator, since only the focus can have changed them. So is whatever it changes
    *   anywhere in the field around the control, generated content included, as Material's filled
-   *   field draws its focus line in a sibling's ::after. A small input inside a wider field, such as a
+   *   field draws its focus line in a sibling's ::after. The field is identified by what it is rather
+   *   than by its size, so one widened by a clear button is still read whole, and a box holding
+   *   another field is never taken for one. A small input inside a wider field, such as a
    *   time's hour, shows its focus on the field. An outline drawn outside a box is measured against
    *   what lies outside the box, and one drawn inside it, like an inset shadow, against the box's own
    *   fill. A control whose focus changes none of these fails, because a change of fill alone
@@ -1391,15 +1393,30 @@ async function inspect(request) {
     // Focus, last, because it moves focus. Each control is restored to unfocused afterwards.
     const focusable =
       'a[href], button, input:not([type="hidden"]), select, textarea, summary, [tabindex]:not([tabindex="-1"])';
-    // The field around a control: the outermost box at most three levels up and 48px larger each way,
-    // as a text field's wrapper is. Every piece in it is read, generated content included.
+    // A box that is a field whatever else it holds.
+    const formField = '.mat-mdc-form-field, .mdc-text-field, label';
+    // A field may hold buttons besides its control, such as a clear button. Any other shown control
+    // belongs to another field, so a box holding one groups fields rather than being one.
+    const unrelated = elements.filter(
+      (element) => element.matches(focusable) && !element.matches('button, [role="button"]') && shown(element),
+    );
+    /*
+     * The field around a control: the nearest Material form field or label around it, or failing both,
+     * the outermost box at most three levels up whose only controls besides this one are buttons. The
+     * search stops before the body and before a box holding an unrelated control, so no box around
+     * other fields, such as the page, can supply a focus indicator. Every piece in the field is read,
+     * generated content included.
+     */
     const fieldOf = (control) => {
-      const own = control.getBoundingClientRect();
       let field = null;
-      for (let box = parent(control), level = 1; box && level <= 3; box = parent(box), level++) {
-        const rect = box.getBoundingClientRect();
-        if (rect.width > own.width + 48 || rect.height > own.height + 48) break;
-        field = box;
+      for (
+        let box = parent(control), level = 1;
+        box && box !== document.body && box !== document.documentElement;
+        box = parent(box), level++
+      ) {
+        if (unrelated.some((other) => other !== control && contains(box, other))) break;
+        if (box.matches(formField)) return box;
+        if (level <= 3) field = box;
       }
       return field;
     };
