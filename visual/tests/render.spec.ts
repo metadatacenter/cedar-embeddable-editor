@@ -14,6 +14,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { elementIrisOf, literalNode, literalOf, termOf, valueOf } from './values';
+import { NARROW_ONLY, WIDTH_INDEPENDENT } from './width-tags';
 import { fileURLToPath } from 'node:url';
 import type { CedarEmbeddableEditorElement } from '../../src/app/cee-public-api';
 import {
@@ -46,16 +47,6 @@ const FIXTURES = [
   ['13-paged-choice', 'a choice field inside a multi-instance element'],
   ['22-multi-field-values', 'multi-instance fields, whose pager shares the title row'],
 ] as const;
-
-/**
- * Called first in a describe whose tests read nothing the viewport width changes, or set a viewport
- * of their own, so the narrow project would only repeat the desktop run.
- */
-function widthIndependent(): void {
-  test.beforeEach(() => {
-    test.skip(test.info().project.name === 'narrow', 'nothing here depends on the width; the desktop run covers it');
-  });
-}
 
 test.describe('host style isolation', () => {
   test('host and editor styles do not cross the custom-element boundary', async ({ page }) => {
@@ -608,8 +599,7 @@ test('multi-instance pager renders its chips without covering a narrow expansion
  * ends where the heading does. Both used to start at the left, under the element's name.
  */
 for (const mode of ['editable', 'readonly'] as const) {
-  test(`a narrow element's ${mode} pager ends under its heading's last mark`, async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== 'narrow', 'the pager takes a row of its own only at a narrow width');
+  test(`a narrow element's ${mode} pager ends under its heading's last mark`, { tag: NARROW_ONLY }, async ({ page }) => {
     await open(page, '03-nested-multi', mode === 'readonly' ? 'readonly' : undefined);
 
     const elements = await page.evaluate(() => {
@@ -1627,8 +1617,7 @@ test.describe('widgets, clipped', () => {
  * against the manifest rather than against a hard-coded string that would have to
  * be edited at every hop.
  */
-test.describe('the version stamp', () => {
-  widthIndependent();
+test.describe('the version stamp', { tag: WIDTH_INDEPENDENT }, () => {
   const declared = JSON.parse(readFileSync(fileURLToPath(new URL('../../package.json', import.meta.url)), 'utf8'))
     .version as string;
 
@@ -1661,8 +1650,7 @@ test.describe('the version stamp', () => {
  * sit within its height. Beside a title with a description it keeps to the top of the row, level with
  * the title. At a narrow width it takes a row of its own, so the title has the full width below it.
  */
-test.describe('the identity', () => {
-  widthIndependent();
+test.describe('the identity', { tag: WIDTH_INDEPENDENT }, () => {
   for (const width of [1280, 480]) {
     test(`sets the name and the stamp beside the mark at ${width}`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
@@ -1702,8 +1690,7 @@ test.describe('the identity', () => {
  * alone. It was a flex row there, which shrank the actions to their content and
  * put the buttons at the left edge at every width above 520px.
  */
-test.describe('the header actions', () => {
-  widthIndependent();
+test.describe('the header actions', { tag: WIDTH_INDEPENDENT }, () => {
   const rightEdges = (page: Page) =>
     page.locator('.template-header').evaluate((header) => {
       const root = header.getRootNode() as ShadowRoot;
@@ -1738,8 +1725,7 @@ test.describe('the header actions', () => {
   }
 });
 
-test.describe('external authority fields', () => {
-  widthIndependent();
+test.describe('external authority fields', { tag: WIDTH_INDEPENDENT }, () => {
   test('typing does not raise an error', async ({ page }) => {
     await open(page, '04-controlled-terms');
 
@@ -1798,8 +1784,7 @@ const AUTHORITY_FIELDS = [
   ['dataset_doi', 'DOI'],
 ] as const;
 
-test.describe('every external authority widget', () => {
-  widthIndependent();
+test.describe('every external authority widget', { tag: WIDTH_INDEPENDENT }, () => {
   for (const [name, label] of AUTHORITY_FIELDS) {
     /**
      * REGRESSION: a validator pointed at the search control instead of the
@@ -1875,8 +1860,7 @@ test.describe('every external authority widget', () => {
  * failure into a constant — so every run requested the same URL and nothing was
  * busted. It passed 86 tests while doing nothing.
  */
-test.describe('the served bundle', () => {
-  widthIndependent();
+test.describe('the served bundle', { tag: WIDTH_INDEPENDENT }, () => {
   test('is fetched at a URL keyed to its mtime', async ({ page }) => {
     const requested: string[] = [];
     page.on('request', (r) => {
@@ -1913,8 +1897,7 @@ test.describe('the served bundle', () => {
  * kill them are named in their comment. Mutation testing is the difference between a
  * port and a hope; on both counts here it changed what got deleted and when.
  */
-test.describe('ported from the deleted component specs', () => {
-  widthIndependent();
+test.describe('ported from the deleted component specs', { tag: WIDTH_INDEPENDENT }, () => {
   /**
    * Where a choice field's value comes from, traced — because these two tests
    * initially killed no mutant, and the reason turned out to be worth writing down.
@@ -2026,8 +2009,7 @@ test.describe('ported from the deleted component specs', () => {
   });
 });
 
-test.describe('declared non-enumerated defaults', () => {
-  widthIndependent();
+test.describe('declared non-enumerated defaults', { tag: WIDTH_INDEPENDENT }, () => {
   test('editable: a new instance starts with text, numeric, temporal and controlled-term defaults', async ({
     page,
   }) => {
@@ -2119,8 +2101,7 @@ test.describe('declared non-enumerated defaults', () => {
  * Note the sibling `CedarInputSelectComponent.populateItemsOnLoad` survives and must:
  * same name, unrelated job — it fills the dropdown's *option list*, not a value.
  */
-test.describe('a choice value reaches the widget by every load path', () => {
-  widthIndependent();
+test.describe('a choice value reaches the widget by every load path', { tag: WIDTH_INDEPENDENT }, () => {
   const checkedRadio = (page: import('@playwright/test').Page) => page.getByRole('radio', { checked: true });
 
   test('templateObject alone applies the template default', async ({ page }) => {
@@ -2168,8 +2149,7 @@ test.describe('a choice value reaches the widget by every load path', () => {
  * `config-validation.spec.ts` covers the rules — because what is being asserted
  * here is that the check is *wired to the boundary* at all.
  */
-test.describe('an unusable configuration', () => {
-  widthIndependent();
+test.describe('an unusable configuration', { tag: WIDTH_INDEPENDENT }, () => {
   const errorsWhileLoading = async (page: import('@playwright/test').Page, extra: string): Promise<string[]> => {
     const errors: string[] = [];
     page.on('console', (message) => {
@@ -2208,8 +2188,7 @@ test.describe('an unusable configuration', () => {
  * record what a sanitizer's output happens to look like rather than what it must
  * never do.
  */
-test.describe('template rich text', () => {
-  widthIndependent();
+test.describe('template rich text', { tag: WIDTH_INDEPENDENT }, () => {
   const shadowHtml = (page: import('@playwright/test').Page): Promise<string> =>
     page.evaluate(() => document.querySelector('cedar-embeddable-editor')!.shadowRoot!.innerHTML);
 
@@ -2386,8 +2365,7 @@ test.describe('template-authored strings that are not rich text', () => {
  * the whole path from the loaded document to the button — the handler tests would
  * have passed on an instance built with the slot already there.
  */
-test.describe('an attribute-value field with no slot in the instance', () => {
-  widthIndependent();
+test.describe('an attribute-value field with no slot in the instance', { tag: WIDTH_INDEPENDENT }, () => {
   const ceeErrors = (page: Page): string[] => {
     const errors: string[] = [];
     page.on('console', (message) => {
@@ -2458,8 +2436,7 @@ test.describe('an attribute-value field with no slot in the instance', () => {
  * up as a fix. The `onerror` handler is what sanitization removes, and it sets a window
  * flag and nothing else.
  */
-test.describe('markup in an instance value', () => {
-  widthIndependent();
+test.describe('markup in an instance value', { tag: WIDTH_INDEPENDENT }, () => {
   test('is escaped, not rendered, while the field is editable', async ({ page }) => {
     await open(page, '01-input-types', undefined, '14-markup-in-a-value');
 
@@ -2520,8 +2497,7 @@ test.describe('markup in an instance value', () => {
  * as a lookup error in the widget, which is a different behaviour from a search that
  * found nothing, and this test is about the request rather than the response.
  */
-test.describe('external authority endpoints', () => {
-  widthIndependent();
+test.describe('external authority endpoints', { tag: WIDTH_INDEPENDENT }, () => {
   const FIELDS = [
     // The path segment, not the authority's name: PFAS is served under `comp-tox`
     // and NIH Grant under `nih-grant`. These are the bridge server's own routes,
@@ -2927,8 +2903,7 @@ const takeDownload = async (
  * The sentence used to be English written into the validator, so a Hungarian form
  * reported this one constraint in English beside messages that were not.
  */
-test.describe('a numeric type error', () => {
-  widthIndependent();
+test.describe('a numeric type error', { tag: WIDTH_INDEPENDENT }, () => {
   for (const [preset, expected] of [
     [undefined, 'The value should be an integer.'],
     ['hu', 'Az értéknek egész számnak kell lennie.'],
@@ -3005,8 +2980,7 @@ test('a read-only template-only download menu does not offer an instance file', 
  * should be. A structural check on agreement catches a serializer that has stopped
  * working; it does not need to re-verify YAML grammar the library already tests.
  */
-test.describe('what a host page reads back', () => {
-  widthIndependent();
+test.describe('what a host page reads back', { tag: WIDTH_INDEPENDENT }, () => {
   const read = (page: import('@playwright/test').Page) =>
     page.evaluate(() => {
       const cee = document.querySelector('cedar-embeddable-editor')!;
@@ -3165,8 +3139,7 @@ test.describe('what a host page reads back', () => {
   });
 });
 
-test.describe('host input timing', () => {
-  widthIndependent();
+test.describe('host input timing', { tag: WIDTH_INDEPENDENT }, () => {
   test('template-first separate inputs keep the supplied instance value', async ({ page }) => {
     await open(page, '11-choice-default', undefined, '11-choice-default-instance', 'template-first');
     await expect(page.getByRole('radio', { checked: true })).toHaveAccessibleName('Private');
@@ -3551,8 +3524,7 @@ test.describe('a multi-instance field paging its values', () => {
    * so the delete button stands under the property glyph that ends the field's heading. It used to
    * start at the left edge, under the field's name and away from the marks it sits with.
    */
-  test('ends its own narrow row under the property glyph', async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== 'narrow', 'the pager takes a row of its own only at a narrow width');
+  test('ends its own narrow row under the property glyph', { tag: NARROW_ONLY }, async ({ page }) => {
     await open(page, '24-multi-authority-values');
 
     const renderer = page
@@ -3581,8 +3553,7 @@ test.describe('a multi-instance field paging its values', () => {
   });
 
   /** Reading, no actions follow the chips, so the last chip ends where the field's heading does. */
-  test('ends its own narrow read-only row where its heading does', async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== 'narrow', 'the pager takes a row of its own only at a narrow width');
+  test('ends its own narrow read-only row where its heading does', { tag: NARROW_ONLY }, async ({ page }) => {
     await open(page, '24-multi-authority-values', 'readonly', '24-multi-authority-values-instance');
 
     const renderer = page.locator('app-cedar-component-renderer').filter({
@@ -3737,8 +3708,7 @@ test.describe('read-only belongs to the host', () => {
  * of them.
  *
  */
-test.describe('config flags are wired to something', () => {
-  widthIndependent();
+test.describe('config flags are wired to something', { tag: WIDTH_INDEPENDENT }, () => {
   const FLAGS: ReadonlyArray<{ flag: string; withFlags?: string[]; fixture?: string }> = [{ flag: 'showDownloadMenu' }];
 
   /**
@@ -4024,8 +3994,7 @@ test('every download menu icon renders shared SVG without font requests', async 
  * No trigger is needed: CEE traces its config and its language-map choice on every load,
  * which is a real message from a real path rather than something contrived.
  */
-test.describe('the host event handler', () => {
-  widthIndependent();
+test.describe('the host event handler', { tag: WIDTH_INDEPENDENT }, () => {
   test('receives CEE diagnostics through the web component input', async ({ page }) => {
     await open(page, '01-input-types', undefined, undefined, undefined, '&e=1');
 
@@ -4218,8 +4187,7 @@ test('editable choice rows are compact and their controls do not overlap adjacen
   expect((await clear.boundingBox())!.height).toBe(28);
 });
 
-test.describe('preview host heading', () => {
-  widthIndependent();
+test.describe('preview host heading', { tag: WIDTH_INDEPENDENT }, () => {
   for (const readOnly of [false, true]) {
     test(`preview omits identity header with readOnly=${readOnly}`, async ({ page }) => {
       await open(
