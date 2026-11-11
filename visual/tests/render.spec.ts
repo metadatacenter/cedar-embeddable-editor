@@ -599,38 +599,42 @@ test('multi-instance pager renders its chips without covering a narrow expansion
  * ends where the heading does. Both used to start at the left, under the element's name.
  */
 for (const mode of ['editable', 'readonly'] as const) {
-  test(`a narrow element's ${mode} pager ends under its heading's last mark`, { tag: NARROW_ONLY }, async ({ page }) => {
-    await open(page, '03-nested-multi', mode === 'readonly' ? 'readonly' : undefined);
+  test(
+    `a narrow element's ${mode} pager ends under its heading's last mark`,
+    { tag: NARROW_ONLY },
+    async ({ page }) => {
+      await open(page, '03-nested-multi', mode === 'readonly' ? 'readonly' : undefined);
 
-    const elements = await page.evaluate(() => {
-      const root = document.querySelector('cedar-embeddable-editor')!.shadowRoot!;
-      return Array.from(root.querySelectorAll('mat-expansion-panel'), (panel) => {
-        const header = panel.querySelector(':scope > mat-expansion-panel-header app-cedar-component-header')!;
-        // The marks follow the header, drawn over the room it keeps for them.
-        const marks = panel.querySelectorAll(':scope > app-cedar-component-marks mat-icon');
-        const mark = marks[marks.length - 1].getBoundingClientRect();
-        // The panel's own pager precedes the nested panels in document order.
-        const pager = panel.querySelector('.aligned-up')!;
-        const chips = pager.querySelectorAll('.mat-mdc-chip');
-        const remove = pager.querySelector('button[aria-label="Delete current"] mat-icon')?.getBoundingClientRect();
-        return {
-          headerRight: header.getBoundingClientRect().right,
-          markCenter: mark.left + mark.width / 2,
-          removeCenter: remove ? remove.left + remove.width / 2 : null,
-          chipRight: chips[chips.length - 1].getBoundingClientRect().right,
-        };
+      const elements = await page.evaluate(() => {
+        const root = document.querySelector('cedar-embeddable-editor')!.shadowRoot!;
+        return Array.from(root.querySelectorAll('mat-expansion-panel'), (panel) => {
+          const header = panel.querySelector(':scope > mat-expansion-panel-header app-cedar-component-header')!;
+          // The marks follow the header, drawn over the room it keeps for them.
+          const marks = panel.querySelectorAll(':scope > app-cedar-component-marks mat-icon');
+          const mark = marks[marks.length - 1].getBoundingClientRect();
+          // The panel's own pager precedes the nested panels in document order.
+          const pager = panel.querySelector('.aligned-up')!;
+          const chips = pager.querySelectorAll('.mat-mdc-chip');
+          const remove = pager.querySelector('button[aria-label="Delete current"] mat-icon')?.getBoundingClientRect();
+          return {
+            headerRight: header.getBoundingClientRect().right,
+            markCenter: mark.left + mark.width / 2,
+            removeCenter: remove ? remove.left + remove.width / 2 : null,
+            chipRight: chips[chips.length - 1].getBoundingClientRect().right,
+          };
+        });
       });
-    });
 
-    expect(elements, 'both elements repeat').toHaveLength(2);
-    for (const element of elements) {
-      if (mode === 'editable') {
-        expect(Math.abs(element.removeCenter! - element.markCenter), JSON.stringify(element)).toBeLessThan(1);
-      } else {
-        expect(Math.abs(element.chipRight - element.headerRight), JSON.stringify(element)).toBeLessThan(1);
+      expect(elements, 'both elements repeat').toHaveLength(2);
+      for (const element of elements) {
+        if (mode === 'editable') {
+          expect(Math.abs(element.removeCenter! - element.markCenter), JSON.stringify(element)).toBeLessThan(1);
+        } else {
+          expect(Math.abs(element.chipRight - element.headerRight), JSON.stringify(element)).toBeLessThan(1);
+        }
       }
-    }
-  });
+    },
+  );
 }
 
 test('multi-instance actions track cardinality and always expose tooltips', async ({ page }) => {
