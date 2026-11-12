@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.34] - 2026-11-12
+
+Aligns with `cedar-model-typescript-library@1.0.28`.
+
+- Gives element description and property IRI marks their own keyboard focus and tooltips, shortens a long element name with an ellipsis and a tooltip, and wraps a long read-only text, email or phone value.
+- Names each field's box by its label in the template's language, so a screen reader no longer reads the label in the language of the value.
+- Lets a long unbroken word, such as a DOI address, break in template descriptions, read-only field descriptions and rich text instead of widening the page.
+- Adopts the shared design-token control, outline and text-line recipes without changing the editor's appearance.
+
 ## [2.0.33] - 2026-11-07
 
 Aligns with `cedar-model-typescript-library@1.0.27`.
