@@ -113,7 +113,8 @@ test.describe('presenting a value', () => {
       document.querySelector('cedar-embeddable-field')!.value = { kind: 'literal', value: 'recorded' };
     });
 
-    await expect(page.locator('cedar-embeddable-field input')).toHaveValue('recorded');
+    // Read-only, a text value is drawn in a box that grows, so that a long one wraps.
+    await expect(page.locator('cedar-embeddable-field textarea')).toHaveValue('recorded');
     await expect(page.locator('cedar-embeddable-field .cee-spec-box')).toHaveCount(0);
   });
 });

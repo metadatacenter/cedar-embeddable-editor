@@ -14,6 +14,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { elementIrisOf, literalNode, literalOf, termOf, valueOf } from './values';
+import { NARROW_ONLY, WIDTH_INDEPENDENT } from './width-tags';
 import { fileURLToPath } from 'node:url';
 import type { CedarEmbeddableEditorElement } from '../../src/app/cee-public-api';
 import {
@@ -29,6 +30,7 @@ import {
   passDebounceWindow,
   recordChanges,
 } from './support/host';
+import { fieldBox } from './support/field-box';
 
 const FIXTURES = [
   ['01-input-types', 'every simple input type'],
@@ -46,16 +48,6 @@ const FIXTURES = [
   ['22-multi-field-values', 'multi-instance fields, whose pager shares the title row'],
 ] as const;
 
-/**
- * Called first in a describe whose tests read nothing the viewport width changes, or set a viewport
- * of their own, so the narrow project would only repeat the desktop run.
- */
-function widthIndependent(): void {
-  test.beforeEach(() => {
-    test.skip(test.info().project.name === 'narrow', 'nothing here depends on the width; the desktop run covers it');
-  });
-}
-
 test.describe('host style isolation', () => {
   test('host and editor styles do not cross the custom-element boundary', async ({ page }) => {
     await open(page, '01-input-types');
@@ -68,7 +60,7 @@ test.describe('host style isolation', () => {
       `,
     });
 
-    const inputStyle = await page.locator('input[aria-label="text"]').evaluate((input) => {
+    const inputStyle = await fieldBox(page, 'text').evaluate((input) => {
       const style = getComputedStyle(input);
       return { background: style.backgroundColor, fontSize: style.fontSize };
     });
@@ -130,7 +122,7 @@ test.describe('host style isolation', () => {
           typeTemplateDescription: read('.template-description', 'type'),
           typeVersion: read('.cee-version', 'type'),
           typeFieldLabel: read('app-cedar-component-header .title', 'type'),
-          typeValue: read('input[aria-label="Text Field"]', 'type'),
+          typeValue: read('app-cedar-input-text input', 'type'),
           typeHint: read('mat-hint', 'type'),
           typeClock: read('.cee-time-segment', 'type'),
           // And the boxes CEE sizes itself.
@@ -222,9 +214,9 @@ test.describe('host style isolation', () => {
 
     const empty = await heights();
 
-    await page.locator('input[aria-label="text"]').fill('a filled value');
-    await page.locator('input[aria-label="email"]').fill('someone@example.org');
-    await page.locator('input[aria-label="link"]').fill('https://example.org/thing');
+    await fieldBox(page, 'text').fill('a filled value');
+    await fieldBox(page, 'email').fill('someone@example.org');
+    await fieldBox(page, 'link').fill('https://example.org/thing');
     await page.locator('body').click({ position: { x: 5, y: 5 } });
     await page.waitForTimeout(300);
 
@@ -375,7 +367,7 @@ test.describe('multiple editor instances', () => {
 
     await openTwoEditors(page, '04-controlled-terms');
     const terminologyRequest = page.waitForRequest((request) => request.url().includes('/isolation/first/terminology'));
-    await page.locator('#editor-first input[aria-label="organism"]').pressSequentially('human', { delay: 40 });
+    await fieldBox(page.locator('#editor-first'), 'organism').pressSequentially('human', { delay: 40 });
     await passDebounceWindow(page);
     expect((await terminologyRequest).url()).toContain('/isolation/first/terminology');
 
@@ -383,7 +375,7 @@ test.describe('multiple editor instances', () => {
     const authorityRequest = page.waitForRequest((request) =>
       request.url().includes('/isolation/first/ext-auth/comp-tox/search-by-name'),
     );
-    await page.locator('#editor-first input[aria-label="chemical_pfas"]').pressSequentially('chemical', { delay: 40 });
+    await fieldBox(page.locator('#editor-first'), 'chemical_pfas').pressSequentially('chemical', { delay: 40 });
     await passDebounceWindow(page);
     expect((await authorityRequest).url()).toContain('/isolation/first/ext-auth/comp-tox/search-by-name');
   });
@@ -435,8 +427,8 @@ test.describe('field type markers', () => {
   test('fields and elements expose their property IRI from a quiet non-link marker', async ({ page }) => {
     await open(page, '03-nested-multi');
 
-    const elementHeader = page.locator('mat-expansion-panel-header').first();
-    const elementMarker = elementHeader.locator('[data-property-iri]');
+    // An element's marks follow its panel header, a button, rather than sit in it.
+    const elementMarker = page.locator('mat-expansion-panel > app-cedar-component-marks [data-property-iri]').first();
     const iri = await elementMarker.getAttribute('data-property-iri');
     expect(iri).toMatch(/^https:\/\/schema\.metadatacenter\.org\/properties\//);
     await expect(elementMarker).toHaveAttribute('aria-label', `Property IRI: ${iri}`);
@@ -447,7 +439,10 @@ test.describe('field type markers', () => {
 
     const alignment = await elementMarker.evaluate((marker) => {
       const markerBox = marker.getBoundingClientRect();
-      const headingBox = marker.closest('.flex-container')!.getBoundingClientRect();
+      const headingBox = marker
+        .closest('mat-expansion-panel')!
+        .querySelector(':scope > mat-expansion-panel-header .flex-container')!
+        .getBoundingClientRect();
       return headingBox.right - markerBox.right;
     });
     expect(alignment).toBe(0);
@@ -573,12 +568,14 @@ test('multi-instance pager renders its chips without covering a narrow expansion
     const header = panel.querySelector('mat-expansion-panel-header')!.getBoundingClientRect();
     const controls = panel.querySelector('app-cedar-multi-pager')!.firstElementChild!.getBoundingClientRect();
     const chip = panel.querySelector('app-cedar-multi-pager mat-chip-option')!.getBoundingClientRect();
+    const label = getComputedStyle(panel.querySelector('app-cedar-multi-pager .mat-mdc-chip-action-label')!);
     const action = panel.querySelector('app-cedar-multi-pager button[mat-icon-button]')!.getBoundingClientRect();
     return {
       header: { top: header.top, bottom: header.bottom, center: header.top + header.height / 2 },
       controls: { top: controls.top, center: controls.top + controls.height / 2 },
       chip: { width: chip.width, height: chip.height, center: chip.top + chip.height / 2 },
-      action: { center: action.top + action.height / 2 },
+      label: { font: label.fontSize, line: label.lineHeight },
+      action: { height: action.height, center: action.top + action.height / 2 },
     };
   });
   if (testInfo.project.name === 'desktop') {
@@ -588,10 +585,9 @@ test('multi-instance pager renders its chips without covering a narrow expansion
       geometry.header.bottom,
     );
   }
-  // Material lands at 32.125px on this font/device scale; keep the visual
-  // circle within the intended compact 32px class rather than asserting away
-  // a sub-pixel rasterisation detail.
-  expect(Math.max(geometry.chip.width, geometry.chip.height)).toBeLessThanOrEqual(33);
+  expect(geometry.chip.height).toBe(26);
+  expect(geometry.label).toEqual({ font: '12px', line: '18px' });
+  expect(geometry.action.height).toBe(32);
   expect(Math.abs(geometry.chip.center - geometry.action.center)).toBeLessThan(1);
 
   await expect(pager).toHaveScreenshot('pager.png');
@@ -603,38 +599,42 @@ test('multi-instance pager renders its chips without covering a narrow expansion
  * ends where the heading does. Both used to start at the left, under the element's name.
  */
 for (const mode of ['editable', 'readonly'] as const) {
-  test(`a narrow element's ${mode} pager ends under its heading's last mark`, async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== 'narrow', 'the pager takes a row of its own only at a narrow width');
-    await open(page, '03-nested-multi', mode === 'readonly' ? 'readonly' : undefined);
+  test(
+    `a narrow element's ${mode} pager ends under its heading's last mark`,
+    { tag: NARROW_ONLY },
+    async ({ page }) => {
+      await open(page, '03-nested-multi', mode === 'readonly' ? 'readonly' : undefined);
 
-    const elements = await page.evaluate(() => {
-      const root = document.querySelector('cedar-embeddable-editor')!.shadowRoot!;
-      return Array.from(root.querySelectorAll('mat-expansion-panel'), (panel) => {
-        const header = panel.querySelector(':scope > mat-expansion-panel-header app-cedar-component-header')!;
-        const marks = header.querySelectorAll('.header-trailing mat-icon');
-        const mark = marks[marks.length - 1].getBoundingClientRect();
-        // The panel's own pager precedes the nested panels in document order.
-        const pager = panel.querySelector('.aligned-up')!;
-        const chips = pager.querySelectorAll('.mat-mdc-chip');
-        const remove = pager.querySelector('button[aria-label="Delete current"] mat-icon')?.getBoundingClientRect();
-        return {
-          headerRight: header.getBoundingClientRect().right,
-          markCenter: mark.left + mark.width / 2,
-          removeCenter: remove ? remove.left + remove.width / 2 : null,
-          chipRight: chips[chips.length - 1].getBoundingClientRect().right,
-        };
+      const elements = await page.evaluate(() => {
+        const root = document.querySelector('cedar-embeddable-editor')!.shadowRoot!;
+        return Array.from(root.querySelectorAll('mat-expansion-panel'), (panel) => {
+          const header = panel.querySelector(':scope > mat-expansion-panel-header app-cedar-component-header')!;
+          // The marks follow the header, drawn over the room it keeps for them.
+          const marks = panel.querySelectorAll(':scope > app-cedar-component-marks mat-icon');
+          const mark = marks[marks.length - 1].getBoundingClientRect();
+          // The panel's own pager precedes the nested panels in document order.
+          const pager = panel.querySelector('.aligned-up')!;
+          const chips = pager.querySelectorAll('.mat-mdc-chip');
+          const remove = pager.querySelector('button[aria-label="Delete current"] mat-icon')?.getBoundingClientRect();
+          return {
+            headerRight: header.getBoundingClientRect().right,
+            markCenter: mark.left + mark.width / 2,
+            removeCenter: remove ? remove.left + remove.width / 2 : null,
+            chipRight: chips[chips.length - 1].getBoundingClientRect().right,
+          };
+        });
       });
-    });
 
-    expect(elements, 'both elements repeat').toHaveLength(2);
-    for (const element of elements) {
-      if (mode === 'editable') {
-        expect(Math.abs(element.removeCenter! - element.markCenter), JSON.stringify(element)).toBeLessThan(1);
-      } else {
-        expect(Math.abs(element.chipRight - element.headerRight), JSON.stringify(element)).toBeLessThan(1);
+      expect(elements, 'both elements repeat').toHaveLength(2);
+      for (const element of elements) {
+        if (mode === 'editable') {
+          expect(Math.abs(element.removeCenter! - element.markCenter), JSON.stringify(element)).toBeLessThan(1);
+        } else {
+          expect(Math.abs(element.chipRight - element.headerRight), JSON.stringify(element)).toBeLessThan(1);
+        }
       }
-    }
-  });
+    },
+  );
 }
 
 test('multi-instance actions track cardinality and always expose tooltips', async ({ page }) => {
@@ -886,18 +886,26 @@ for (const preset of [undefined, 'readonly'] as const) {
       const field = panel.querySelector('.cee-element-content app-cedar-component-header')!;
       const box = (scope: Element, selector: string) => scope.querySelector(selector)!.getBoundingClientRect();
       const trailing = heading.querySelector('.header-trailing')!;
-      const marks = [...trailing.querySelectorAll(':scope > *')].map((mark) => mark.getBoundingClientRect());
+      // The marks follow the header, drawn over the room its trailing slot keeps for them.
+      const drawn = panel.querySelector(':scope > app-cedar-component-marks')!;
+      const marks = [trailing.firstElementChild!, ...drawn.children].map((mark) => mark.getBoundingClientRect());
       return {
         icon: box(field, '[data-field-type-icon]').left,
         title: box(heading, '.title-label').left,
+        bodyLine: getComputedStyle(field.querySelector('.title-label')!).lineHeight,
+        headingLine: getComputedStyle(heading.querySelector('.title-label')!).lineHeight,
+        headerHeight: heading.getBoundingClientRect().height,
         chevronIsFirstMark: trailing.firstElementChild!.hasAttribute('data-disclosure'),
         chevronRight: box(heading, '[data-disclosure]').right,
         nextMarkLeft: marks.length > 1 ? marks[1].left : Infinity,
-        headingEnd: box(heading, '.property-iri').right,
+        headingEnd: box(drawn, '.property-iri').right,
         fieldEnd: box(field, '.property-iri').right,
       };
     });
     expect(Math.abs(geometry.title - geometry.icon)).toBeLessThan(1);
+    expect(geometry.bodyLine).toBe('21px');
+    expect(geometry.headingLine).toBe('24px');
+    expect(geometry.headerHeight).toBe(48);
     expect(geometry.chevronIsFirstMark).toBe(true);
     expect(geometry.chevronRight).toBeLessThanOrEqual(geometry.nextMarkLeft);
     expect(Math.abs(geometry.headingEnd - geometry.fieldEnd)).toBeLessThan(1);
@@ -956,7 +964,7 @@ test.describe('validation states', () => {
     // phone fields as `type="text"` and validates them on the FormControl.
     const names = ['required_text', 'short_text', 'an_email', 'a_link', 'a_phone'];
     for (const name of names) {
-      const input = page.locator(`input[aria-label="${name}"]`);
+      const input = fieldBox(page, name);
       await expect(input).toBeVisible();
       await input.focus();
       await input.blur();
@@ -978,7 +986,7 @@ test.describe('validation states', () => {
     ];
 
     for (const entry of cases) {
-      const input = page.locator(`input[aria-label="${entry.name}"]`);
+      const input = fieldBox(page, entry.name);
       const error = input.locator('xpath=ancestor::mat-form-field').locator('mat-error');
 
       await input.fill(entry.invalid);
@@ -993,7 +1001,7 @@ test.describe('validation states', () => {
   test('an invalid email shows its own error', async ({ page }) => {
     await open(page, '06-validation');
 
-    const email = page.locator('input[aria-label="an_email"]');
+    const email = fieldBox(page, 'an_email');
     await email.fill('not-an-email');
     await email.blur();
     await page.waitForTimeout(300);
@@ -1006,7 +1014,7 @@ test.describe('validation states', () => {
     await open(page, '06-validation');
 
     // `short_text` carries withMinLength(8).
-    const short = page.locator('input[aria-label="short_text"]');
+    const short = fieldBox(page, 'short_text');
     await short.fill('abc');
     await short.blur();
     await page.waitForTimeout(300);
@@ -1036,11 +1044,11 @@ test.describe('filled state', () => {
   test('values render in the fields that hold them', async ({ page }) => {
     await open(page, '01-input-types');
 
-    await page.locator('input[aria-label="text"]').fill('a filled value');
-    await page.locator('textarea[aria-label="textarea"]').fill('a longer\nfilled value');
-    await page.locator('input[aria-label="numeric"]').fill('42');
-    await page.locator('input[aria-label="email"]').fill('someone@example.org');
-    await page.locator('input[aria-label="link"]').fill('https://example.org/thing');
+    await fieldBox(page, 'text').fill('a filled value');
+    await fieldBox(page, 'textarea', 'textarea').fill('a longer\nfilled value');
+    await fieldBox(page, 'numeric').fill('42');
+    await fieldBox(page, 'email').fill('someone@example.org');
+    await fieldBox(page, 'link').fill('https://example.org/thing');
     await page.locator('body').click({ position: { x: 5, y: 5 } });
     await page.waitForTimeout(300);
 
@@ -1408,7 +1416,7 @@ test('numeric fields state their bounds in words', async ({ page }) => {
   const hintFor = (label: string) =>
     page
       .locator('app-cedar-input-numeric')
-      .filter({ has: page.locator(`input[aria-label="${label}"]`) })
+      .filter({ has: fieldBox(page, label) })
       .locator('mat-hint');
 
   await expect(hintFor('Numeric Field')).toHaveText('Minimum: 0, Maximum: 100');
@@ -1427,8 +1435,8 @@ test('numeric fields state their bounds in words', async ({ page }) => {
 test('the spinner steps a numeric field by its declared precision', async ({ page }) => {
   await open(page, '17-real-flat');
 
-  const twoPlaces = page.locator('input[aria-label="Numeric Decimal (2 dp)"]');
-  const fourPlaces = page.locator('input[aria-label="Numeric Decimal (4 dp)"]');
+  const twoPlaces = fieldBox(page, 'Numeric Decimal (2 dp)');
+  const fourPlaces = fieldBox(page, 'Numeric Decimal (4 dp)');
   await expect(twoPlaces).toHaveAttribute('step', '0.01');
   await expect(fourPlaces).toHaveAttribute('step', '0.0001');
 
@@ -1613,8 +1621,7 @@ test.describe('widgets, clipped', () => {
  * against the manifest rather than against a hard-coded string that would have to
  * be edited at every hop.
  */
-test.describe('the version stamp', () => {
-  widthIndependent();
+test.describe('the version stamp', { tag: WIDTH_INDEPENDENT }, () => {
   const declared = JSON.parse(readFileSync(fileURLToPath(new URL('../../package.json', import.meta.url)), 'utf8'))
     .version as string;
 
@@ -1647,8 +1654,7 @@ test.describe('the version stamp', () => {
  * sit within its height. Beside a title with a description it keeps to the top of the row, level with
  * the title. At a narrow width it takes a row of its own, so the title has the full width below it.
  */
-test.describe('the identity', () => {
-  widthIndependent();
+test.describe('the identity', { tag: WIDTH_INDEPENDENT }, () => {
   for (const width of [1280, 480]) {
     test(`sets the name and the stamp beside the mark at ${width}`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
@@ -1688,8 +1694,7 @@ test.describe('the identity', () => {
  * alone. It was a flex row there, which shrank the actions to their content and
  * put the buttons at the left edge at every width above 520px.
  */
-test.describe('the header actions', () => {
-  widthIndependent();
+test.describe('the header actions', { tag: WIDTH_INDEPENDENT }, () => {
   const rightEdges = (page: Page) =>
     page.locator('.template-header').evaluate((header) => {
       const root = header.getRootNode() as ShadowRoot;
@@ -1724,12 +1729,11 @@ test.describe('the header actions', () => {
   }
 });
 
-test.describe('external authority fields', () => {
-  widthIndependent();
+test.describe('external authority fields', { tag: WIDTH_INDEPENDENT }, () => {
   test('typing does not raise an error', async ({ page }) => {
     await open(page, '04-controlled-terms');
 
-    const orcid = page.locator('input[aria-label="contributor"]');
+    const orcid = fieldBox(page, 'contributor');
     await expect(orcid).toBeVisible();
     await orcid.pressSequentially('dav', { delay: 60 });
     await page.waitForTimeout(600);
@@ -1740,7 +1744,7 @@ test.describe('external authority fields', () => {
   test('the character typed is not swallowed', async ({ page }) => {
     await open(page, '04-controlled-terms');
 
-    const orcid = page.locator('input[aria-label="contributor"]');
+    const orcid = fieldBox(page, 'contributor');
     await orcid.pressSequentially('dav', { delay: 60 });
     await page.waitForTimeout(600);
 
@@ -1754,7 +1758,7 @@ test.describe('external authority fields', () => {
   test('free text is reported once it has actually been discarded', async ({ page }) => {
     await open(page, '04-controlled-terms');
 
-    const orcid = page.locator('input[aria-label="contributor"]');
+    const orcid = fieldBox(page, 'contributor');
     await orcid.pressSequentially('not a real researcher', { delay: 20 });
     await page.waitForTimeout(600);
     await orcid.blur();
@@ -1784,8 +1788,7 @@ const AUTHORITY_FIELDS = [
   ['dataset_doi', 'DOI'],
 ] as const;
 
-test.describe('every external authority widget', () => {
-  widthIndependent();
+test.describe('every external authority widget', { tag: WIDTH_INDEPENDENT }, () => {
   for (const [name, label] of AUTHORITY_FIELDS) {
     /**
      * REGRESSION: a validator pointed at the search control instead of the
@@ -1796,7 +1799,7 @@ test.describe('every external authority widget', () => {
     test(`${label}: typing raises no error and keeps the text`, async ({ page }) => {
       await open(page, '08-authority');
 
-      const input = page.locator(`input[aria-label="${name}"]`);
+      const input = fieldBox(page, name);
       await expect(input).toBeVisible();
       await input.pressSequentially('dav', { delay: 40 });
       await page.waitForTimeout(500);
@@ -1814,7 +1817,7 @@ test.describe('every external authority widget', () => {
     test(`${label}: free text is discarded on blur, and said so`, async ({ page }) => {
       await open(page, '08-authority');
 
-      const input = page.locator(`input[aria-label="${name}"]`);
+      const input = fieldBox(page, name);
       await input.pressSequentially('zzz nonsense', { delay: 15 });
       await page.waitForTimeout(500);
       await input.blur();
@@ -1828,7 +1831,7 @@ test.describe('every external authority widget', () => {
 
     test(`${label}: missing lookup configuration shows a visible search error`, async ({ page }) => {
       await open(page, '08-authority');
-      const input = page.locator(`input[aria-label="${name}"]`);
+      const input = fieldBox(page, name);
       await input.fill('test search');
       await passDebounceWindow(page);
       await expect(page.locator('mat-option.lookup-failed')).toContainText('Search failed');
@@ -1841,7 +1844,7 @@ test.describe('every external authority widget', () => {
     test(`${label}: the message names the right authority`, async ({ page }) => {
       await open(page, '08-authority');
 
-      const input = page.locator(`input[aria-label="${name}"]`);
+      const input = fieldBox(page, name);
       await input.pressSequentially('zzz nonsense', { delay: 15 });
       await page.waitForTimeout(500);
       await input.blur();
@@ -1861,8 +1864,7 @@ test.describe('every external authority widget', () => {
  * failure into a constant — so every run requested the same URL and nothing was
  * busted. It passed 86 tests while doing nothing.
  */
-test.describe('the served bundle', () => {
-  widthIndependent();
+test.describe('the served bundle', { tag: WIDTH_INDEPENDENT }, () => {
   test('is fetched at a URL keyed to its mtime', async ({ page }) => {
     const requested: string[] = [];
     page.on('request', (r) => {
@@ -1899,8 +1901,7 @@ test.describe('the served bundle', () => {
  * kill them are named in their comment. Mutation testing is the difference between a
  * port and a hope; on both counts here it changed what got deleted and when.
  */
-test.describe('ported from the deleted component specs', () => {
-  widthIndependent();
+test.describe('ported from the deleted component specs', { tag: WIDTH_INDEPENDENT }, () => {
   /**
    * Where a choice field's value comes from, traced — because these two tests
    * initially killed no mutant, and the reason turned out to be worth writing down.
@@ -2012,17 +2013,16 @@ test.describe('ported from the deleted component specs', () => {
   });
 });
 
-test.describe('declared non-enumerated defaults', () => {
-  widthIndependent();
+test.describe('declared non-enumerated defaults', { tag: WIDTH_INDEPENDENT }, () => {
   test('editable: a new instance starts with text, numeric, temporal and controlled-term defaults', async ({
     page,
   }) => {
     await open(page, '23-declared-defaults');
 
-    await expect(page.locator('input[aria-label="title"]')).toHaveValue('Draft record');
-    await expect(page.locator('input[aria-label="measurement"]')).toHaveValue('42.5');
+    await expect(fieldBox(page, 'title')).toHaveValue('Draft record');
+    await expect(fieldBox(page, 'measurement')).toHaveValue('42.5');
     await expect(page.getByRole('textbox', { name: /, select date$/ })).not.toHaveValue('');
-    await expect(page.locator('input[aria-label="organism"]')).toHaveValue('Homo sapiens');
+    await expect(fieldBox(page, 'organism')).toHaveValue('Homo sapiens');
 
     const metadata = await page.evaluate(() => document.querySelector('cedar-embeddable-editor')!.currentMetadata);
     expect(valueOf(metadata, '_title')).toBe('Draft record');
@@ -2037,10 +2037,10 @@ test.describe('declared non-enumerated defaults', () => {
   test('rendering does not overwrite fields a supplied instance left blank', async ({ page }) => {
     await open(page, '23-declared-defaults', undefined, '23-declared-defaults-blank-instance');
 
-    await expect(page.locator('input[aria-label="title"]')).toHaveValue('');
-    await expect(page.locator('input[aria-label="measurement"]')).toHaveValue('');
+    await expect(fieldBox(page, 'title')).toHaveValue('');
+    await expect(fieldBox(page, 'measurement')).toHaveValue('');
     await expect(page.locator('app-cedar-input-datetime input')).toHaveValue('');
-    await expect(page.locator('input[aria-label="organism"]')).toHaveValue('');
+    await expect(fieldBox(page, 'organism')).toHaveValue('');
 
     const metadata = await page.evaluate(() => document.querySelector('cedar-embeddable-editor')!.currentMetadata);
     expect(JSON.stringify(metadata)).not.toContain('Draft record');
@@ -2105,8 +2105,7 @@ test.describe('declared non-enumerated defaults', () => {
  * Note the sibling `CedarInputSelectComponent.populateItemsOnLoad` survives and must:
  * same name, unrelated job — it fills the dropdown's *option list*, not a value.
  */
-test.describe('a choice value reaches the widget by every load path', () => {
-  widthIndependent();
+test.describe('a choice value reaches the widget by every load path', { tag: WIDTH_INDEPENDENT }, () => {
   const checkedRadio = (page: import('@playwright/test').Page) => page.getByRole('radio', { checked: true });
 
   test('templateObject alone applies the template default', async ({ page }) => {
@@ -2154,8 +2153,7 @@ test.describe('a choice value reaches the widget by every load path', () => {
  * `config-validation.spec.ts` covers the rules — because what is being asserted
  * here is that the check is *wired to the boundary* at all.
  */
-test.describe('an unusable configuration', () => {
-  widthIndependent();
+test.describe('an unusable configuration', { tag: WIDTH_INDEPENDENT }, () => {
   const errorsWhileLoading = async (page: import('@playwright/test').Page, extra: string): Promise<string[]> => {
     const errors: string[] = [];
     page.on('console', (message) => {
@@ -2194,8 +2192,7 @@ test.describe('an unusable configuration', () => {
  * record what a sanitizer's output happens to look like rather than what it must
  * never do.
  */
-test.describe('template rich text', () => {
-  widthIndependent();
+test.describe('template rich text', { tag: WIDTH_INDEPENDENT }, () => {
   const shadowHtml = (page: import('@playwright/test').Page): Promise<string> =>
     page.evaluate(() => document.querySelector('cedar-embeddable-editor')!.shadowRoot!.innerHTML);
 
@@ -2372,8 +2369,7 @@ test.describe('template-authored strings that are not rich text', () => {
  * the whole path from the loaded document to the button — the handler tests would
  * have passed on an instance built with the slot already there.
  */
-test.describe('an attribute-value field with no slot in the instance', () => {
-  widthIndependent();
+test.describe('an attribute-value field with no slot in the instance', { tag: WIDTH_INDEPENDENT }, () => {
   const ceeErrors = (page: Page): string[] => {
     const errors: string[] = [];
     page.on('console', (message) => {
@@ -2444,8 +2440,7 @@ test.describe('an attribute-value field with no slot in the instance', () => {
  * up as a fix. The `onerror` handler is what sanitization removes, and it sets a window
  * flag and nothing else.
  */
-test.describe('markup in an instance value', () => {
-  widthIndependent();
+test.describe('markup in an instance value', { tag: WIDTH_INDEPENDENT }, () => {
   test('is escaped, not rendered, while the field is editable', async ({ page }) => {
     await open(page, '01-input-types', undefined, '14-markup-in-a-value');
 
@@ -2506,8 +2501,7 @@ test.describe('markup in an instance value', () => {
  * as a lookup error in the widget, which is a different behaviour from a search that
  * found nothing, and this test is about the request rather than the response.
  */
-test.describe('external authority endpoints', () => {
-  widthIndependent();
+test.describe('external authority endpoints', { tag: WIDTH_INDEPENDENT }, () => {
   const FIELDS = [
     // The path segment, not the authority's name: PFAS is served under `comp-tox`
     // and NIH Grant under `nih-grant`. These are the bridge server's own routes,
@@ -2536,7 +2530,7 @@ test.describe('external authority endpoints', () => {
 
       await open(page, '08-authority', 'authority');
 
-      const field = page.locator(`input[aria-label="${label}"]`);
+      const field = fieldBox(page, label);
       await expect(field, `no field labelled ${label} in 08-authority`).toBeVisible();
       // Typed rather than filled: the widget searches on input, and `fill` can land as
       // a single event that the debounce swallows.
@@ -2600,7 +2594,7 @@ test.describe('external authority endpoints', () => {
       });
 
       await open(page, '08-authority', 'authority');
-      const field = page.locator(`input[aria-label="${fieldName}"]`);
+      const field = fieldBox(page, fieldName);
       await field.pressSequentially('deterministic', { delay: 40 });
       await passDebounceWindow(page);
       const option = page.locator('mat-option').filter({ hasText: label });
@@ -2627,7 +2621,7 @@ test.describe('external authority endpoints', () => {
       const expected = `Open the ${name} page`;
       const suffix = page
         .locator('mat-form-field')
-        .filter({ has: page.locator(`input[aria-label="${fieldName}"]`) })
+        .filter({ has: fieldBox(page, fieldName) })
         .locator('a[mat-icon-button]')
         .first();
 
@@ -2685,7 +2679,7 @@ test.describe('controlled terminology selection', () => {
     });
 
     await open(page, '04-controlled-terms');
-    const field = page.locator('input[aria-label="organism"]');
+    const field = fieldBox(page, 'organism');
     await field.pressSequentially('Homo', { delay: 40 });
     await passDebounceWindow(page);
     const option = page.locator('mat-option').filter({ hasText: label });
@@ -2724,7 +2718,7 @@ test.describe('controlled terminology selection', () => {
 
     await open(page, '04-controlled-terms');
     const widget = page.locator('app-cedar-input-controlled').filter({
-      has: page.locator('input[aria-label="organism"]'),
+      has: fieldBox(page, 'organism'),
     });
     await widget.locator('input').pressSequentially('Homo', { delay: 40 });
     await passDebounceWindow(page);
@@ -2785,7 +2779,7 @@ test.describe('controlled terminology selection', () => {
     });
 
     await open(page, '04-controlled-terms');
-    const field = page.locator('input[aria-label="organism"]');
+    const field = fieldBox(page, 'organism');
     await field.pressSequentially('Homo', { delay: 40 });
     await passDebounceWindow(page);
     await page.locator('mat-option').filter({ hasText: terms[0].label }).click();
@@ -2807,7 +2801,7 @@ test.describe('controlled terminology selection', () => {
     await open(page, '04-controlled-terms', undefined, '04-controlled-terms-labelless-instance');
 
     const widget = page.locator('app-cedar-input-controlled').first();
-    const field = widget.locator('input[aria-label="organism"]');
+    const field = fieldBox(widget, 'organism');
     await expect(field).toHaveValue(iri);
     await expect(field).toHaveAttribute('aria-invalid', 'false');
     const clear = widget.getByRole('button', { name: 'Clear', exact: true });
@@ -2830,7 +2824,7 @@ test.describe('controlled terminology selection', () => {
       });
     });
     await open(page, '04-controlled-terms', undefined, '04-controlled-terms-instance');
-    const field = page.locator('input[aria-label="organism"]');
+    const field = fieldBox(page, 'organism');
     await field.fill('Homo');
     await passDebounceWindow(page);
     const option = page.locator('mat-option').filter({ hasText: label });
@@ -2865,7 +2859,7 @@ test.describe('controlled terminology selection', () => {
   test('free text is discarded on blur, and said so', async ({ page }) => {
     await open(page, '04-controlled-terms');
 
-    const field = page.locator('input[aria-label="organism"]');
+    const field = fieldBox(page, 'organism');
     await field.pressSequentially('zzz nonsense', { delay: 15 });
     await page.waitForTimeout(500);
     await field.blur();
@@ -2913,15 +2907,14 @@ const takeDownload = async (
  * The sentence used to be English written into the validator, so a Hungarian form
  * reported this one constraint in English beside messages that were not.
  */
-test.describe('a numeric type error', () => {
-  widthIndependent();
+test.describe('a numeric type error', { tag: WIDTH_INDEPENDENT }, () => {
   for (const [preset, expected] of [
     [undefined, 'The value should be an integer.'],
     ['hu', 'Az értéknek egész számnak kell lennie.'],
   ] as const) {
     test(`reads in ${preset ?? 'en'}`, async ({ page }) => {
       await open(page, '01-input-types', preset);
-      const input = page.locator('input[aria-label="numeric"]');
+      const input = fieldBox(page, 'numeric');
       await input.fill('1.5');
       await input.blur();
 
@@ -2991,8 +2984,7 @@ test('a read-only template-only download menu does not offer an instance file', 
  * should be. A structural check on agreement catches a serializer that has stopped
  * working; it does not need to re-verify YAML grammar the library already tests.
  */
-test.describe('what a host page reads back', () => {
-  widthIndependent();
+test.describe('what a host page reads back', { tag: WIDTH_INDEPENDENT }, () => {
   const read = (page: import('@playwright/test').Page) =>
     page.evaluate(() => {
       const cee = document.querySelector('cedar-embeddable-editor')!;
@@ -3026,7 +3018,7 @@ test.describe('what a host page reads back', () => {
 
   test('an edit reaches both outputs', async ({ page }) => {
     await open(page, '01-input-types');
-    await page.locator('input[aria-label="text"]').fill('typed into the form');
+    await fieldBox(page, 'text').fill('typed into the form');
     await page.locator('body').click({ position: { x: 5, y: 5 } });
     await page.waitForTimeout(300);
 
@@ -3133,7 +3125,7 @@ test.describe('what a host page reads back', () => {
 
   test('dataQualityReport follows an invalid value and its correction', async ({ page }) => {
     await open(page, '06-validation');
-    const email = page.locator('input[aria-label="an_email"]');
+    const email = fieldBox(page, 'an_email');
     await email.fill('not-an-email');
     await email.blur();
 
@@ -3151,8 +3143,7 @@ test.describe('what a host page reads back', () => {
   });
 });
 
-test.describe('host input timing', () => {
-  widthIndependent();
+test.describe('host input timing', { tag: WIDTH_INDEPENDENT }, () => {
   test('template-first separate inputs keep the supplied instance value', async ({ page }) => {
     await open(page, '11-choice-default', undefined, '11-choice-default-instance', 'template-first');
     await expect(page.getByRole('radio', { checked: true })).toHaveAccessibleName('Private');
@@ -3402,7 +3393,7 @@ test.describe('a term rendered as a value', () => {
   test('keeps the control where the field is editable', async ({ page }) => {
     await open(page, '04-controlled-terms', undefined, '04-controlled-terms-instance');
 
-    await expect(page.locator('app-cedar-input-controlled input[aria-label="organism"]')).toBeVisible();
+    await expect(fieldBox(page.locator('app-cedar-input-controlled'), 'organism')).toBeVisible();
     await expect(page.locator('app-cedar-input-controlled .cee-term-link')).toHaveCount(0);
   });
 });
@@ -3537,8 +3528,7 @@ test.describe('a multi-instance field paging its values', () => {
    * so the delete button stands under the property glyph that ends the field's heading. It used to
    * start at the left edge, under the field's name and away from the marks it sits with.
    */
-  test('ends its own narrow row under the property glyph', async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== 'narrow', 'the pager takes a row of its own only at a narrow width');
+  test('ends its own narrow row under the property glyph', { tag: NARROW_ONLY }, async ({ page }) => {
     await open(page, '24-multi-authority-values');
 
     const renderer = page
@@ -3567,8 +3557,7 @@ test.describe('a multi-instance field paging its values', () => {
   });
 
   /** Reading, no actions follow the chips, so the last chip ends where the field's heading does. */
-  test('ends its own narrow read-only row where its heading does', async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== 'narrow', 'the pager takes a row of its own only at a narrow width');
+  test('ends its own narrow read-only row where its heading does', { tag: NARROW_ONLY }, async ({ page }) => {
     await open(page, '24-multi-authority-values', 'readonly', '24-multi-authority-values-instance');
 
     const renderer = page.locator('app-cedar-component-renderer').filter({
@@ -3614,15 +3603,16 @@ test.describe('read-only belongs to the host', () => {
 
     // Nothing to type into, because a form read with no instance behind it states each field rather
     // than offering a box for it.
-    await expect(page.locator('input[aria-label="text"]')).toHaveCount(0);
+    await expect(fieldBox(page, 'text')).toHaveCount(0);
     await expect(page.locator('.cee-spec-box').first()).toBeVisible();
   });
 
   test('renders populated controls from a supplied instance, and none of them editable', async ({ page }) => {
     await open(page, '01-input-types', 'readonly', '14-markup-in-a-value');
 
-    await expect(page.locator('input[aria-label="email"]')).toHaveAttribute('readonly', 'true');
-    await expect(page.locator('input[aria-label="numeric"]')).toHaveAttribute('readonly', 'true');
+    // A read-only email value is drawn in a box that grows, so that a long address wraps.
+    await expect(fieldBox(page, 'email', 'textarea')).toHaveAttribute('readonly', 'true');
+    await expect(fieldBox(page, 'numeric')).toHaveAttribute('readonly', 'true');
     await expect(
       page.locator('input[placeholder]:not([placeholder=""]), textarea[placeholder]:not([placeholder=""])'),
     ).toHaveCount(0);
@@ -3701,7 +3691,7 @@ test.describe('read-only belongs to the host', () => {
   test('leaves the form editable when the host does not ask for read-only', async ({ page }) => {
     await open(page, '01-input-types');
 
-    await expect(page.locator('input[aria-label="text"]')).not.toHaveAttribute('readonly', '');
+    await expect(fieldBox(page, 'text')).not.toHaveAttribute('readonly', '');
   });
 });
 
@@ -3722,8 +3712,7 @@ test.describe('read-only belongs to the host', () => {
  * of them.
  *
  */
-test.describe('config flags are wired to something', () => {
-  widthIndependent();
+test.describe('config flags are wired to something', { tag: WIDTH_INDEPENDENT }, () => {
   const FLAGS: ReadonlyArray<{ flag: string; withFlags?: string[]; fixture?: string }> = [{ flag: 'showDownloadMenu' }];
 
   /**
@@ -4009,8 +3998,7 @@ test('every download menu icon renders shared SVG without font requests', async 
  * No trigger is needed: CEE traces its config and its language-map choice on every load,
  * which is a real message from a real path rather than something contrived.
  */
-test.describe('the host event handler', () => {
-  widthIndependent();
+test.describe('the host event handler', { tag: WIDTH_INDEPENDENT }, () => {
   test('receives CEE diagnostics through the web component input', async ({ page }) => {
     await open(page, '01-input-types', undefined, undefined, undefined, '&e=1');
 
@@ -4037,7 +4025,7 @@ test.describe('the host event handler', () => {
     const events = await page.evaluate(() => window.__ceeEvents);
     expect(events, 'no handler was attached, so nothing should have been recorded').toEqual([]);
     // The point of the negative case: the same code path runs, and is harmless.
-    await expect(page.locator('input[aria-label="text"]')).toBeVisible();
+    await expect(fieldBox(page, 'text')).toBeVisible();
   });
 
   /**
@@ -4203,8 +4191,7 @@ test('editable choice rows are compact and their controls do not overlap adjacen
   expect((await clear.boundingBox())!.height).toBe(28);
 });
 
-test.describe('preview host heading', () => {
-  widthIndependent();
+test.describe('preview host heading', { tag: WIDTH_INDEPENDENT }, () => {
   for (const readOnly of [false, true]) {
     test(`preview omits identity header with readOnly=${readOnly}`, async ({ page }) => {
       await open(
@@ -4220,7 +4207,7 @@ test.describe('preview host heading', () => {
       await expect(page.locator('.template-provenance')).toHaveCount(0);
       await expect(page.locator('.template-content')).toHaveCSS('padding', '0px');
       await expect(page.locator('.template-description')).toHaveCount(1);
-      if (!readOnly) await expect(page.locator('input[aria-label="text"]')).toBeEditable();
+      if (!readOnly) await expect(fieldBox(page, 'text')).toBeEditable();
     });
   }
 });

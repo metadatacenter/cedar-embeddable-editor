@@ -12,7 +12,7 @@
         [value]="displayValue"
         readonly
         [attr.lang]="valueLanguageMark ?? textLanguage"
-        attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"
+        [attr.aria-labelledby]="boxName.id"
       />
     }
     @if (!readOnlyMode) {
@@ -63,3 +63,6 @@
     }
   </mat-form-field>
 </form>
+
+<!-- The box's name is the field's label, marked with the language the template declares for it. -->
+<span appCedarJoinedName #boxName [label]="fieldLabel" [labelLanguage]="textLanguage"></span>

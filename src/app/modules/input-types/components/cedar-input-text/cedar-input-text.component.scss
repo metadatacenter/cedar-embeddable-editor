@@ -29,7 +29,10 @@
  * `min-height`: the clone is a copy of the textarea and matches the same selectors,
  * so a floor set that way is measured as the height of a *single* row and multiplied
  * by six.
+ *
+ * A read-only line of text is drawn in a growing box too, and is left out. It has no minimum to
+ * multiply, and it keeps the line of the input it replaces, which follows the density.
  */
-textarea[cdkTextareaAutosize] {
+textarea[cdkTextareaAutosize]:not(.cee-line-value) {
   line-height: tokens.$control-line-height-default;
 }

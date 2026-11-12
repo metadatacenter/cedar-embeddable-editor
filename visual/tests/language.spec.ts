@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
+import { fieldBox } from './support/field-box';
 import { addAttributeRow, hermetic, open } from './support/host';
 
 /**
@@ -142,6 +143,55 @@ test('a read-only value is marked with the language its instance tags it with', 
   await expect(editor.getByRole('textbox', { name: 'phone', exact: true })).not.toHaveAttribute('lang', /.*/);
 });
 
+test("read only, each box and term is named by its label in the template's language, not its value's", async ({
+  page,
+}) => {
+  await declareTemplateLanguage(page, '01-input-types', 'fr');
+  await open(page, '01-input-types', 'readonly');
+  await assignTaggedInstance(page);
+  const editor = page.locator('cedar-embeddable-editor');
+  await expect(editor.getByRole('textbox', { name: 'text', exact: true })).toHaveAttribute('lang', 'de');
+  for (const [role, name] of [
+    ['textbox', 'text'],
+    ['textbox', 'textarea'],
+    ['textbox', 'email'],
+    ['textbox', 'phone'],
+  ] as const)
+    expect(await languagesInName(editor.getByRole(role, { name, exact: true }))).toEqual([{ text: name, lang: 'fr' }]);
+
+  // A read-only date is a box that states it, named the same way.
+  await declareTemplateLanguage(page, '21-temporal-normalization', 'fr');
+  await open(page, '21-temporal-normalization', 'readonly', '21-temporal-normalization-instance');
+  expect(await languagesInName(fieldBox(editor, 'date_year'))).toEqual([{ text: 'date_year', lang: 'fr' }]);
+
+  // A read-only term is a group of its label and link, named the same way.
+  await declareTemplateLanguage(page, '04-controlled-terms', 'fr');
+  await open(page, '04-controlled-terms', 'readonly', '04-controlled-terms-instance');
+  const organism = editor.getByRole('group', { name: 'organism', exact: true });
+  expect(await languagesInName(organism)).toEqual([{ text: 'organism', lang: 'fr' }]);
+
+  // A read-only list is a box that states its selection, named the same way.
+  await declareTemplateLanguage(page, '02-choices', 'fr');
+  await open(page, '02-choices', 'readonly', '02-choices-selected-instance');
+  expect(await languagesInName(fieldBox(editor, 'bounded_list'))).toEqual([{ text: 'bounded_list', lang: 'fr' }]);
+});
+
+test("each editable box is named by its label in the template's language", async ({ page }) => {
+  const editor = page.locator('cedar-embeddable-editor');
+  for (const [fixture, names] of [
+    ['01-input-types', ['text', 'textarea', 'numeric', 'email', 'phone', 'link']],
+    ['04-controlled-terms', ['organism', 'contributor', 'institution']],
+    ['08-authority', ['contributor_orcid', 'chemical_pfas', 'citation_pmid', 'dataset_doi']],
+  ] as const) {
+    await declareTemplateLanguage(page, fixture, 'fr');
+    await open(page, fixture);
+    for (const name of names)
+      expect(await languagesInName(fieldBox(editor, name, name === 'textarea' ? 'textarea' : 'input')), name).toEqual([
+        { text: name, lang: 'fr' },
+      ]);
+  }
+});
+
 test('an editable box holding tagged text is not marked, because what it holds is being typed', async ({ page }) => {
   await open(page, '01-input-types');
   await assignTaggedInstance(page);
@@ -277,6 +327,11 @@ for (const [preset, ui] of [
     await expect(editor.getByRole('textbox', { name: 'nom', exact: true })).not.toHaveAttribute('lang', /.*/);
     await expect(editor.getByRole('textbox', { name: 'ville', exact: true })).toHaveAttribute('lang', 'de');
     await expect(labelOf(page, 'ville')).toHaveAttribute('lang', 'fr');
+    // Each box is named by its label in the template's language, whatever language the box holds.
+    for (const name of ['nom', 'ville'])
+      expect(await languagesInName(editor.getByRole('textbox', { name, exact: true }))).toEqual([
+        { text: name, lang: 'fr' },
+      ]);
 
     // A choice field's name and options are the template's, and its clear button is CEE's.
     const couleur = editor.getByRole('radiogroup', { name: 'couleur', exact: true });

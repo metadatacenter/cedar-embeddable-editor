@@ -3,7 +3,7 @@
   class="cee-term-link"
   role="group"
   [class.cee-term-link-single-line]="truncateLabel"
-  attr.aria-label="{{ fieldLabel }}"
+  [attr.aria-labelledby]="groupName.id"
 >
   <!-- Optional authority branding belongs immediately before the value it identifies. -->
   <span class="cee-term-link-prefix"><ng-content select="[termLinkPrefix]"></ng-content></span>
@@ -23,3 +23,5 @@
   <!-- The widget's own link-out, which knows which authority it addresses. -->
   <span class="cee-term-link-suffix"><ng-content></ng-content></span>
 </div>
+<!-- The group's name is the field's label, marked with the language the template declares for it. -->
+<span appCedarJoinedName #groupName [label]="fieldLabel" [labelLanguage]="fieldLabelLanguage"></span>

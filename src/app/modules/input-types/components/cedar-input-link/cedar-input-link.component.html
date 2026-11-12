@@ -1,6 +1,10 @@
 <form class="form-container" [formGroup]="options">
   @if (showsLinkAsValue) {
-    <app-cedar-term-link [iri]="inputValueControl.value" [fieldLabel]="cds.getRenderingLabelForComponent(component)">
+    <app-cedar-term-link
+      [iri]="inputValueControl.value"
+      [fieldLabel]="cds.getRenderingLabelForComponent(component)"
+      [fieldLabelLanguage]="textLanguage"
+    >
       <a
         class="cee-term-link-action"
         [href]="inputValueControl.value"
@@ -25,7 +29,7 @@
       [formControl]="inputValueControl"
       (input)="inputChanged($event)"
       [readonly]="readOnlyMode"
-      attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"
+      [attr.aria-labelledby]="boxName.id"
     />
     @if (inputValueControl.value && !readOnlyMode) {
       <button
@@ -46,3 +50,6 @@
     }
   </mat-form-field>
 </form>
+
+<!-- The box's name is the field's label, marked with the language the template declares for it. -->
+<span appCedarJoinedName #boxName [label]="fieldLabel" [labelLanguage]="textLanguage"></span>

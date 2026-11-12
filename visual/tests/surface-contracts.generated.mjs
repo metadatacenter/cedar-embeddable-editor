@@ -108,6 +108,30 @@ const SCALE = {
     "--cedar-shadow-overlay"
   ]
 };
+const ROLE_VALUES = {
+  "selection-tint": {
+    "background-color": "color-mix(in srgb, var(--cedar-color-primary) 12%, #ffffff)"
+  },
+  "search-match-tint": {
+    "background-color": "color-mix(in srgb, var(--cedar-color-primary) 12%, #ffffff)"
+  },
+  "monitor-http-post-text": {
+    "color": "var(--cedar-monitor-http-post-text, #6b4fc4)"
+  },
+  "monitor-trace-cypher-text": {
+    "color": "var(--cedar-monitor-trace-cypher-text, #6b4fc4)"
+  },
+  "monitor-trace-cypher-bar": {
+    "background-color": "var(--cedar-monitor-trace-cypher-bar, #8c74d8)"
+  },
+  "monitor-masked-secret-text": {
+    "color": "var(--cedar-monitor-masked-secret-text, #6941c6)"
+  },
+  "monitor-copy-toast": {
+    "background-color": "var(--cedar-monitor-copy-toast-surface, #21303f)",
+    "color": "var(--cedar-monitor-copy-toast-text, #ffffff)"
+  }
+};
 const TOKEN_DEFAULTS = {
   "--cedar-font-family": "\"CEDAR Roboto\", \"Helvetica Neue\", sans-serif",
   "--cedar-font-weight-regular": "400",
@@ -231,11 +255,11 @@ export async function checkSurface(page, surface, state, expect, testInfo) {
 // surface asks for must also have a loaded face, or the browser draws a fallback while every computed
 // style still names the family. A framework default or a utility class that reintroduces any other
 // value fails here, whatever the source scan saw. The allowed values resolve in the surface's own
-// context, so a host theme override is honoured. A reviewed exception is a `scaleDebt` entry naming
-// the exact value and the reason.
+// context, so a host theme override is honoured. Opt-in recipes are checked only at their
+// registered selectors. Literal debt must still be exercised by this scenario.
 async function checkScale(target, surface, expect, testInfo) {
-  const found = await target.evaluate(
-    async (root, { scale, defaults }) => {
+  const result = await target.evaluate(
+    async (root, { scale, defaults, roles, assignments }) => {
       // Sample the settled theme, not a colour transition another check has just started.
       await Promise.all(
         root
@@ -251,11 +275,14 @@ async function checkScale(target, surface, expect, testInfo) {
       probe.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none;';
       root.parentNode.append(probe);
       const allowed = {};
+      const rootStyle = getComputedStyle(root);
       for (const [property, tokens] of Object.entries(scale)) {
         // Paint roles resolve through `color`: every colour property computes the same way.
         const resolved = property === 'paint' ? 'color' : property === 'shadow' ? 'box-shadow' : property;
         allowed[property] = new Set(
           tokens.map((token) => {
+            const inherited = rootStyle.getPropertyValue(token).trim();
+            if (inherited) probe.style.setProperty(token, inherited);
             probe.style.setProperty(resolved, `var(${token}, ${defaults[token]})`);
             const value = getComputedStyle(probe).getPropertyValue(resolved);
             probe.style.removeProperty(resolved);
@@ -271,7 +298,35 @@ async function checkScale(target, surface, expect, testInfo) {
       // A shadow is the overlay or dialog shadow, or one drawn only in the vocabulary's colours.
       const shadowColors = new Set([...allowed.shadow].flatMap((shadow) => shadow.match(/rgba?\([^)]*\)/g) ?? []));
       const found = new Map();
+      const roleValues = new WeakMap();
+      const exercised = new Set();
+      const roleFailures = [];
+      const inspectRoles = (element, style) => {
+        for (const [index, assignment] of assignments.entries()) {
+          if (!element.matches(assignment.selector)) continue;
+          exercised.add(index);
+          const values = roleValues.get(element) ?? new Map();
+          const probe = document.createElement('span');
+          probe.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none;';
+          element.parentNode.append(probe);
+          for (const [property, expression] of Object.entries(roles[assignment.role])) {
+            // Copy the target's resolved custom properties, including shadow-root/host overrides.
+            for (const [, token] of expression.matchAll(/var\((--[\w-]+)/g)) {
+              const value = style.getPropertyValue(token).trim() || defaults[token];
+              if (value) probe.style.setProperty(token, value);
+            }
+            probe.style.setProperty(property, expression);
+            const expected = getComputedStyle(probe).getPropertyValue(property);
+            const actual = style.getPropertyValue(property);
+            if (actual !== expected) roleFailures.push({ ...assignment, property, actual, expected });
+            values.set(property, expected);
+          }
+          probe.remove();
+          roleValues.set(element, values);
+        }
+      };
       const note = (property, value, element, part = '') => {
+        if (!part && roleValues.get(element)?.get(property) === value) return;
         if (!found.has(`${property}|${value}`)) {
           const name = typeof element.className === 'string' ? element.className.trim().split(/\s+/)[0] : '';
           found.set(`${property}|${value}`, {
@@ -346,6 +401,7 @@ async function checkScale(target, surface, expect, testInfo) {
         if (element.matches('.mat-ripple-element')) return false;
         const style = getComputedStyle(element);
         if (hidden(element, style)) return false;
+        inspectRoles(element, style);
         if (element instanceof SVGTextContentElement) {
           if (element.textContent.trim()) typography(style, element, '', style.fill);
           return true;
@@ -409,16 +465,28 @@ async function checkScale(target, surface, expect, testInfo) {
         });
         if (!loaded) note('font-face', `${family} ${weight} has no loaded face`, root);
       }
-      return [...found.values()];
+      return {
+        found: [...found.values()],
+        roleFailures,
+        unusedRoles: assignments.filter((_, index) => !exercised.has(index)),
+      };
     },
-    { scale: SCALE, defaults: TOKEN_DEFAULTS },
+    { scale: SCALE, defaults: TOKEN_DEFAULTS, roles: ROLE_VALUES, assignments: surface.scaleRoles ?? [] },
   );
+  const { found, roleFailures, unusedRoles } = result;
   await testInfo.attach(`scale-${surface.id}`, {
-    body: JSON.stringify({ id: surface.id, width: target.page().viewportSize().width, found }, null, 2),
+    body: JSON.stringify({ id: surface.id, width: target.page().viewportSize().width, ...result }, null, 2),
     contentType: 'application/json',
   });
   const reviewed = new Set((surface.scaleDebt ?? []).map((debt) => `${debt.property}: ${debt.value}`));
   const drift = found.filter((value) => !reviewed.has(`${value.property}: ${value.value}`));
+  const observed = new Set(found.map((value) => `${value.property}: ${value.value}`));
+  expect(
+    [...reviewed].filter((value) => !observed.has(value)),
+    `${surface.id}: remove unused scale debt`,
+  ).toEqual([]);
+  expect(unusedRoles, `${surface.id}: role selectors must be exercised by the fixture`).toEqual([]);
+  expect(roleFailures, `${surface.id}: elements must use their registered central roles`).toEqual([]);
   expect(drift, `${surface.id}: values outside the shared vocabulary`).toEqual([]);
 }
 

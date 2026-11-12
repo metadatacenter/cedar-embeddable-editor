@@ -62,6 +62,7 @@ different destinations worth having.
         [label]="selectedData?.label ?? null"
         [iri]="selectedData?.iri ?? null"
         [fieldLabel]="cds.getRenderingLabelForComponent(component)"
+        [fieldLabelLanguage]="textLanguage"
       >
         @if (bioPortalTermLink) {
           <a
@@ -107,7 +108,7 @@ different destinations worth having.
         (input)="inputChanged($event)"
         (blur)="onInputBlur()"
         [readonly]="readOnlyMode"
-        attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"
+        [attr.aria-labelledby]="boxName.id"
       />
       <mat-autocomplete #auto="matAutocomplete" autoActiveFirstOption>
         <!--
@@ -200,3 +201,6 @@ different destinations worth having.
     }
   </ng-container>
 </form>
+
+<!-- The box's name is the field's label, marked with the language the template declares for it. -->
+<span appCedarJoinedName #boxName [label]="fieldLabel" [labelLanguage]="textLanguage"></span>

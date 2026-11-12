@@ -8,17 +8,24 @@ import { open } from './support/host';
  * of its title row, and a section break's description on a mark in its heading. Each mark is a Tab
  * stop, and focusing it from the keyboard shows the tooltip a pointer does, until Escape. The help
  * mark is named for what it holds, and the description is in visually hidden text beside it, so a
- * screen reader reads it once. An element's marks sit inside its panel header, a button, so they stay
- * out of the Tab order.
+ * screen reader reads it once. An element's panel header is a button, so its marks are drawn beside
+ * the button rather than in it, and follow it in the Tab order.
  */
 
-/** The innermost focused element, across shadow roots, by its role and name. */
+/** The innermost focused element, across shadow roots, by its role and accessible name. */
 const focused = (page: Page): Promise<string> =>
   page.evaluate(() => {
     let active: Element | null = document.activeElement;
     while (active?.shadowRoot?.activeElement) active = active.shadowRoot.activeElement;
     return active
-      ? `${active.getAttribute('role') ?? active.tagName.toLowerCase()} ${active.getAttribute('aria-label') ?? ''}`
+      ? `${active.getAttribute('role') ?? active.tagName.toLowerCase()} ${
+          active.getAttribute('aria-label') ??
+          (active.getAttribute('aria-labelledby') ?? '')
+            .split(/\s+/)
+            .map((id) => (active!.getRootNode() as ShadowRoot | Document).getElementById(id)?.textContent ?? '')
+            .join(' ')
+            .trim()
+        }`
       : '';
   });
 
@@ -130,11 +137,94 @@ test("a section break's help mark is a Tab stop that shows its description, and 
   await expect(help).toBeFocused();
 });
 
-test("an element's marks stay out of the Tab order inside its panel header", async ({ page }) => {
+/** The first element's marks, which follow its panel header rather than sit in it. */
+const elementMarks = (page: Page): Locator => page.locator('mat-expansion-panel > app-cedar-component-marks').first();
+
+const AUTHOR_IRI = 'https://schema.metadatacenter.org/properties/bed0f6d9-0000-4000-8000-bed0f6d90000';
+
+test("an element's help and property marks are Tab stops after its panel header, each showing its tooltip", async ({
+  page,
+}) => {
   await open(page, '03-nested-multi');
   const panelHeader = page.locator('mat-expansion-panel-header').first();
-  const help = panelHeader.locator('mat-icon.icon-help');
-  await expect(help).toHaveAttribute('aria-hidden', 'true');
-  await expect(help).not.toHaveAttribute('tabindex', /.*/);
-  await expect(panelHeader.locator('.property-iri')).not.toHaveAttribute('tabindex', /.*/);
+  await panelHeader.focus();
+  await expect(panelHeader).toBeFocused();
+
+  await page.keyboard.press('Tab');
+  expect(await focused(page)).toBe('img Description');
+  await expect(tooltip(page, 'author property description')).toBeVisible();
+
+  await page.keyboard.press('Tab');
+  expect(await focused(page)).toBe(`img Property IRI: ${AUTHOR_IRI}`);
+  await expect(tooltip(page, AUTHOR_IRI)).toBeVisible();
+
+  // Neither is inside the button, where a screen reader could not reach it.
+  await expect(panelHeader.locator('[tabindex]')).toHaveCount(0);
+  await expect(panelHeader.getByRole('img')).toHaveCount(0);
 });
+
+test("a click on an element's mark leaves its panel as it is, and a click on its name toggles it", async ({ page }) => {
+  await open(page, '03-nested-multi');
+  const panelHeader = page.locator('mat-expansion-panel-header').first();
+  await expect(panelHeader).toHaveAttribute('aria-expanded', 'true');
+
+  await elementMarks(page).getByRole('img', { name: 'Description', exact: true }).click();
+  await elementMarks(page)
+    .getByRole('img', { name: /^Property IRI: / })
+    .click();
+  await expect(panelHeader).toHaveAttribute('aria-expanded', 'true');
+
+  await panelHeader.locator('.title-label').click();
+  await expect(panelHeader).toHaveAttribute('aria-expanded', 'false');
+  // Closed, the marks stay where they were and still answer a pointer without opening the panel.
+  await elementMarks(page)
+    .getByRole('img', { name: /^Property IRI: / })
+    .click();
+  await expect(panelHeader).toHaveAttribute('aria-expanded', 'false');
+});
+
+test('read only, an element draws no description mark, and its property mark is still a Tab stop', async ({ page }) => {
+  await open(page, '03-nested-multi', 'readonly');
+  await expect(elementMarks(page).getByRole('img', { name: 'Description', exact: true })).toHaveCount(0);
+  await expect(page.locator('mat-expansion-panel mat-icon.icon-help')).toHaveCount(0);
+  const property = elementMarks(page).getByRole('img', { name: `Property IRI: ${AUTHOR_IRI}`, exact: true });
+  await page.locator('mat-expansion-panel-header').first().focus();
+  await page.keyboard.press('Tab');
+  await expect(property).toBeFocused();
+  await expect(tooltip(page, AUTHOR_IRI)).toBeVisible();
+});
+
+/**
+ * The header keeps the marks' room, unseen, and the marks are drawn over it. The room is laid out as
+ * the marks were when they sat in the header, so each mark has to cover exactly the room kept for it.
+ */
+for (const preset of [undefined, 'readonly'] as const)
+  for (const state of ['open', 'closed'] as const)
+    test(`an element's marks are drawn where its header keeps their room: ${preset ?? 'editable'}, ${state}`, async ({
+      page,
+    }) => {
+      await open(page, '03-nested-multi', preset);
+      if (state === 'closed') {
+        await page.locator('mat-expansion-panel-header').first().locator('.title-label').click();
+        await expect(page.locator('mat-expansion-panel-header').first()).toHaveAttribute('aria-expanded', 'false');
+      }
+      const boxes = await page.evaluate(() => {
+        const root = document.querySelector('cedar-embeddable-editor')!.shadowRoot!;
+        const round = (box: DOMRect) => [box.left, box.top, box.width, box.height].map((n) => Math.round(n * 2) / 2);
+        return [...root.querySelectorAll('mat-expansion-panel')]
+          .filter((panel) => panel.checkVisibility({ visibilityProperty: true }))
+          .map((panel) => {
+            const room = panel.querySelectorAll(':scope > mat-expansion-panel-header app-cedar-component-marks > *');
+            const marks = panel.querySelectorAll(':scope > app-cedar-component-marks > *');
+            return {
+              room: [...room].map((mark) => round(mark.getBoundingClientRect())),
+              marks: [...marks].map((mark) => round(mark.getBoundingClientRect())),
+            };
+          });
+      });
+      expect(boxes.length).toBeGreaterThan(0);
+      for (const { room, marks } of boxes) {
+        expect(marks.length).toBe(preset ? 1 : 2);
+        expect(marks).toEqual(room);
+      }
+    });

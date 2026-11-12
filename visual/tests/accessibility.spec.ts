@@ -3,6 +3,7 @@ import { expect, test, type Locator, type Page } from '@playwright/test';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { addAttributeRow, open, passDebounceWindow } from './support/host';
+import { fieldBox } from './support/field-box';
 
 /**
  * Automated WCAG checks over every fixture the suite renders.
@@ -446,7 +447,7 @@ test('a term lookup under way, and one that failed', async ({ page }) => {
     await route.abort();
   });
   await open(page, '04-controlled-terms');
-  const organism = page.locator('input[aria-label="organism"]');
+  const organism = fieldBox(page, 'organism');
   await organism.fill('Homo');
   await passDebounceWindow(page);
   await expect(page.getByRole('option', { name: 'Searching…', exact: true })).toBeVisible();

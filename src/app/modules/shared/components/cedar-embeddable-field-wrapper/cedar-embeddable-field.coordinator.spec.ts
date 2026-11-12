@@ -203,7 +203,11 @@ describe('presenting a value', () => {
     mounted.fixture.detectChanges();
 
     expect(mounted.fixture.debugElement.query(By.directive(CedarSpecBoxComponent))).toBeNull();
-    expect(inputIn(mounted).value).toBe('recorded');
+    // Read-only, a text value is drawn in a box that grows, so that a long one wraps.
+    const box = mounted.fixture.debugElement.query(By.css('textarea')).nativeElement as HTMLTextAreaElement;
+    expect(box.value).toBe('recorded');
+    expect(box.readOnly).toBe(true);
+    expect(mounted.fixture.debugElement.query(By.css('input'))).toBeNull();
   });
 
   it('renders a static field, which has a value to show and none to give', async () => {

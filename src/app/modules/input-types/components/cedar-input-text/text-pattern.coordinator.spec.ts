@@ -80,8 +80,11 @@ for (const inputType of [InputType.text, InputType.textarea]) {
     fixture.detectChanges();
     expect(fixture.debugElement.query(By.css('mat-error'))).toBeNull();
     TestBed.inject(UserPreferencesService).setReadOnlyMode(false);
-    input.value = 'HBM123';
-    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    // Read-only, a line of text is drawn in a growing box, so the editable box is a new one.
+    const box = fixture.debugElement.query(By.css('input, textarea')).nativeElement as HTMLInputElement;
+    box.value = 'HBM123';
+    box.dispatchEvent(new Event('input'));
     await vi.waitFor(() => expect(fixture.componentInstance.inputValueControl.pending).toBe(false));
     fixture.detectChanges();
     expect(fixture.componentInstance.inputValueControl.valid).toBe(true);

@@ -26,4 +26,6 @@
 :host {
   display: block;
   margin-bottom: ui-tokens.$space-1;
+  /* A word longer than the line, such as a DOI address, breaks rather than running past the page. */
+  overflow-wrap: anywhere;
 }

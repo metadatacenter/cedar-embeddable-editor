@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import { NARROW_ONLY, WIDTH_INDEPENDENT } from './tests/width-tags';
 
 /**
  * Visual baseline for the built web component.
@@ -104,6 +105,8 @@ export default defineConfig({
     {
       name: 'desktop',
       testIgnore: /cross-browser-smoke\.spec\.ts/,
+      // A test tagged narrow-only checks a layout that exists only at the narrow width.
+      grepInvert: new RegExp(NARROW_ONLY),
       use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 900 } },
     },
     {
@@ -114,6 +117,8 @@ export default defineConfig({
       // reads the viewport. Specs that screenshot or measure keep running at both widths.
       testIgnore:
         /(?:cross-browser-smoke|presentation-matrix|surfaces|specification-theme|authority-search-status|host-change|layout-resilience)\.spec\.ts/,
+      // A test tagged width-independent would only repeat its desktop run here.
+      grepInvert: new RegExp(WIDTH_INDEPENDENT),
       use: { ...devices['Desktop Chrome'], viewport: { width: 480, height: 900 } },
     },
     {

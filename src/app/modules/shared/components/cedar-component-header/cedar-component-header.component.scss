@@ -44,28 +44,6 @@
 }
 
 /*
- * The child's property IRI is quiet deployment metadata rather than an action.
- * Keep the ontology glyph at the far edge of the heading and expose the full
- * value through the tooltip without turning it into a link.
- */
-.property-iri {
-  display: inline-flex;
-  flex: 0 0 layout.$cee-property-slot;
-  width: tokens.$icon-size-small;
-  height: tokens.$icon-size-small;
-  align-items: center;
-  justify-content: center;
-  cursor: help;
-}
-
-.property-iri-icon {
-  width: tokens.$icon-size-small;
-  height: tokens.$icon-size-small;
-  overflow: hidden;
-  line-height: tokens.$icon-size-small;
-}
-
-/*
  * The asterisk beside a required field's label.
  *
  * `1em` keeps it the size of the label carrying it. The colour is inherited rather than red, which
@@ -124,22 +102,6 @@
   color: tokens.$color-primary;
 }
 
-/* Keep the Material help icon aligned with text */
-.mat-icon.icon-questionmark {
-  height: tokens.$icon-size-small;
-  width: tokens.$icon-size-small;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  vertical-align: middle;
-  line-height: tokens.$line-height-tight;
-}
-
-/* Make the help icon a non-flexing fixed-size item. */
-.mat-icon.icon-questionmark {
-  flex: 0 0 auto;
-}
-
 /*
  * Keep the occurrence range visible when a long name has to truncate. Field names are medium weight;
  * the range is secondary text in either rendering mode.
@@ -170,15 +132,4 @@
   flex: 0 0 auto;
   color: tokens.$text-muted;
   font-weight: var(--cedar-font-weight-regular, #{tokens.$font-weight-regular});
-}
-
-/* Keep the Material help icon aligned with text */
-.mat-icon.icon-questionmark {
-  height: tokens.$icon-size-small;
-  width: tokens.$icon-size-small;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  vertical-align: middle;
-  line-height: tokens.$line-height-tight;
 }

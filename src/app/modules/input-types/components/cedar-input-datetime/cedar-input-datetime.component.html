@@ -8,7 +8,7 @@
       type="text"
       readonly
       [value]="readOnlyValue()"
-      attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"
+      [attr.aria-labelledby]="boxName.id"
     />
   </mat-form-field>
 }
@@ -123,3 +123,6 @@
     </mat-error>
   }
 }
+
+<!-- The box's name is the field's label, marked with the language the template declares for it. -->
+<span appCedarJoinedName #boxName [label]="fieldLabel" [labelLanguage]="textLanguage"></span>

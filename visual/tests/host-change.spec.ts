@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { changeDetails, currentMetadata, open, passDebounceWindow, recordChanges } from './support/host';
+import { fieldBox } from './support/field-box';
 
 test.describe('host change notifications', () => {
   test('a canonical loaded instance emits no initialization change', async ({ page }) => {
@@ -22,7 +23,7 @@ test.describe('host change notifications', () => {
   test('a field edit bubbles a change event and updates currentMetadata', async ({ page }) => {
     await open(page, '01-input-types');
     await recordChanges(page);
-    const field = page.locator('input[aria-label="text"]');
+    const field = fieldBox(page, 'text');
     await field.fill('host-visible edit');
 
     await expect(async () => {
@@ -46,7 +47,7 @@ test.describe('host change notifications', () => {
     await open(page, '01-input-types');
     const baseline = JSON.stringify(await currentMetadata(page));
     await recordChanges(page);
-    const field = page.locator('input[aria-label="text"]');
+    const field = fieldBox(page, 'text');
 
     await field.fill('temporary edit');
     await expect.poll(async () => (await changeDetails(page)).length).toBe(1);
@@ -90,7 +91,7 @@ test.describe('host change notifications', () => {
     await open(page, '04-controlled-terms');
     await recordChanges(page);
 
-    const field = page.locator('input[aria-label="organism"]');
+    const field = fieldBox(page, 'organism');
     await field.pressSequentially('Homo', { delay: 40 });
     await passDebounceWindow(page);
     await page.locator('mat-option').filter({ hasText: label }).click();
@@ -129,7 +130,9 @@ test.describe('host change notifications', () => {
     // DOM event can be exercised.
     await open(page, '01-input-types', 'readonly', '14-markup-in-a-value');
     await recordChanges(page);
-    await page.locator('input[aria-label="email"]').dispatchEvent('change');
+    const email = fieldBox(page, 'email', 'textarea');
+    await email.dispatchEvent('change');
+    await email.dispatchEvent('input');
     expect(await changeDetails(page)).toEqual([]);
   });
 

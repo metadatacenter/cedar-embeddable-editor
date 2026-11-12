@@ -1,6 +1,7 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import type { CeeLocation, CeeRevealOptions } from '../../src/app/cee-public-api';
 import { open, passDebounceWindow } from './support/host';
+import { fieldBox } from './support/field-box';
 
 /**
  * WCAG 4.1.3, Status Messages, and 3.3.1, Error Identification, for the messages CEE draws outside
@@ -18,12 +19,21 @@ import { open, passDebounceWindow } from './support/host';
 const liveRegion = (page: Page, host = 'cedar-embeddable-editor'): Locator =>
   page.locator(host).locator('.cee-live-region');
 
-/** The innermost focused element, across shadow roots, as a string to compare. */
+/** The innermost focused element, across shadow roots, by its tag and name, as a string to compare. */
 const focused = (page: Page): Promise<string> =>
   page.evaluate(() => {
     let active: Element | null = document.activeElement;
     while (active?.shadowRoot?.activeElement) active = active.shadowRoot.activeElement;
-    return active ? `${active.tagName} ${active.getAttribute('aria-label') ?? ''}` : '';
+    return active
+      ? `${active.tagName} ${
+          active.getAttribute('aria-label') ??
+          (active.getAttribute('aria-labelledby') ?? '')
+            .split(/\s+/)
+            .map((id) => (active!.getRootNode() as ShadowRoot | Document).getElementById(id)?.textContent ?? '')
+            .join(' ')
+            .trim()
+        }`
+      : '';
   });
 
 /** The rendered field or element whose header carries this label. */
@@ -135,7 +145,7 @@ test.describe("a widget's own messages", () => {
   test('a failed authority search is announced and describes the box while the list shows it', async ({ page }) => {
     await open(page, '08-authority');
     // A textbox while empty and a combobox once typed into, so found by its name alone.
-    const input = page.locator('input[aria-label="contributor_orcid"]');
+    const input = fieldBox(page, 'contributor_orcid');
     await input.fill('test search');
     await passDebounceWindow(page);
     // The smokes find this option by name, so the name stays the message.

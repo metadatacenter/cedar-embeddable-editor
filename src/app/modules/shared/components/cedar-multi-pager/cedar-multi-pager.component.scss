@@ -23,15 +23,15 @@
  *
  * The row is drawn over a field's title row, which is 20px. At 48px it hung 15px below
  * the field's name and pushed the control down by that much, which was most of the space
- * under a repeating field's name. 32px is what the chips in the same row already measure,
- * and it leaves the 18px glyph 7px of padding on every side. The invisible 48px touch
+ * under a repeating field's name. The 32px action leaves its 20px glyph 6px of padding
+ * on every side. The invisible 48px touch
  * target Material centres on each button comes down with it: left at 48px it would have
  * covered the top of the control below, so a click meant for the box would have deleted
  * an occurrence instead.
  */
 .pager-actions .mat-mdc-icon-button {
-  width: 32px;
-  height: 32px;
+  width: spacing.$occurrence-action-size;
+  height: spacing.$occurrence-action-size;
   box-sizing: border-box;
   @include spacing.apply(padding, occurrence-action-inset);
   display: inline-flex;
@@ -41,8 +41,8 @@
 
 /* `::ng-deep`, because Material renders the touch target inside the button's own template. */
 .pager-actions ::ng-deep .mat-mdc-button-touch-target {
-  width: 32px;
-  height: 32px;
+  width: spacing.$occurrence-action-size;
+  height: spacing.$occurrence-action-size;
 }
 
 /*

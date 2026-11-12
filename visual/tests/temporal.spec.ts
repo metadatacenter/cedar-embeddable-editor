@@ -1,6 +1,62 @@
 import { expect, test } from '@playwright/test';
 import { valueOf } from './values';
-import { open } from './support/host';
+import { BUNDLE_VERSION, open } from './support/host';
+
+for (const host of ['editor', 'field'] as const) {
+  for (const [density, height, line, font] of [
+    ['comfortable', 48, 21, 14],
+    ['compact', 36, 21, 14],
+    ['authoring', 32, 18, 12],
+  ] as const) {
+    test(`${host} ${density} clock lines preserve control sizes and follow the host`, async ({ page }) => {
+      await page.goto(
+        `/host.html?t=09-temporal${host === 'field' ? '&host=field&p=_twelve_hour_seconds' : ''}&b=${BUNDLE_VERSION}`,
+      );
+      await page.waitForFunction(() => window.__ceeReady);
+      const element = page.locator(`cedar-embeddable-${host}`);
+      await element.evaluate((el, profile) => el.setAttribute('density', profile), density);
+      const clocks = element.locator('.cee-time-input-shell');
+      await expect(clocks.first()).toBeVisible();
+      for (const clock of await clocks.all()) {
+        expect((await clock.boundingBox())!.height).toBe(height);
+      }
+      for (const part of await element.locator('.cee-time-segment, .cee-time-separator').all()) {
+        await expect(part).toHaveCSS('line-height', `${line}px`);
+        await expect(part).toHaveCSS('font-size', `${font}px`);
+      }
+      for (const meridian of await element.locator('.cee-time-meridian').all()) {
+        expect((await meridian.boundingBox())!.height).toBe(height);
+      }
+
+      const clock = clocks.last();
+      const empty = await clock.boundingBox();
+      await clock.locator('.cee-time-segment-hour').fill('02');
+      await clock.locator('.cee-time-segment-minute').fill('30');
+      await clock.locator('.cee-time-segment-second').fill('15');
+      await clock.locator('.cee-time-segment-second').blur();
+      await expect(clock.locator('.cee-time-segment-minute')).toHaveValue('30');
+      const filled = await clock.boundingBox();
+      expect(filled!.height).toBe(empty!.height);
+      expect(filled!.width).toBe(empty!.width);
+
+      if (density !== 'comfortable') {
+        await page.evaluate(() => {
+          document.body.style.setProperty('--cedar-control-height', '44px');
+          document.body.style.setProperty('--cedar-control-font-size', '16px');
+          document.body.style.setProperty('--cedar-control-line-height', '24px');
+        });
+        await expect.poll(async () => (await clock.boundingBox())!.height).toBe(44);
+        for (const part of await clock.locator('.cee-time-segment, .cee-time-separator').all()) {
+          await expect(part).toHaveCSS('line-height', '24px');
+          await expect(part).toHaveCSS('font-size', '16px');
+        }
+        for (const meridian of await element.locator('.cee-time-meridian').all()) {
+          expect((await meridian.boundingBox())!.height).toBe(44);
+        }
+      }
+    });
+  }
+}
 
 /**
  * CEE's own time picker.

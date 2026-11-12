@@ -17,6 +17,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { open } from './support/host';
+import { fieldBox } from './support/field-box';
 
 const SRC = fileURLToPath(new URL('../../src', import.meta.url));
 
@@ -92,7 +93,7 @@ test('every third-party selector CEE styles still matches an element', async ({ 
   // A field showing a validation error, for the subscript's error wrapper. A
   // required field reports itself the moment it is left empty.
   await open(page, '06-validation');
-  const required = page.locator('input[aria-label="required_text"]');
+  const required = fieldBox(page, 'required_text');
   await required.focus();
   await required.blur();
   await expect(page.locator('mat-error').first()).toBeVisible();

@@ -174,7 +174,7 @@
   align-items: center;
   margin-right: ui-tokens.$space-2;
   margin-top: -26px;
-  margin-bottom: -4px;
+  margin-bottom: -(ui-tokens.$space-1);
 }
 
 /*
@@ -426,8 +426,8 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
   z-index: tokens.$layer-overlay !important;
 }
 
-// Comfortable controls retain their black resting outline. Material now owns
-// hover, focus and error states, which the old !important borders suppressed.
+// Comfortable controls retain their 48px sizing and share the resting control outline.
+// Material owns hover, focus and error states independently of that resting border.
 :host([density='comfortable']) {
   @include theme.comfortable-outline();
 }
@@ -513,7 +513,7 @@ app-cedar-component-renderer:has(> mat-accordion) + app-cedar-component-renderer
    * two-class rule written here, winning on order — so a selector fight is unwinnable and the tokens
    * are the supported API the density mixin itself uses.
    */
-  @include theme.control-size(36px, 6px);
+  @include theme.control-size(ui-tokens.$control-height-default, 6px);
 
   /*
    * A choice option is 28px while editing: a 20px control in 4px of padding,
@@ -526,7 +526,7 @@ app-cedar-component-renderer:has(> mat-accordion) + app-cedar-component-renderer
    */
   .mat-mdc-radio-button .mdc-radio,
   .mat-mdc-checkbox .mdc-checkbox {
-    padding: 2px;
+    @include spacing.apply(padding, compact);
   }
 
   /*
@@ -565,9 +565,9 @@ app-cedar-component-renderer:has(> mat-accordion) + app-cedar-component-renderer
    * mismatch the note above predicts when the compact height meets a 48px action.
    */
   .mat-mdc-form-field-icon-suffix .mat-mdc-icon-button.mat-mdc-button-base {
-    width: 36px;
-    height: 36px;
-    padding: 6px;
+    width: ui-tokens.$control-height-default;
+    height: ui-tokens.$control-height-default;
+    @include spacing.apply(padding, default-control-icon-inset);
   }
 }
 
@@ -675,6 +675,16 @@ mat-icon.cedar-icon > svg {
 textarea,
 textarea.mat-mdc-input-element {
   resize: none;
+}
+
+/*
+ * A read-only line of text is drawn in a growing box, so that a long value wraps. Material centres
+ * a textarea on its line's x-height, which makes that line, and the field, a fraction of a pixel
+ * taller than the input the box replaces. Set at the top of its line, the box adds nothing, so a
+ * short value keeps that input's height.
+ */
+textarea.cee-line-value {
+  vertical-align: top;
 }
 
 // Select and autocomplete rows match the 28px choice rows.

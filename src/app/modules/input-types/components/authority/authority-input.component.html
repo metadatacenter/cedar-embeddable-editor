@@ -23,6 +23,7 @@ genuinely theirs.
         [label]="selectedData?.label ?? null"
         [iri]="selectedData?.iri ?? null"
         [fieldLabel]="cds.getRenderingLabelForComponent(component)"
+        [fieldLabelLanguage]="textLanguage"
         [truncateLabel]="truncatesSelectedLabel"
       >
         @if (detailsUrl) {
@@ -64,7 +65,7 @@ genuinely theirs.
         (blur)="onInputBlur()"
         [readonly]="readOnlyMode"
         [class.cee-settled-input]="showsSettledTerm"
-        attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"
+        [attr.aria-labelledby]="boxName.id"
       />
       @if (showsSettledTerm) {
         <!-- The term as read-only draws it, for the eye only: the input under it holds the same text. -->
@@ -175,3 +176,6 @@ genuinely theirs.
     }
   </ng-container>
 </form>
+
+<!-- The box's name is the field's label, marked with the language the template declares for it. -->
+<span appCedarJoinedName #boxName [label]="fieldLabel" [labelLanguage]="textLanguage"></span>
