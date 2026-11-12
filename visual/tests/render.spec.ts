@@ -2668,7 +2668,7 @@ test.describe('controlled terminology selection', () => {
     const label = 'Homo sapiens';
     // The harness sets `terminologyBaseUrl` to the discard port; CEE appends the
     // search path, which is its own and not the host's to move.
-    await page.route('http://127.0.0.1:9/unused/bioportal/integrated-search', async (route) => {
+    await page.route('http://127.0.0.1:47888/unused/bioportal/integrated-search', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -2708,7 +2708,7 @@ test.describe('controlled terminology selection', () => {
   test('a chosen term keeps its field, and offers BioPortal as a suffix link', async ({ page }) => {
     const id = 'http://purl.obolibrary.org/obo/NCBITaxon_9606';
     const label = 'Homo sapiens';
-    await page.route('http://127.0.0.1:9/unused/bioportal/integrated-search', async (route) => {
+    await page.route('http://127.0.0.1:47888/unused/bioportal/integrated-search', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -2763,7 +2763,7 @@ test.describe('controlled terminology selection', () => {
       { id: 'http://purl.obolibrary.org/obo/NCBITaxon_9606', label: 'Homo sapiens' },
       { id: 'http://purl.obolibrary.org/obo/NCBITaxon_63221', label: 'Homo neanderthalensis' },
     ];
-    await page.route('http://127.0.0.1:9/unused/bioportal/integrated-search', async (route) => {
+    await page.route('http://127.0.0.1:47888/unused/bioportal/integrated-search', async (route) => {
       const asked = route.request().postDataJSON()?.parameterObject?.inputText;
       if (asked === terms[0].label) {
         // The lookup for the chosen label. Unanswered, so the list is not replaced.
@@ -2816,7 +2816,7 @@ test.describe('controlled terminology selection', () => {
   test('an aborted suggestion press does not disable later blur reconciliation', async ({ page }) => {
     const id = 'http://purl.obolibrary.org/obo/NCBITaxon_9606';
     const label = 'Homo sapiens';
-    await page.route('http://127.0.0.1:9/unused/bioportal/integrated-search', async (route) => {
+    await page.route('http://127.0.0.1:47888/unused/bioportal/integrated-search', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',

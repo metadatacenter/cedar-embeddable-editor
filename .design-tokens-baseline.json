@@ -113,13 +113,6 @@
       "value": "26px",
       "count": 1
     },
-    "de13f7bb6c8545b5a90e": {
-      "file": "src/app/modules/shared/components/time-picker/time-picker.component.scss",
-      "rule": "spacing",
-      "property": "padding",
-      "value": "ui-tokens.$space-3 1px",
-      "count": 1
-    },
     "deceb0e2377937335e0d": {
       "file": "src/_cee-material-theme.scss",
       "rule": "geometry",

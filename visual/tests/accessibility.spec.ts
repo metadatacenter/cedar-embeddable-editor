@@ -60,6 +60,12 @@ interface Settled {
 const SETTLED: readonly Settled[] = [
   {
     rule: 'color-contrast',
+    target: /mat-mdc-tooltip-surface/,
+    measured: 'white on the tooltip surface; remeasured against 4.5:1 on every run',
+    reason: 'Firefox reports partial overlap for the property tooltip. Its text sits on its own opaque surface.',
+  },
+  {
+    rule: 'color-contrast',
     target: /#mat-input-\d+"\]\]$/,
     measured: 'values rgba(0, 0, 0, 0.87) at 14.25:1 or more, placeholders #555 at 7.46:1',
     reason: "The outline axe finds over a text box is a border with no fill, so the text is on the box's own surface.",
@@ -367,10 +373,11 @@ async function expectAccessible(page: Page, state: string): Promise<void> {
 /**
  * Focus a control as the keyboard would.
  *
- * A page nobody has pointed at treats a focus a script moves as keyboard focus, so the control
- * draws its focus ring, which is the state this checks. The assertion says so rather than assumes.
+ * Use a real navigation key to establish keyboard modality in all engines before moving focus.
+ * A modifier alone, or a script focus after a pointer action, does not do that in Firefox/WebKit.
  */
 async function focusAsKeyboard(control: Locator): Promise<void> {
+  await control.page().keyboard.press('Tab');
   await control.focus();
   await expect(control).toBeFocused();
   expect(await control.evaluate((element) => element.matches(':focus-visible')), 'no focus ring drawn').toBe(true);
@@ -423,7 +430,7 @@ test('an authority search under way, and one that found nothing', async ({ page 
   const pending = new Promise<void>((resolve) => {
     release = resolve;
   });
-  await page.route('http://127.0.0.1:9/**', async (route) => {
+  await page.route('http://127.0.0.1:47888/**', async (route) => {
     await pending;
     await route.fulfill({ json: { found: false, results: {} } });
   });
@@ -442,7 +449,7 @@ test('a term lookup under way, and one that failed', async ({ page }) => {
   const pending = new Promise<void>((resolve) => {
     release = resolve;
   });
-  await page.route('http://127.0.0.1:9/**', async (route) => {
+  await page.route('http://127.0.0.1:47888/**', async (route) => {
     await pending;
     await route.abort();
   });

@@ -102,6 +102,12 @@ export default defineConfig({
   },
 
   projects: [
+    ...(['firefox', 'webkit'] as const).map((browserName) => ({
+      name: `${browserName}-accessibility`,
+      testMatch: /(?:accessibility|layout-resilience|focus|keyboard-paging)\.spec\.ts/,
+      grepInvert: new RegExp(NARROW_ONLY),
+      use: { browserName, viewport: { width: 1280, height: 900 } },
+    })),
     {
       name: 'desktop',
       testIgnore: /cross-browser-smoke\.spec\.ts/,

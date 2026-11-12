@@ -30,8 +30,9 @@
  */
 .property-iri {
   display: inline-flex;
+  // Match the intrinsic width to the flex slot so Firefox/WebKit reserve the whole mark.
   flex: 0 0 layout.$cee-property-slot;
-  width: tokens.$icon-size-small;
+  width: layout.$cee-property-slot;
   height: tokens.$icon-size-small;
   align-items: center;
   justify-content: center;

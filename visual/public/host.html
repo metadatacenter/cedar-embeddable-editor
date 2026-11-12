@@ -90,11 +90,11 @@
                 defaultLanguage: 'en',
                 fallbackLanguage: 'en',
                 languageMapPathPrefix: `./served/languages/${owner}/`,
-                terminologyBaseUrl: `http://127.0.0.1:9/isolation/${owner}/terminology/`,
+                terminologyBaseUrl: `http://127.0.0.1:47888/isolation/${owner}/terminology/`,
                 // Every authority endpoint hangs off this, so pointing it at the discard
                 // port is what keeps every authority request on the machine — and what
                 // makes them per-owner, which is what the isolation test reads.
-                bridgeBaseUrl: `http://127.0.0.1:9/isolation/${owner}/`,
+                bridgeBaseUrl: `http://127.0.0.1:47888/isolation/${owner}/`,
               };
               return config;
             };
@@ -144,8 +144,8 @@
               previewMode: ['preview', 'preview-typed'].includes(params.get('c')),
               showFieldType: params.get('c') === 'preview-typed',
               // Unreachable on purpose, exactly as the editor's presets are.
-              terminologyBaseUrl: 'http://127.0.0.1:9/unused/',
-              bridgeBaseUrl: 'http://127.0.0.1:9/',
+              terminologyBaseUrl: 'http://127.0.0.1:47888/unused/',
+              bridgeBaseUrl: 'http://127.0.0.1:47888/',
               ...placement,
               // ?f= and ?n= turn boolean keys on and off, as they do for the editor below.
               ...Object.fromEntries((params.get('f') || '').split(',').filter(Boolean).map((flag) => [flag, true])),
@@ -164,7 +164,7 @@
               defaultLanguage: 'en',
               fallbackLanguage: 'en',
               languageMapPathPrefix: params.get('prefix') || './served/languages/',
-              terminologyBaseUrl: 'http://127.0.0.1:9/unused/',
+              terminologyBaseUrl: 'http://127.0.0.1:47888/unused/',
             };
           } else {
             window.__ceeError = `unknown ?host= route: ${hostRoute}`;
@@ -218,7 +218,7 @@
           // Deliberately unreachable: the visual baseline must never depend on
           // a live terminology server. Lookup spinners are not screenshotted
           // for the same reason — they only appear mid-request.
-          terminologyBaseUrl: 'http://127.0.0.1:9/unused/',
+          terminologyBaseUrl: 'http://127.0.0.1:47888/unused/',
         };
 
         /**
@@ -230,11 +230,11 @@
          * against something live. The paths differ per authority, so the question is
          * answerable by looking at the request.
          *
-         * `127.0.0.1:9` is the discard port: nothing listens, so the requests are
+         * `127.0.0.1:47888` is the discard port: nothing listens, so the requests are
          * intercepted by the test and never leave the machine. Which is the same reason
          * `base` points the terminology server there.
          */
-        const AUTHORITY_ENDPOINTS = { bridgeBaseUrl: 'http://127.0.0.1:9/' };
+        const AUTHORITY_ENDPOINTS = { bridgeBaseUrl: 'http://127.0.0.1:47888/' };
 
         const PRESETS = {
           base,

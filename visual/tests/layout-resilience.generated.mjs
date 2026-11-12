@@ -438,7 +438,12 @@ async function inspect(request) {
   const hitAt = (x, y) => {
     let top = document.elementsFromPoint(x, y).find((element) => !tooltip(element)) ?? null;
     while (top?.shadowRoot) {
-      const inner = top.shadowRoot.elementsFromPoint(x, y).find((element) => !tooltip(element)) ?? null;
+      // WebKit can put the host before a native input in this list. Only descendants belong to
+      // this descent; an overlay outside the root has already won the document-level hit test.
+      const inner =
+        top.shadowRoot
+          .elementsFromPoint(x, y)
+          .find((element) => element !== top && contains(top, element) && !tooltip(element)) ?? null;
       if (!inner || inner === top || !contains(top, inner)) break;
       top = inner;
     }

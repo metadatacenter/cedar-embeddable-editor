@@ -81,7 +81,7 @@ test.describe('host change notifications', () => {
   test('controlled-term selection publishes the stored IRI and label', async ({ page }) => {
     const id = 'http://purl.obolibrary.org/obo/NCBITaxon_9606';
     const label = 'Homo sapiens';
-    await page.route('http://127.0.0.1:9/unused/bioportal/integrated-search', async (route) => {
+    await page.route('http://127.0.0.1:47888/unused/bioportal/integrated-search', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
