@@ -300,22 +300,32 @@ for (const instance of files.filter((name) => !templates.includes(name))) {
  * second apart find nothing running. A shadow tree's animations are listed on its root.
  */
 async function expectAccessible(page: Page, state: string): Promise<void> {
-  await page.evaluate(async () => {
+  const settled = await page.evaluate(async () => {
     let quiet = 0;
     for (let pass = 0; pass < 40 && quiet < 3; pass++) {
       await new Promise((resolve) => setTimeout(resolve, 100));
       await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-      const roots: DocumentOrShadowRoot[] = [document];
+      const roots: (Document | ShadowRoot)[] = [document];
       for (const element of document.querySelectorAll('*')) if (element.shadowRoot) roots.push(element.shadowRoot);
       const running = roots
         .flatMap((root) => root.getAnimations())
         .filter(
           (animation) => animation.playState === 'running' && animation.effect?.getTiming().iterations !== Infinity,
         );
-      quiet = running.length ? 0 : quiet + 1;
+      // WebKit can report no running animations while Material's hint/error subscript is
+      // still visibly fading. Read the rendered opacity too; an animation API result alone
+      // let axe measure the selection hint at 1.87:1 before it reached its final colour.
+      const fadingSubscript = roots.some((root) =>
+        Array.from(root.querySelectorAll('.mat-mdc-form-field-hint-wrapper, .mat-mdc-form-field-error-wrapper')).some(
+          (element) => getComputedStyle(element).opacity !== '1',
+        ),
+      );
+      quiet = running.length || fadingSubscript ? 0 : quiet + 1;
       await Promise.all(running.map((animation) => animation.finished.catch(() => undefined)));
     }
+    return quiet === 3;
   });
+  expect(settled, `${state}: animations and Material subscripts did not settle`).toBe(true);
   const builder = new AxeBuilder({ page }).exclude({ fromShadowDom: ['cedar-embeddable-editor', 'iframe'] });
   const narrow = test.info().project.name.endsWith('narrow');
   // axe-core lets a rule enabled by name override the tag selection, so one desktop scan covers both.
@@ -346,7 +356,7 @@ async function expectAccessible(page: Page, state: string): Promise<void> {
             (known) => known.rule === violation.id && known.target.test(JSON.stringify(node.target)),
           ),
       )
-      .map((node) => `${violation.id}: ${JSON.stringify(node.target)}`),
+      .map((node) => `${violation.id}: ${JSON.stringify(node.target)}\n${node.failureSummary ?? ''}`),
   );
   const pending = incomplete
     .filter((result) => SETTLED_RULES.includes(result.id))
