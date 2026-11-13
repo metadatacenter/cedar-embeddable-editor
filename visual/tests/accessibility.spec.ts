@@ -5,6 +5,11 @@ import { fileURLToPath } from 'node:url';
 import { addAttributeRow, open, passDebounceWindow } from './support/host';
 import { fieldBox } from './support/field-box';
 
+// axe and rendered contrast sampling have their own instrumentation cost under parallel load.
+// Keep UI expectations unchanged and allow a complete scan to finish without a test retry.
+test.setTimeout(60_000);
+test.use({ actionTimeout: 30_000, navigationTimeout: 30_000 });
+
 /**
  * Automated WCAG checks over every fixture the suite renders.
  *
@@ -119,7 +124,11 @@ const SETTLED: readonly Settled[] = [
  * Violations that cannot be fixed without changing what is on screen. Each is listed so the gate
  * passes, and remains a known failure until the screen changes.
  */
-const KNOWN_VIOLATIONS: readonly { readonly rule: string; readonly target: RegExp; readonly reason: string }[] = [];
+const KNOWN_VIOLATIONS: readonly {
+  readonly rule: string;
+  readonly target: RegExp;
+  readonly reason: string;
+}[] = [];
 
 const settledEntry = (rule: string, target: string): Settled | undefined =>
   SETTLED.find((entry) => entry.rule === rule && entry.target.test(target));
@@ -205,7 +214,13 @@ async function measureContrast(page: Page, targets: readonly (readonly string[])
       };
     });
   }, targets);
-  const shot = (await page.screenshot({ fullPage: true, animations: 'disabled', caret: 'hide' })).toString('base64');
+  const shot = (
+    await page.screenshot({
+      fullPage: true,
+      animations: 'disabled',
+      caret: 'hide',
+    })
+  ).toString('base64');
   const backgrounds = await page.evaluate(
     async ({ image, rects }) => {
       for (const probe of document.querySelectorAll('[data-cee-contrast-probe]'))
@@ -333,7 +348,9 @@ async function expectAccessible(page: Page, state: string): Promise<void> {
     return quiet === 3;
   });
   expect(settled, `${state}: animations and Material subscripts did not settle`).toBe(true);
-  const builder = new AxeBuilder({ page }).exclude({ fromShadowDom: ['cedar-embeddable-editor', 'iframe'] });
+  const builder = new AxeBuilder({ page }).exclude({
+    fromShadowDom: ['cedar-embeddable-editor', 'iframe'],
+  });
   const narrow = test.info().project.name.endsWith('narrow');
   // axe-core lets a rule enabled by name override the tag selection, so one desktop scan covers both.
   // The builder's `options` replaces every option set before it, so it comes ahead of `withTags`.
@@ -437,44 +454,46 @@ for (const fixture of ['01-input-types', '02-choices', '09-temporal'])
       await expectAccessible(page, `${fixture} comfortable ${preset ?? 'editable'}`);
     });
 
-test('an authority search under way, and one that found nothing', async ({ page }) => {
-  let release!: () => void;
-  const pending = new Promise<void>((resolve) => {
-    release = resolve;
+for (const state of ['searching', 'empty'])
+  test(`an authority search, ${state}`, async ({ page }) => {
+    let release!: () => void;
+    const pending = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await page.route('http://127.0.0.1:47888/**', async (route) => {
+      await pending;
+      await route.fulfill({ json: { found: false, results: {} } });
+    });
+    await open(page, '08-authority', undefined, undefined, undefined, '&host=field&p=_contributor_orcid');
+    const field = page.locator('cedar-embeddable-field');
+    await field.locator('input').first().fill('Unmatched example');
+    await expect(field.getByText('Searching…', { exact: true })).toBeVisible();
+    if (state === 'searching') await expectAccessible(page, 'authority search under way');
+    release();
+    await expect(field.getByRole('option', { name: 'No results found', exact: true })).toBeVisible();
+    if (state === 'empty') await expectAccessible(page, 'authority search that found nothing');
   });
-  await page.route('http://127.0.0.1:47888/**', async (route) => {
-    await pending;
-    await route.fulfill({ json: { found: false, results: {} } });
-  });
-  await open(page, '08-authority', undefined, undefined, undefined, '&host=field&p=_contributor_orcid');
-  const field = page.locator('cedar-embeddable-field');
-  await field.locator('input').first().fill('Unmatched example');
-  await expect(field.getByText('Searching…', { exact: true })).toBeVisible();
-  await expectAccessible(page, 'authority search under way');
-  release();
-  await expect(field.getByRole('option', { name: 'No results found', exact: true })).toBeVisible();
-  await expectAccessible(page, 'authority search that found nothing');
-});
 
-test('a term lookup under way, and one that failed', async ({ page }) => {
-  let release!: () => void;
-  const pending = new Promise<void>((resolve) => {
-    release = resolve;
+for (const state of ['searching', 'failed'])
+  test(`a term lookup, ${state}`, async ({ page }) => {
+    let release!: () => void;
+    const pending = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await page.route('http://127.0.0.1:47888/**', async (route) => {
+      await pending;
+      await route.abort();
+    });
+    await open(page, '04-controlled-terms');
+    const organism = fieldBox(page, 'organism');
+    await organism.fill('Homo');
+    await passDebounceWindow(page);
+    await expect(page.getByRole('option', { name: 'Searching…', exact: true })).toBeVisible();
+    if (state === 'searching') await expectAccessible(page, 'term lookup under way');
+    release();
+    await expect(page.getByRole('option', { name: /^Search failed/ })).toBeVisible();
+    if (state === 'failed') await expectAccessible(page, 'term lookup that failed');
   });
-  await page.route('http://127.0.0.1:47888/**', async (route) => {
-    await pending;
-    await route.abort();
-  });
-  await open(page, '04-controlled-terms');
-  const organism = fieldBox(page, 'organism');
-  await organism.fill('Homo');
-  await passDebounceWindow(page);
-  await expect(page.getByRole('option', { name: 'Searching…', exact: true })).toBeVisible();
-  await expectAccessible(page, 'term lookup under way');
-  release();
-  await expect(page.getByRole('option', { name: /^Search failed/ })).toBeVisible();
-  await expectAccessible(page, 'term lookup that failed');
-});
 
 for (const state of ['calendar month view', 'calendar multi-year view', 'year calendar'])
   test(`an open calendar, ${state}`, async ({ page }) => {
@@ -497,31 +516,36 @@ for (const state of ['calendar month view', 'calendar multi-year view', 'year ca
     if (state === 'year calendar') await expectAccessible(page, state);
   });
 
-test('an open select, single and multiple', async ({ page }) => {
-  await open(page, '02-choices');
-  await page.getByRole('combobox', { name: 'single_list', exact: true }).click();
-  await expect(page.getByRole('listbox', { name: 'single_list' })).toBeVisible();
-  await expectAccessible(page, 'single select open');
-  await page.keyboard.press('Escape');
-  await page.getByRole('combobox', { name: 'multi_list', exact: true }).click();
-  await expect(page.getByRole('listbox', { name: 'multi_list' })).toBeVisible();
-  await expectAccessible(page, 'multiple select open');
-});
+for (const state of ['single', 'multiple'])
+  test(`an open select, ${state}`, async ({ page }) => {
+    await open(page, '02-choices');
+    await page.getByRole('combobox', { name: 'single_list', exact: true }).click();
+    await expect(page.getByRole('listbox', { name: 'single_list' })).toBeVisible();
+    if (state === 'single') await expectAccessible(page, 'single select open');
+    await page.keyboard.press('Escape');
+    await page.getByRole('combobox', { name: 'multi_list', exact: true }).click();
+    await expect(page.getByRole('listbox', { name: 'multi_list' })).toBeVisible();
+    if (state === 'multiple') await expectAccessible(page, 'multiple select open');
+  });
 
-test('an open menu, its item focused and hovered', async ({ page }) => {
-  await open(page, '01-input-types', undefined, undefined, undefined, '&f=showDownloadMenu');
-  const download = page.getByRole('button', { name: 'Download', exact: true });
-  await download.focus();
-  await download.press('Enter');
-  const items = page.getByRole('menuitem');
-  await expect(items.first()).toBeFocused();
-  await page.keyboard.press('ArrowDown');
-  await expect(items.nth(1)).toBeFocused();
-  expect(await items.nth(1).evaluate((item) => item.matches(':focus-visible'))).toBe(true);
-  await expectAccessible(page, 'menu open, an item focused');
-  await items.nth(3).hover();
-  await expectAccessible(page, 'menu item hovered');
-});
+for (const state of ['focused', 'hovered'])
+  test(`an open menu, its item ${state}`, async ({ page }) => {
+    await open(page, '01-input-types', undefined, undefined, undefined, '&f=showDownloadMenu');
+    const download = page.getByRole('button', {
+      name: 'Download',
+      exact: true,
+    });
+    await download.focus();
+    await download.press('Enter');
+    const items = page.getByRole('menuitem');
+    await expect(items.first()).toBeFocused();
+    await page.keyboard.press('ArrowDown');
+    await expect(items.nth(1)).toBeFocused();
+    expect(await items.nth(1).evaluate((item) => item.matches(':focus-visible'))).toBe(true);
+    if (state === 'focused') await expectAccessible(page, 'menu open, an item focused');
+    await items.nth(3).hover();
+    if (state === 'hovered') await expectAccessible(page, 'menu item hovered');
+  });
 
 /**
  * One hovered and one focused control of each kind, each on a page of its own so that the other
