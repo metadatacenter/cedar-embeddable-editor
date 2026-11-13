@@ -157,6 +157,8 @@ const contrast = (one: readonly number[], other: readonly number[]): number => {
  * is declared in, a placeholder's included, laid over that background at its opacity.
  */
 async function measureContrast(page: Page, targets: readonly (readonly string[])[]): Promise<Measurement[]> {
+  // Fully decided contrast results have nothing left to sample.
+  if (targets.length === 0) return [];
   const boxes = await page.evaluate((paths) => {
     const parse = (color: string): number[] => (color.match(/[\d.]+/g) ?? ['0', '0', '0', '1']).map(Number);
     return paths.map((path) => {
@@ -421,21 +423,19 @@ const orderOf = (fixture: string): string[] =>
 
 for (const fixture of ['01-input-types', '02-choices', '08-authority', '09-temporal'])
   for (const property of orderOf(fixture))
-    test(`the field element for ${fixture} ${property}, editable, read only and in preview`, async ({ page }) => {
-      for (const preset of [undefined, 'readonly', 'preview', 'preview-typed']) {
+    for (const preset of [undefined, 'readonly', 'preview', 'preview-typed'])
+      test(`the field element for ${fixture} ${property}, ${preset ?? 'editable'}`, async ({ page }) => {
         await open(page, fixture, preset, undefined, undefined, `&host=field&p=${property}`);
         await expectAccessible(page, `${fixture} ${property} ${preset ?? 'editable'}`);
-      }
-    });
+      });
 
 for (const fixture of ['01-input-types', '02-choices', '09-temporal'])
-  test(`${fixture} at comfortable density`, async ({ page }) => {
-    for (const preset of [undefined, 'readonly']) {
+  for (const preset of [undefined, 'readonly'])
+    test(`${fixture} at comfortable density, ${preset ?? 'editable'}`, async ({ page }) => {
       await open(page, fixture, preset);
       await page.locator('cedar-embeddable-editor').evaluate((editor) => editor.setAttribute('density', 'comfortable'));
       await expectAccessible(page, `${fixture} comfortable ${preset ?? 'editable'}`);
-    }
-  });
+    });
 
 test('an authority search under way, and one that found nothing', async ({ page }) => {
   let release!: () => void;
@@ -476,25 +476,26 @@ test('a term lookup under way, and one that failed', async ({ page }) => {
   await expectAccessible(page, 'term lookup that failed');
 });
 
-test('an open calendar, in its month view and its multi-year view', async ({ page }) => {
-  await open(page, '09-temporal');
-  const dayPicker = page.locator('app-date-picker').nth(1);
-  await dayPicker.getByRole('button', { name: 'Open calendar' }).click();
-  await expect(page.locator('mat-month-view')).toBeVisible();
-  await expectAccessible(page, 'calendar month view');
-  // The focused date carries the shared focus ring, because its tint is too faint to show focus.
-  await page.keyboard.press('ArrowRight');
-  const focused = page.locator('.mat-calendar-body-active > .mat-calendar-body-cell-content');
-  await expect(focused).toHaveCSS('outline-style', 'solid');
-  await expect(focused).toHaveCSS('outline-color', 'rgb(15, 118, 134)');
-  await page.locator('.mat-calendar-period-button').click();
-  await expect(page.locator('mat-multi-year-view')).toBeVisible();
-  await expectAccessible(page, 'calendar multi-year view');
-  await page.keyboard.press('Escape');
-  await page.locator('app-date-picker').first().getByRole('button', { name: 'Open calendar' }).click();
-  await expect(page.locator('mat-multi-year-view')).toBeVisible();
-  await expectAccessible(page, 'year calendar');
-});
+for (const state of ['calendar month view', 'calendar multi-year view', 'year calendar'])
+  test(`an open calendar, ${state}`, async ({ page }) => {
+    await open(page, '09-temporal');
+    const dayPicker = page.locator('app-date-picker').nth(1);
+    await dayPicker.getByRole('button', { name: 'Open calendar' }).click();
+    await expect(page.locator('mat-month-view')).toBeVisible();
+    if (state === 'calendar month view') await expectAccessible(page, state);
+    // Keep the complete navigation and focus assertions in every state-specific scan.
+    await page.keyboard.press('ArrowRight');
+    const focused = page.locator('.mat-calendar-body-active > .mat-calendar-body-cell-content');
+    await expect(focused).toHaveCSS('outline-style', 'solid');
+    await expect(focused).toHaveCSS('outline-color', 'rgb(15, 118, 134)');
+    await page.locator('.mat-calendar-period-button').click();
+    await expect(page.locator('mat-multi-year-view')).toBeVisible();
+    if (state === 'calendar multi-year view') await expectAccessible(page, state);
+    await page.keyboard.press('Escape');
+    await page.locator('app-date-picker').first().getByRole('button', { name: 'Open calendar' }).click();
+    await expect(page.locator('mat-multi-year-view')).toBeVisible();
+    if (state === 'year calendar') await expectAccessible(page, state);
+  });
 
 test('an open select, single and multiple', async ({ page }) => {
   await open(page, '02-choices');
@@ -604,11 +605,10 @@ const REPRESENTATIVES: ReadonlyArray<{
 ];
 
 for (const { kind, fixture, instance, control } of REPRESENTATIVES)
-  test(`a ${kind}, hovered and focused`, async ({ page }) => {
-    await open(page, fixture, undefined, instance);
-    await (await control(page)).hover();
-    await expectAccessible(page, `${kind} hovered`);
-    await open(page, fixture, undefined, instance);
-    await focusAsKeyboard(await control(page));
-    await expectAccessible(page, `${kind} focused`);
-  });
+  for (const state of ['hovered', 'focused'])
+    test(`a ${kind}, ${state}`, async ({ page }) => {
+      await open(page, fixture, undefined, instance);
+      if (state === 'hovered') await (await control(page)).hover();
+      else await focusAsKeyboard(await control(page));
+      await expectAccessible(page, `${kind} ${state}`);
+    });
