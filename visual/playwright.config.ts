@@ -1,5 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 import { NARROW_ONLY, WIDTH_INDEPENDENT } from './tests/width-tags';
+import { PIXEL_ONLY } from './tests/browser-policy';
 
 /**
  * Visual baseline for the built web component.
@@ -10,21 +11,6 @@ import { NARROW_ONLY, WIDTH_INDEPENDENT } from './tests/width-tags';
  * an upgrade that breaks the bundle while leaving `ng serve` working is
  * precisely the failure this is here to catch.
  */
-// Functional browser contracts share the existing worker budget; pixel baselines keep their own projects.
-const functionalSpecs = [
-  'bootstrap.spec.ts',
-  'host-change.spec.ts',
-  'validation-state-matrix.spec.ts',
-  'stored-problems.spec.ts',
-  'stored-constraints.spec.ts',
-  'temporal.spec.ts',
-  'authority-search-status.spec.ts',
-  'authority-settled-term.spec.ts',
-  'metadata-feedback.spec.ts',
-  'language-isolation.spec.ts',
-  'quiet-preview.spec.ts',
-];
-
 export default defineConfig({
   testDir: './tests',
   fullyParallel: true,
@@ -119,24 +105,31 @@ export default defineConfig({
     },
   },
 
+  // Repaint complete Chromium tiles. Partial rasterization alternated five phone-icon pixels
+  // after validation shifted the page; the zero-diff screenshot gate must not depend on paint history.
   projects: [
     ...(['firefox', 'webkit'] as const).map((browserName) => ({
-      name: `${browserName}-functional`,
-      testMatch: functionalSpecs,
+      name: browserName,
+      // New functional/accessibility specs enter every engine without an inclusion list.
+      grepInvert: new RegExp(`${PIXEL_ONLY}|${NARROW_ONLY}`),
       use: { browserName, viewport: { width: 1280, height: 900 } },
     })),
     ...(['firefox', 'webkit'] as const).map((browserName) => ({
-      name: `${browserName}-accessibility`,
-      testMatch: /(?:accessibility|layout-resilience|focus|keyboard-paging)\.spec\.ts/,
-      grepInvert: new RegExp(NARROW_ONLY),
-      use: { browserName, viewport: { width: 1280, height: 900 } },
+      name: `${browserName}-narrow`,
+      grep: new RegExp(NARROW_ONLY),
+      grepInvert: new RegExp(PIXEL_ONLY),
+      use: { browserName, viewport: { width: 480, height: 900 } },
     })),
     {
       name: 'desktop',
       testIgnore: /cross-browser-smoke\.spec\.ts/,
       // A test tagged narrow-only checks a layout that exists only at the narrow width.
       grepInvert: new RegExp(NARROW_ONLY),
-      use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 900 } },
+      use: {
+        ...devices['Desktop Chrome'],
+        launchOptions: { args: ['--disable-partial-raster'] },
+        viewport: { width: 1280, height: 900 },
+      },
     },
     {
       name: 'narrow',
@@ -148,22 +141,20 @@ export default defineConfig({
         /(?:cross-browser-smoke|presentation-matrix|surfaces|specification-theme|authority-search-status|host-change|layout-resilience)\.spec\.ts/,
       // A test tagged width-independent would only repeat its desktop run here.
       grepInvert: new RegExp(WIDTH_INDEPENDENT),
-      use: { ...devices['Desktop Chrome'], viewport: { width: 480, height: 900 } },
+      use: {
+        ...devices['Desktop Chrome'],
+        launchOptions: { args: ['--disable-partial-raster'] },
+        viewport: { width: 480, height: 900 },
+      },
     },
     {
       name: 'chromium-smoke',
       testMatch: /cross-browser-smoke\.spec\.ts/,
-      use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 900 } },
-    },
-    {
-      name: 'firefox-smoke',
-      testMatch: /cross-browser-smoke\.spec\.ts/,
-      use: { ...devices['Desktop Firefox'], viewport: { width: 1280, height: 900 } },
-    },
-    {
-      name: 'webkit-smoke',
-      testMatch: /cross-browser-smoke\.spec\.ts/,
-      use: { ...devices['Desktop Safari'], viewport: { width: 1280, height: 900 } },
+      use: {
+        ...devices['Desktop Chrome'],
+        launchOptions: { args: ['--disable-partial-raster'] },
+        viewport: { width: 1280, height: 900 },
+      },
     },
   ],
 

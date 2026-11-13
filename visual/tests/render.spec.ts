@@ -1,3 +1,4 @@
+import { expectPixelBaseline, PIXEL_ONLY, pixelBaselinesEnabled } from './browser-policy';
 /**
  * Visual baseline.
  *
@@ -382,11 +383,11 @@ test.describe('multiple editor instances', () => {
 });
 
 for (const [fixture, description] of FIXTURES) {
-  test(`${fixture} — ${description}`, async ({ page }) => {
+  test(`${fixture} — ${description}`, { tag: PIXEL_ONLY }, async ({ page }) => {
     await open(page, fixture);
     // An attribute-value field starts with no rows; the baseline shows it with one, added as a user would.
     if (fixture === '10-attribute-values') await addAttributeRow(page);
-    await expect(page).toHaveScreenshot(`${fixture}.png`, { fullPage: true });
+    await expectPixelBaseline(page, `${fixture}.png`, { fullPage: true });
   });
 }
 
@@ -540,12 +541,12 @@ test.describe('real templates', () => {
       const stray = await hermetic(page);
       await open(page, fixture);
 
-      await mediaSettled(page);
-      await expect(page).toHaveScreenshot(`${fixture}-page-1.png`, { fullPage: true });
+      if (pixelBaselinesEnabled()) await mediaSettled(page);
+      await expectPixelBaseline(page, `${fixture}-page-1.png`, { fullPage: true });
 
       await gotoPage(page, 2);
-      await mediaSettled(page);
-      await expect(page).toHaveScreenshot(`${fixture}-page-2.png`, { fullPage: true });
+      if (pixelBaselinesEnabled()) await mediaSettled(page);
+      await expectPixelBaseline(page, `${fixture}-page-2.png`, { fullPage: true });
 
       expectNoStrayHosts(stray);
     });
@@ -578,7 +579,7 @@ test('multi-instance pager renders its chips without covering a narrow expansion
       action: { height: action.height, center: action.top + action.height / 2 },
     };
   });
-  if (testInfo.project.name === 'desktop') {
+  if (!testInfo.project.name.endsWith('narrow')) {
     expect(Math.abs(geometry.header.center - geometry.controls.center)).toBeLessThan(1);
   } else {
     expect(geometry.controls.top, 'the pager should form a separate row below a narrow header').toBeGreaterThanOrEqual(
@@ -590,7 +591,7 @@ test('multi-instance pager renders its chips without covering a narrow expansion
   expect(geometry.action.height).toBe(32);
   expect(Math.abs(geometry.chip.center - geometry.action.center)).toBeLessThan(1);
 
-  await expect(pager).toHaveScreenshot('pager.png');
+  await expectPixelBaseline(pager, 'pager.png');
 });
 
 /**
@@ -726,7 +727,7 @@ test('attribute-value labels stay distinct and its pager aligns responsively', a
     };
   });
   expect(geometry.labelGap, 'floating attribute labels need clearance below the pager').toBeGreaterThanOrEqual(6);
-  if (testInfo.project.name === 'desktop') {
+  if (!testInfo.project.name.endsWith('narrow')) {
     expect(Math.abs(geometry.header.center - geometry.actionCenter), JSON.stringify(geometry)).toBeLessThan(1);
   } else {
     expect(
@@ -871,7 +872,7 @@ test('an expansion panel collapses and expands', async ({ page }) => {
    */
   await header.click();
   await page.waitForTimeout(400);
-  await expect(page).toHaveScreenshot('nested-collapsed.png', { fullPage: true });
+  await expectPixelBaseline(page, 'nested-collapsed.png', { fullPage: true });
 });
 
 for (const preset of [undefined, 'readonly'] as const) {
@@ -916,7 +917,7 @@ test('a required field shows its indicator', async ({ page }) => {
   await open(page, '01-input-types');
   // `text` is the one deployed with withRequiredValue(true).
   await expect(page.getByText('text', { exact: false }).first()).toBeVisible();
-  await expect(page).toHaveScreenshot('required-indicator.png', { fullPage: true });
+  await expectPixelBaseline(page, 'required-indicator.png', { fullPage: true });
   // The raised mark must not make a required heading taller than an optional one, or the type icon
   // centred beside it no longer lines up with the label.
   const heights = await page.evaluate(() =>
@@ -972,7 +973,7 @@ test.describe('validation states', () => {
     await page.waitForTimeout(300);
 
     await expect(page.locator('mat-error').first()).toBeVisible();
-    await expect(page).toHaveScreenshot('validation-required.png', { fullPage: true });
+    await expectPixelBaseline(page, 'validation-required.png', { fullPage: true });
   });
 
   test('typed format errors appear immediately and clear live', async ({ page }) => {
@@ -1007,7 +1008,7 @@ test.describe('validation states', () => {
     await page.waitForTimeout(300);
 
     await expect(page.locator('mat-error').first()).toBeVisible();
-    await expect(page).toHaveScreenshot('validation-email.png', { fullPage: true });
+    await expectPixelBaseline(page, 'validation-email.png', { fullPage: true });
   });
 
   test('text below its minLength shows the length error', async ({ page }) => {
@@ -1019,7 +1020,10 @@ test.describe('validation states', () => {
     await short.blur();
     await page.waitForTimeout(300);
 
-    await expect(page).toHaveScreenshot('validation-minlength.png', { fullPage: true });
+    const error = short.locator('xpath=ancestor::mat-form-field').locator('mat-error');
+    await expect(error).toBeVisible();
+    await expect(error).toContainText('8');
+    await expectPixelBaseline(page, 'validation-minlength.png', { fullPage: true });
   });
 });
 
@@ -1036,7 +1040,7 @@ test.describe('open overlays', () => {
     await page.waitForTimeout(400);
 
     await expect(page.locator('mat-option').first()).toBeVisible();
-    await expect(page).toHaveScreenshot('overlay-select-open.png', { fullPage: true });
+    await expectPixelBaseline(page, 'overlay-select-open.png', { fullPage: true });
   });
 });
 
@@ -1052,7 +1056,12 @@ test.describe('filled state', () => {
     await page.locator('body').click({ position: { x: 5, y: 5 } });
     await page.waitForTimeout(300);
 
-    await expect(page).toHaveScreenshot('filled-values.png', { fullPage: true });
+    await expect(fieldBox(page, 'text')).toHaveValue('a filled value');
+    await expect(fieldBox(page, 'textarea', 'textarea')).toHaveValue('a longer\nfilled value');
+    await expect(fieldBox(page, 'numeric')).toHaveValue('42');
+    await expect(fieldBox(page, 'email')).toHaveValue('someone@example.org');
+    await expect(fieldBox(page, 'link')).toHaveValue('https://example.org/thing');
+    await expectPixelBaseline(page, 'filled-values.png', { fullPage: true });
   });
 });
 
@@ -1184,7 +1193,7 @@ test('an unanswered required multi-select is invalid despite its model placehold
 
   // Material exposes the error state after the user has visited the field.
   await trigger.focus();
-  await page.keyboard.press('Tab');
+  await trigger.blur();
   await expect(trigger).toHaveAttribute('aria-invalid', 'true');
   await expect(select.locator('mat-error')).toBeVisible();
   await expect(select.locator('mat-error')).toHaveText(/required/i);
@@ -1204,7 +1213,7 @@ test('a read-only multiple-choice field reads its values as a list', async ({ pa
 
   const shown = page.locator('app-cedar-input-select input');
   await expect(shown).toHaveValue('North · South');
-  await expect(page.locator('app-cedar-input-select')).toHaveScreenshot('widget-select-multi-readonly.png');
+  await expectPixelBaseline(page.locator('app-cedar-input-select'), 'widget-select-multi-readonly.png');
 });
 
 test('a populated multi-select uses the focus color rather than the error color', async ({ page }) => {
@@ -1288,7 +1297,7 @@ test.describe('config presets', () => {
     await expect(paragraph.locator('[data-field-type-icon]')).toHaveCount(1);
     await expect(page.locator('.cee-field-type')).toHaveCount(0);
     await expect(paragraph.locator('.cee-spec-box')).toBeEmpty();
-    await expect(page).toHaveScreenshot('preset-readonly.png', { fullPage: true });
+    await expectPixelBaseline(page, 'preset-readonly.png', { fullPage: true });
   });
 
   /**
@@ -1305,7 +1314,13 @@ test.describe('config presets', () => {
 
   test('readonly: choice widgets', async ({ page }) => {
     await open(page, '02-choices', 'readonly');
-    await expect(page).toHaveScreenshot('preset-readonly-choices.png', { fullPage: true });
+    const choices = page.getByRole('radio').or(page.getByRole('checkbox'));
+    await expect(choices).toHaveCount(5);
+    for (const choice of await choices.all()) await expect(choice).toBeDisabled();
+    await expect(page.getByRole('combobox')).toHaveCount(0);
+    await expect(page.getByRole('radio', { name: 'Beta (default)', exact: true })).toBeChecked();
+    await expect(page.getByRole('checkbox', { name: 'One (default)', exact: true })).toBeChecked();
+    await expectPixelBaseline(page, 'preset-readonly-choices.png', { fullPage: true });
   });
 });
 
@@ -1588,7 +1603,7 @@ const WIDGETS: { name: string; selector: string; fixture: string; nth: number; t
 
 test.describe('widgets, clipped', () => {
   for (const widget of WIDGETS) {
-    test(`${widget.name} renders as recorded`, async ({ page }) => {
+    test(`${widget.name} renders as recorded`, { tag: PIXEL_ONLY }, async ({ page }) => {
       await open(page, widget.fixture);
       if (widget.fixture === '10-attribute-values') await addAttributeRow(page);
 
@@ -1606,7 +1621,7 @@ test.describe('widgets, clipped', () => {
         await box.blur();
         await expect(element.locator('mat-error')).toBeVisible();
       }
-      await expect(element).toHaveScreenshot(`widget-${widget.name}.png`);
+      await expectPixelBaseline(element, `widget-${widget.name}.png`);
     });
   }
 });
@@ -1664,10 +1679,11 @@ test.describe('the identity', { tag: WIDTH_INDEPENDENT }, () => {
         ['.header-image', '.cee-name', '.cee-version', '.template-label'].map(box),
       );
 
-      expect(mark.width).toBe(40);
-      expect(mark.height).toBe(40);
-      expect(name.x).toBe(mark.x + mark.width + 8);
-      expect(stamp.x).toBe(name.x);
+      // Browser coordinate conversion can add a few millionths of a CSS pixel.
+      expect(mark.width).toBeCloseTo(40, 5);
+      expect(mark.height).toBeCloseTo(40, 5);
+      expect(name.x).toBeCloseTo(mark.x + mark.width + 8, 5);
+      expect(stamp.x).toBeCloseTo(name.x, 5);
       expect(stamp.y).toBeGreaterThanOrEqual(name.y + name.height);
       expect(name.y).toBeGreaterThanOrEqual(mark.y);
       expect(stamp.y + stamp.height).toBeLessThanOrEqual(mark.y + mark.height);
@@ -3514,7 +3530,7 @@ test.describe('a multi-instance field paging its values', () => {
       };
     });
 
-    if (testInfo.project.name === 'desktop') {
+    if (!testInfo.project.name.endsWith('narrow')) {
       expect(Math.abs(geometry.headerCenter - geometry.pagerCenter), 'the label and chips share one row').toBeLessThan(
         1,
       );
@@ -3828,7 +3844,7 @@ test('temporal controls share one action-row height and wide-screen baseline', a
   for (const box of composed) {
     expect(box.height, 'every visible temporal control uses the compact action-row height').toBeCloseTo(36, 0);
   }
-  if (testInfo.project.name === 'desktop') {
+  if (!testInfo.project.name.endsWith('narrow')) {
     expect(Math.max(...composed.map(({ top }) => top)) - Math.min(...composed.map(({ top }) => top))).toBeLessThan(1);
   }
 
@@ -3857,7 +3873,7 @@ test('temporal controls share one action-row height and wide-screen baseline', a
   for (const box of [...filled.date, ...filled.fractionalTime]) {
     expect(box.height).toBeCloseTo(36, 0);
   }
-  if (testInfo.project.name === 'desktop') {
+  if (!testInfo.project.name.endsWith('narrow')) {
     for (const row of [filled.date, filled.fractionalTime]) {
       expect(Math.max(...row.map(({ top }) => top)) - Math.min(...row.map(({ top }) => top))).toBeLessThan(1);
     }

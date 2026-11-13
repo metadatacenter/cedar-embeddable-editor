@@ -317,7 +317,7 @@ async function expectAccessible(page: Page, state: string): Promise<void> {
     }
   });
   const builder = new AxeBuilder({ page }).exclude({ fromShadowDom: ['cedar-embeddable-editor', 'iframe'] });
-  const narrow = test.info().project.name === 'narrow';
+  const narrow = test.info().project.name.endsWith('narrow');
   // axe-core lets a rule enabled by name override the tag selection, so one desktop scan covers both.
   // The builder's `options` replaces every option set before it, so it comes ahead of `withTags`.
   const scan = narrow

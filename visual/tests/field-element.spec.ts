@@ -1,3 +1,4 @@
+import { expectPixelBaseline } from './browser-policy';
 /**
  * The `cedar-embeddable-field` element, in a browser, from the bundle a host downloads.
  *
@@ -213,7 +214,7 @@ for (const [fixture, property] of fieldPreviews) {
     expect(await field.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
     expect(await changes(page)).toEqual([]);
     if (['_award_nih', '_numeric', '_attribute'].includes(property)) {
-      await expect(field).toHaveScreenshot(`cef-${property}.png`);
+      await expectPixelBaseline(field, `cef-${property}.png`);
     }
   });
 }
@@ -251,7 +252,7 @@ for (const [fixture, property, type, icon] of hostTitledPreviews) {
     await expect(statement.locator('[data-field-type-icon]')).toHaveAttribute('data-mat-icon-name', icon);
     expect(await changes(page)).toEqual([]);
     if (['_award_nih', '_attribute'].includes(property)) {
-      await expect(field).toHaveScreenshot(`cef-preview-${property}.png`);
+      await expectPixelBaseline(field, `cef-preview-${property}.png`);
     }
   });
 }

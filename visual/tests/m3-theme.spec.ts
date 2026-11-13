@@ -1,3 +1,5 @@
+import { expectPixelBaseline } from './browser-policy';
+import { canonicalStyleValue } from './surface-contracts.generated.mjs';
 import { expect, test } from '@playwright/test';
 import { BUNDLE_VERSION, open } from './support/host';
 import { fieldBox } from './support/field-box';
@@ -87,17 +89,25 @@ test('M3 select and calendar overlays retain CEDAR typography under a host reset
   const option = page.locator('mat-option').first();
   await expect(option).toBeVisible();
   await expect(option).toHaveCSS('font-size', '14px');
-  await expect(option).toHaveCSS('font-family', '"CEDAR Roboto", "Helvetica Neue", sans-serif');
+  await expect
+    .poll(async () =>
+      canonicalStyleValue('font-family', await option.evaluate((element) => getComputedStyle(element).fontFamily)),
+    )
+    .toBe('CEDAR Roboto, Helvetica Neue, sans-serif');
   await expect(page.locator('.mat-mdc-select-panel')).toHaveCSS('background-color', 'rgb(244, 246, 246)');
   await open(page, '09-temporal');
   await page.addStyleTag({ content: 'html { font-size: 10px; color-scheme: dark; }' });
   await page.locator('mat-datepicker-toggle button').first().click();
   const calendar = page.locator('mat-calendar');
   await expect(calendar).toBeVisible();
-  await expect(calendar).toHaveCSS('font-family', '"CEDAR Roboto", "Helvetica Neue", sans-serif');
+  await expect
+    .poll(async () =>
+      canonicalStyleValue('font-family', await calendar.evaluate((element) => getComputedStyle(element).fontFamily)),
+    )
+    .toBe('CEDAR Roboto, Helvetica Neue, sans-serif');
   await expect(calendar.locator('.mat-calendar-body-cell-content').first()).toHaveCSS('font-size', '14px');
   await expect(page.locator('.mat-datepicker-content')).toHaveCSS('background-color', 'rgb(244, 246, 246)');
-  await expect(calendar).toHaveScreenshot('m3-calendar.png');
+  await expectPixelBaseline(calendar, 'm3-calendar.png');
 });
 
 for (const host of ['editor', 'field'] as const) {

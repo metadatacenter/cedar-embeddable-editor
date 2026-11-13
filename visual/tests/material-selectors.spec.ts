@@ -122,7 +122,7 @@ test('the namespaced font faces survive', async ({ page }) => {
 
   const fonts = await page.evaluate(() => {
     const faces: string[] = [];
-    document.fonts.forEach((f) => faces.push(f.family));
+    document.fonts.forEach((f) => faces.push(f.family.replace(/^["']|["']$/g, '')));
     return faces;
   });
   expect(fonts, 'the text faces are namespaced so an embedder cannot collide with them').toEqual(
@@ -136,7 +136,10 @@ test('shared reduced motion keeps the download menu operable', async ({ page }) 
   await page.locator('.download-trigger').click();
   const menu = page.locator('.mat-mdc-menu-panel');
   await expect(menu).toBeVisible();
-  await expect(menu).toHaveCSS('animation-duration', '1e-05s');
+  // CSSOM may serialize the same duration in decimal or exponential notation.
+  await expect
+    .poll(() => menu.evaluate((element) => Number.parseFloat(getComputedStyle(element).animationDuration)))
+    .toBe(0.00001);
   await expect(page.locator('.cdk-overlay-container')).toHaveCSS('z-index', '1100');
   await page.keyboard.press('Escape');
   await expect(menu).toHaveCount(0);

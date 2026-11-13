@@ -440,7 +440,7 @@ It runs, in order:
    floors.
 5. A production build, then the Playwright suite against that bundle, in a
    container: the full Chromium baseline at desktop and narrow viewport sizes,
-   plus focused Chromium, Firefox and WebKit compatibility checks. The container
+   with functional and accessibility checks running in Chromium, Firefox and WebKit by default. The container
    is what makes a screenshot baseline mean the same thing on a laptop and on CI,
    so the pixel budget is zero — see `visual/run-in-container.sh`.
 6. Staging the npm package from the bundle the suite just exercised, which
