@@ -216,7 +216,43 @@ jobs:
       # volume is runner-local, so parallel jobs cannot contaminate one another.
       - name: Run Playwright shard
         working-directory: cedar-embeddable-editor
-        run: bash visual/run-in-container.sh --shard=${{ matrix.shard }}/4
+        # The reporter balances measured project/spec costs across the four shards.
+        # A retry cannot turn this reliability gate green; capture failures without tracing every passing case.
+        run: bash visual/run-in-container.sh --shard=${{ matrix.shard }}/4 --retries=0
+
+      - name: Keep shard inventory, timings and failure evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cee-visual-shard-${{ matrix.shard }}
+          path: |
+            cedar-embeddable-editor/visual/shard-results
+            cedar-embeddable-editor/visual/test-results
+          if-no-files-found: error
+          retention-days: 14
+
+  visual-coverage:
+    name: Complete visual shard inventory
+    needs: visual
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 5
+    steps:
+      - name: Check out CEE
+        uses: actions/checkout@v7
+
+      - name: Use Node.js 24
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24.22.1
+
+      - name: Collect all four shard reports
+        uses: actions/download-artifact@v8
+        with:
+          pattern: cee-visual-shard-*
+          path: shard-reports
+
+      - name: Prove every discovered case ran exactly once without retries
+        run: node visual/shards/check-results.mjs shard-reports
 
   cee-demos:
     name: CEE framework consumers
@@ -280,7 +316,7 @@ jobs:
   # latest dev CEE was served a release-time build, and nothing said so.
   publish-dev:
     name: Publish the dev package
-    needs: [prepare, gates, visual, cee-demos, performance]
+    needs: [prepare, gates, visual, visual-coverage, cee-demos, performance]
     if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     timeout-minutes: 10

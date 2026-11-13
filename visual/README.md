@@ -2,8 +2,9 @@
 
 Playwright screenshot regression for the **built web component**.
 
-> **Status: 1,452 tests:** 1,416 full Chromium checks across two viewports, plus
-> twelve semantic smoke checks on each of Chromium, Firefox and WebKit.
+The suite includes Chromium pixel baselines at two widths, functional and accessibility
+checks in Firefox/WebKit, and semantic smoke checks in all three engines. Use
+`npx playwright test --list` for the current inventory.
 
 ## Why this exists, and why it is separate from `harness/`
 
@@ -143,6 +144,45 @@ To run only the compatibility checks:
 ```bash
 npm test -- --project=chromium-smoke --project=firefox-smoke --project=webkit-smoke
 ```
+
+## CI sharding and timing
+
+CI runs four shards with the same pinned container, production build and worker budget.
+`shards/reporter.ts` uses Playwright's public `preprocess` hook to assign the discovered
+tests by estimated duration. It distributes the longest estimates first to the least-loaded
+shard, with stable test identities breaking ties. `shards/durations.json` holds mean durations
+per browser project/spec from a complete passing run; it is a scheduling hint, never a list
+of permitted tests. New or renamed cases receive a fallback estimate and are always included.
+Tests keep their normal project order inside each shard so workers can reuse browsers.
+
+This suite is fully parallel and its tests are independent. Keep that contract when adding
+cases; a shared-state serial journey belongs in one test rather than being split across tests.
+The command remains the ordinary `--shard` interface, for example from the repository root:
+
+```bash
+bash visual/run-in-container.sh --shard=1/4
+```
+
+The reporter writes `shard-results/shard-N-of-4.json` with the complete inventory's hash,
+the selected tests and every execution result. CI uploads all four reports and failure
+screenshots, then `shards/check-results.mjs` proves that their union equals the discovered
+inventory exactly once. A missing report, duplicate/omitted test, different profile, failed
+test or retry fails the gate before publication. Local and CI runs use zero retries.
+`CEDAR_TEST_TRACE=on` retains full traces for diagnosis without tracing normal passing runs.
+
+To refresh the estimates, download all four `cee-visual-shard-*` artifacts from one passing
+workflow, check their coverage, and pass their JSON files to the updater:
+
+```bash
+node shards/check-results.mjs /path/to/downloaded-reports
+node shards/update-durations.mjs shards/durations.json /path/to/shard-{1,2,3,4}-of-4.json
+```
+
+The updater also accepts Playwright JSON reports for baseline comparisons. Review and commit
+the profile deliberately; CI never rewrites it. Compare repeated runs with the same container,
+application bytes and worker counts when refreshing it. Passing metadata/timing reports are
+retained for fourteen days; the suite's screenshots and acceptance thresholds are unchanged.
+If overriding `--reporter`, include `./shards/reporter.ts` to retain balanced assignment.
 
 ## Bundle-size budget
 

@@ -54,20 +54,21 @@ export default defineConfig({
    * probability around 2e-5. `npm run flake-hunt` (RUNS=n) repeats the suite if
    * this needs re-establishing.
    *
-   * CI keeps one retry, for a different reason: shared runners contribute their
-   * own timeouts and network failures, which are not this flake and not CEE's
-   * bug. Playwright counts and prints retried tests separately, so nothing is
-   * hidden either way.
+   * CI follows the same zero-retry policy. Its shard-union gate also refuses
+   * any retried execution, even if a caller overrides this setting.
    */
-  retries: process.env.CI ? 1 : 0,
-  // Stop a known-red CI/reactor run after a test exhausts its retry.
+  retries: 0,
+  // Stop a known-red CI/reactor run after its first failed test.
   maxFailures: process.env.CI ? 1 : 0,
-  reporter: process.env.CI ? 'github' : [['list'], ['html', { open: 'never' }]],
+  reporter: process.env.CI
+    ? [['./shards/reporter.ts'], ['github']]
+    : [['./shards/reporter.ts'], ['list'], ['html', { open: 'never' }]],
 
   use: {
     baseURL: 'http://127.0.0.1:4455',
-    // Screenshots only; no video or trace by default — this suite runs often.
-    trace: process.env.CEDAR_TEST_TRACE === 'on' ? 'retain-on-failure' : 'on-first-retry',
+    // CI captures failure screenshots; full traces are opt-in to keep passing runs inexpensive.
+    trace: process.env.CEDAR_TEST_TRACE === 'on' ? 'retain-on-failure' : 'off',
+    screenshot: process.env.CI ? 'only-on-failure' : 'off',
   },
 
   expect: {
