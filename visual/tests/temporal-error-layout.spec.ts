@@ -1,3 +1,4 @@
+import { expectPixelBaseline } from './browser-policy';
 import { test, expect } from '@playwright/test';
 import { open } from './support/host';
 
@@ -34,6 +35,6 @@ for (const host of ['editor', 'field']) {
     const feedback = await field.getByRole('status').boundingBox();
     const clock = await field.locator('.cee-time-input-shell').boundingBox();
     expect(feedback!.y).toBeGreaterThanOrEqual(clock!.y + clock!.height);
-    await expect(field).toHaveScreenshot(`fractional-time-error-${host}.png`);
+    await expectPixelBaseline(field, `fractional-time-error-${host}.png`);
   });
 }

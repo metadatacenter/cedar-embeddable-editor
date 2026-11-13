@@ -169,6 +169,20 @@ const TOKEN_DEFAULTS = {
 // Central implementation. Consumer copies are generated; the adoption gate checks their bytes.
 import assert from 'node:assert/strict';
 
+// Engines may serialize a named family with or without quotes. Preserve family order and
+// distinguish quoted names such as "serif" from CSS generic families.
+export function canonicalStyleValue(property, value) {
+  if (property !== 'font-family') return value;
+  const generic =
+    /^(?:serif|sans-serif|monospace|cursive|fantasy|system-ui|ui-serif|ui-sans-serif|ui-monospace|ui-rounded|emoji|math|fangsong)$/i;
+  return value
+    .split(',')
+    .map((family) =>
+      family.trim().replace(/^(["'])([^"']+)\1$/, (quoted, _quote, name) => (generic.test(name) ? quoted : name)),
+    )
+    .join(', ');
+}
+
 export function surfaceCases(registry, scenarios) {
   const surfaces = registry.surfaces.filter((surface) => surface.contract);
   assert.ok(surfaces.length, 'No registered browser surfaces');
@@ -242,7 +256,9 @@ export async function checkSurface(page, surface, state, expect, testInfo) {
       expect(value.actual, `${surface.id}: remove resolved debt or fix new drift (${debt.reason})`).toBe(debt.actual);
       expect(value.actual, `${surface.id}: remove obsolete debt`).not.toBe(value.expected);
     } else {
-      expect(value.actual, `${surface.id}: ${property} must use ${value.token}`).toBe(value.expected);
+      expect(canonicalStyleValue(property, value.actual), `${surface.id}: ${property} must use ${value.token}`).toBe(
+        canonicalStyleValue(property, value.expected),
+      );
     }
   }
 }
@@ -374,9 +390,28 @@ async function checkScale(target, surface, expect, testInfo) {
             if (!allowed.paint.has(color) && !shadowColors.has(color)) note('box-shadow', color, element, part);
       };
       const corners = (style, element, part, full) => {
-        for (const corner of ['TopLeft', 'TopRight', 'BottomRight', 'BottomLeft']) {
+        // Native select corners belong to the browser theme (5px in macOS WebKit), not CEDAR.
+        // Compare with an unstyled native control; custom off-scale radii still fail.
+        const names = ['TopLeft', 'TopRight', 'BottomRight', 'BottomLeft'];
+        const native = {};
+        if (!part && element.localName === 'select' && style.appearance === 'auto') {
+          const probe = document.createElement('select');
+          probe.multiple = element.multiple;
+          probe.size = element.size;
+          probe.style.cssText =
+            'all:revert!important;position:absolute!important;visibility:hidden!important;pointer-events:none!important';
+          element.parentNode.append(probe);
+          const defaults = getComputedStyle(probe);
+          for (const corner of names) native[corner] = defaults[`border${corner}Radius`];
+          probe.remove();
+        }
+        for (const corner of names) {
           const radius = style[`border${corner}Radius`];
-          if (!allowed['border-radius'].has(radius) && !(radius.endsWith('px') && parseFloat(radius) >= full - 0.5))
+          if (
+            radius !== native[corner] &&
+            !allowed['border-radius'].has(radius) &&
+            !(radius.endsWith('px') && parseFloat(radius) >= full - 0.5)
+          )
             note('border-radius', radius, element, part);
         }
       };

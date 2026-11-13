@@ -93,6 +93,8 @@ $identity-text: 72px;
 
 .cee-version {
   align-self: start;
+  // The clipped stamp needs a full text line in Firefox and WebKit as well as Chromium.
+  line-height: tokens.$control-line-height-authoring;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

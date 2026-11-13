@@ -1,3 +1,4 @@
+import { expectPixelBaseline } from './browser-policy';
 /**
  * The `cedar-embeddable-field` element, in a browser, from the bundle a host downloads.
  *
@@ -24,7 +25,9 @@ const open = async (
   await page.goto(
     `/host.html?host=field&t=${fixture}&p=${property}${preset ? `&c=${preset}` : ''}&b=${BUNDLE_VERSION}`,
   );
-  await page.waitForFunction(() => window.__ceeReady === true || window.__ceeError, null, { timeout: 20_000 });
+  await expect
+    .poll(() => page.evaluate(() => window.__ceeReady === true || window.__ceeError, null), { timeout: 20_000 })
+    .toBeTruthy();
   expect(await page.evaluate(() => window.__ceeError), `host page failed to load ${property}`).toBeFalsy();
   await page.waitForTimeout(200);
 };
@@ -39,7 +42,11 @@ test.describe('the element a host loads', () => {
   test('is registered by the same bundle as the editor', async ({ page }) => {
     await page.goto(`/host.html?host=field&b=${BUNDLE_VERSION}`);
 
-    await page.waitForFunction(() => customElements.get('cedar-embeddable-field') !== undefined);
+    await expect
+      .poll(() => page.evaluate(() => customElements.get('cedar-embeddable-field') !== undefined), {
+        timeout: 30_000,
+      })
+      .toBeTruthy();
     expect(await page.evaluate(() => customElements.get('cedar-embeddable-editor') !== undefined)).toBe(true);
   });
 
@@ -207,7 +214,7 @@ for (const [fixture, property] of fieldPreviews) {
     expect(await field.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
     expect(await changes(page)).toEqual([]);
     if (['_award_nih', '_numeric', '_attribute'].includes(property)) {
-      await expect(field).toHaveScreenshot(`cef-${property}.png`);
+      await expectPixelBaseline(field, `cef-${property}.png`);
     }
   });
 }
@@ -245,7 +252,7 @@ for (const [fixture, property, type, icon] of hostTitledPreviews) {
     await expect(statement.locator('[data-field-type-icon]')).toHaveAttribute('data-mat-icon-name', icon);
     expect(await changes(page)).toEqual([]);
     if (['_award_nih', '_attribute'].includes(property)) {
-      await expect(field).toHaveScreenshot(`cef-preview-${property}.png`);
+      await expectPixelBaseline(field, `cef-preview-${property}.png`);
     }
   });
 }

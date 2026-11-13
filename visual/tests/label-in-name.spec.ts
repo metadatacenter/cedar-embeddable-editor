@@ -123,7 +123,7 @@ test('the option a term lookup shows meanwhile says that it is searching', async
   const pending = new Promise<void>((resolve) => {
     release = resolve;
   });
-  await page.route('http://127.0.0.1:9/**', async (route) => {
+  await page.route('http://127.0.0.1:47888/**', async (route) => {
     await pending;
     await route.abort();
   });

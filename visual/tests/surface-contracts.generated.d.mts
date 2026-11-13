@@ -1,4 +1,5 @@
 import type { Page, TestInfo, expect } from '@playwright/test';
+export function canonicalStyleValue(property: string, value: string): string;
 export interface Surface {
   id: string;
   name: string;

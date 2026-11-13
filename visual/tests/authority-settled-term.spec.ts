@@ -68,8 +68,12 @@ test('every authority shows its whole identifier while its box is not being edit
       return {
         identifier: identifier.textContent,
         inside: at.left >= bounds.left - 0.5 && at.right <= bounds.right + 0.5,
-        clipped: identifier.scrollWidth > identifier.clientWidth + 1,
-        ellipsized: name.scrollWidth > name.clientWidth + 1,
+        // Inline spans have no client box. Firefox still reports their scroll width, so comparing
+        // it with clientWidth (zero) would call fully visible text clipped. The bounds above check
+        // wrapping inline text; scroll dimensions apply to the flex item's own box.
+        clipped:
+          getComputedStyle(identifier).display !== 'inline' && identifier.scrollWidth > identifier.clientWidth + 1,
+        ellipsized: getComputedStyle(name).display !== 'inline' && name.scrollWidth > name.clientWidth + 1,
         lines: Math.round(bounds.height / parseFloat(getComputedStyle(element).lineHeight)),
       };
     });

@@ -45,7 +45,10 @@ const stubDescriptions = async (page: Page): Promise<void> => {
   });
 };
 
-/** Load a fixture through the same host page and custom-element inputs an embedder uses. */
+/**
+ * Load through the public host inputs. Poll in the runner: Angular patches the page's Promise,
+ * and Firefox/WebKit can return that thenable from waitForFunction before its predicate succeeds.
+ */
 export const open = async (
   page: Page,
   fixture: string,
@@ -60,21 +63,29 @@ export const open = async (
     `/host.html?t=${fixture}${preset ? `&c=${preset}` : ''}${instance ? `&i=${instance}` : ''}` +
       `${mode ? `&m=${mode}` : ''}${extra ?? ''}&b=${BUNDLE_VERSION}`,
   );
-  await page.waitForFunction(() => window.__ceeReady === true || window.__ceeError, null, {
-    timeout: 20_000,
-  });
+  await expect
+    .poll(() => page.evaluate(() => window.__ceeReady === true || window.__ceeError, null), {
+      timeout: 20_000,
+    })
+    .toBeTruthy();
   const err = await page.evaluate(() => window.__ceeError);
   expect(err, `host page failed to load ${fixture}`).toBeFalsy();
   // The host has settled its DOM and fonts. Wait for actual finite transitions
   // instead of adding 300 ms to every fixture, including those with no animation.
-  await page.waitForFunction(() =>
-    document
-      .getAnimations()
-      .every(
-        (animation) =>
-          animation.playState !== 'running' || animation.effect?.getComputedTiming().iterations === Infinity,
-      ),
-  );
+  await expect
+    .poll(
+      () =>
+        page.evaluate(() =>
+          document
+            .getAnimations()
+            .every(
+              (animation) =>
+                animation.playState !== 'running' || animation.effect?.getComputedTiming().iterations === Infinity,
+            ),
+        ),
+      { timeout: 30_000 },
+    )
+    .toBeTruthy();
 };
 
 /**
@@ -176,23 +187,31 @@ export const addAttributeRow = async (page: Page): Promise<void> => {
     .getByRole('button', { name: 'Add empty instance here', exact: true })
     .dispatchEvent('click');
   await expect(page.locator('input[aria-label="Attribute Name"]')).toBeVisible();
-  await page.waitForFunction(() =>
-    document
-      .getAnimations()
-      .every(
-        (animation) =>
-          animation.playState !== 'running' || animation.effect?.getComputedTiming().iterations === Infinity,
-      ),
-  );
+  await expect
+    .poll(
+      () =>
+        page.evaluate(() =>
+          document
+            .getAnimations()
+            .every(
+              (animation) =>
+                animation.playState !== 'running' || animation.effect?.getComputedTiming().iterations === Infinity,
+            ),
+        ),
+      { timeout: 30_000 },
+    )
+    .toBeTruthy();
 };
 
 export const openTwoEditors = async (page: Page, fixture: string): Promise<void> => {
   await stubDescriptions(page);
   await page.clock.setFixedTime(FROZEN);
   await page.goto(`/host.html?host=multi&t=${fixture}&b=${BUNDLE_VERSION}`);
-  await page.waitForFunction(() => window.__ceeReady === true || window.__ceeError, null, {
-    timeout: 20_000,
-  });
+  await expect
+    .poll(() => page.evaluate(() => window.__ceeReady === true || window.__ceeError, null), {
+      timeout: 20_000,
+    })
+    .toBeTruthy();
   expect(await page.evaluate(() => window.__ceeError)).toBeFalsy();
   await expect(page.locator('#editor-first app-cedar-embeddable-metadata-editor')).toBeVisible();
   await expect(page.locator('#editor-second app-cedar-embeddable-metadata-editor')).toBeVisible();

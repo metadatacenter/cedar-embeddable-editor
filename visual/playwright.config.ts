@@ -1,5 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 import { NARROW_ONLY, WIDTH_INDEPENDENT } from './tests/width-tags';
+import { PIXEL_ONLY } from './tests/browser-policy';
 
 /**
  * Visual baseline for the built web component.
@@ -39,18 +40,21 @@ export default defineConfig({
    * probability around 2e-5. `npm run flake-hunt` (RUNS=n) repeats the suite if
    * this needs re-establishing.
    *
-   * CI keeps one retry, for a different reason: shared runners contribute their
-   * own timeouts and network failures, which are not this flake and not CEE's
-   * bug. Playwright counts and prints retried tests separately, so nothing is
-   * hidden either way.
+   * CI follows the same zero-retry policy. Its shard-union gate also refuses
+   * any retried execution, even if a caller overrides this setting.
    */
-  retries: process.env.CI ? 1 : 0,
-  reporter: process.env.CI ? 'github' : [['list'], ['html', { open: 'never' }]],
+  retries: 0,
+  // Stop a known-red CI/reactor run after its first failed test.
+  maxFailures: process.env.CI ? 1 : 0,
+  reporter: process.env.CI
+    ? [['./shards/reporter.ts'], ['github']]
+    : [['./shards/reporter.ts'], ['list'], ['html', { open: 'never' }]],
 
   use: {
     baseURL: 'http://127.0.0.1:4455',
-    // Screenshots only; no video or trace by default — this suite runs often.
-    trace: process.env.CEDAR_TEST_TRACE === 'on' ? 'retain-on-failure' : 'on-first-retry',
+    // CI captures failure screenshots; full traces are opt-in to keep passing runs inexpensive.
+    trace: process.env.CEDAR_TEST_TRACE === 'on' ? 'retain-on-failure' : 'off',
+    screenshot: process.env.CI ? 'only-on-failure' : 'off',
   },
 
   expect: {
@@ -101,13 +105,31 @@ export default defineConfig({
     },
   },
 
+  // Repaint complete Chromium tiles. Partial rasterization alternated five phone-icon pixels
+  // after validation shifted the page; the zero-diff screenshot gate must not depend on paint history.
   projects: [
+    ...(['firefox', 'webkit'] as const).map((browserName) => ({
+      name: browserName,
+      // New functional/accessibility specs enter every engine without an inclusion list.
+      grepInvert: new RegExp(`${PIXEL_ONLY}|${NARROW_ONLY}`),
+      use: { browserName, viewport: { width: 1280, height: 900 } },
+    })),
+    ...(['firefox', 'webkit'] as const).map((browserName) => ({
+      name: `${browserName}-narrow`,
+      grep: new RegExp(NARROW_ONLY),
+      grepInvert: new RegExp(PIXEL_ONLY),
+      use: { browserName, viewport: { width: 480, height: 900 } },
+    })),
     {
       name: 'desktop',
       testIgnore: /cross-browser-smoke\.spec\.ts/,
       // A test tagged narrow-only checks a layout that exists only at the narrow width.
       grepInvert: new RegExp(NARROW_ONLY),
-      use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 900 } },
+      use: {
+        ...devices['Desktop Chrome'],
+        launchOptions: { args: ['--disable-partial-raster'] },
+        viewport: { width: 1280, height: 900 },
+      },
     },
     {
       name: 'narrow',
@@ -119,22 +141,20 @@ export default defineConfig({
         /(?:cross-browser-smoke|presentation-matrix|surfaces|specification-theme|authority-search-status|host-change|layout-resilience)\.spec\.ts/,
       // A test tagged width-independent would only repeat its desktop run here.
       grepInvert: new RegExp(WIDTH_INDEPENDENT),
-      use: { ...devices['Desktop Chrome'], viewport: { width: 480, height: 900 } },
+      use: {
+        ...devices['Desktop Chrome'],
+        launchOptions: { args: ['--disable-partial-raster'] },
+        viewport: { width: 480, height: 900 },
+      },
     },
     {
       name: 'chromium-smoke',
       testMatch: /cross-browser-smoke\.spec\.ts/,
-      use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 900 } },
-    },
-    {
-      name: 'firefox-smoke',
-      testMatch: /cross-browser-smoke\.spec\.ts/,
-      use: { ...devices['Desktop Firefox'], viewport: { width: 1280, height: 900 } },
-    },
-    {
-      name: 'webkit-smoke',
-      testMatch: /cross-browser-smoke\.spec\.ts/,
-      use: { ...devices['Desktop Safari'], viewport: { width: 1280, height: 900 } },
+      use: {
+        ...devices['Desktop Chrome'],
+        launchOptions: { args: ['--disable-partial-raster'] },
+        viewport: { width: 1280, height: 900 },
+      },
     },
   ],
 

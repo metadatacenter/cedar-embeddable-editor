@@ -343,6 +343,49 @@ field declaring its own default starts out holding it.
 value, and with none it replaces the control with a statement of what the field will
 accept, which is what the editor shows for a template nobody has filled in.
 
+## Accessibility responsibilities
+
+CEE's browser gates check its controls, reflow, text spacing and contrast in Chromium, Firefox and
+WebKit. They do not certify a template's content or the page embedding it. The current criterion
+assessment and manual protocols are in the
+[frontend runbook](https://github.com/metadatacenter/cedar-development/blob/develop/ops/FRONTEND-RUNBOOK.md#accessibility-conformance).
+
+A YouTube field embeds the standard player with a title from the field's label or name. CEE reduces
+the supplied URL to its video ID; query parameters such as `cc_load_policy` are not forwarded.
+Caption availability and accuracy therefore depend on the video. The iframe tests use a stub and
+do not verify the real player's captions, description tracks or keyboard behavior.
+
+Before publishing a template with media, its author must review the actual embedded content:
+
+- For prerecorded audio-only or video-only content, provide an equivalent alternative. A static
+  rich-text field can hold a transcript or a clearly named link to one.
+- For prerecorded synchronized media, check accurate captions, including meaningful sounds and
+  speaker identification. An automatic caption track needs review.
+- Provide audio description or a complete media alternative for Level A. At Level AA, a text
+  transcript alone does not satisfy audio description: the soundtrack must convey the necessary
+  visual information, or a described version must be available and identified.
+- For live synchronized media, verify live captions. CEE accepts YouTube `/live/` URLs, so live
+  captions cannot be dismissed as inapplicable.
+
+Use the [W3C media guidance](https://www.w3.org/WAI/media/av/) and verify playback, caption and
+description controls from the keyboard in the deployed embed. A field description is ordinary
+text below the player; it is not automatically a caption track or audio description. The default
+rich-text sanitizer excludes audio, video and iframe elements. A host enabling
+`trustTemplateRichText` accepts responsibility for reviewing the additional markup and media.
+
+CEE currently has **no input-purpose configuration**. Text, email and phone controls use
+`autocomplete="off"`; labels and field types do not declare whether an input asks for the current
+user's personal details. Consequently, forms collecting information covered by WCAG 1.3.5 cannot
+claim that criterion through CEE's current contract. Forms about specimens or other people are
+outside that criterion's personal-information scope. Do not enable autofill indiscriminately or
+infer personal purpose from a label: an explicit author/host declaration and scoped autocomplete
+tokens are needed. See
+[Identify Input Purpose](https://www.w3.org/WAI/WCAG22/Understanding/identify-input-purpose.html).
+
+The host also owns document language, page title, navigation and real authentication. Verify native
+browser zoom, integrated keyboard order and screen-reader announcements in the complete host
+journey; a reduced viewport or a passing axe scan does not settle these.
+
 ## Building the Web Component
 
 One command produces the single file an embedder loads. Do not concatenate named
@@ -397,7 +440,7 @@ It runs, in order:
    floors.
 5. A production build, then the Playwright suite against that bundle, in a
    container: the full Chromium baseline at desktop and narrow viewport sizes,
-   plus focused Chromium, Firefox and WebKit compatibility checks. The container
+   with functional and accessibility checks running in Chromium, Firefox and WebKit by default. The container
    is what makes a screenshot baseline mean the same thing on a laptop and on CI,
    so the pixel budget is zero — see `visual/run-in-container.sh`.
 6. Staging the npm package from the bundle the suite just exercised, which

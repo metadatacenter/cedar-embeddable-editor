@@ -12,7 +12,7 @@
     "fixtures": "node generate-fixtures.mjs && rm -rf public/fixtures public/served && cp -r fixtures public/fixtures && cp -r fixtures/served public/served",
     "prepare:all": "npm run bundle && npm run fixtures",
     "test": "npm run test:packaging && node check-bundle-fresh.mjs && npm run check:size && playwright test",
-    "test:packaging": "node --test packaging.test.mjs",
+    "test:packaging": "node --test packaging.test.mjs shards/sharding.test.mjs",
     "check:fresh": "node check-bundle-fresh.mjs",
     "check:size": "node check-bundle-size.mjs",
     "update": "node check-bundle-fresh.mjs && playwright test --update-snapshots",

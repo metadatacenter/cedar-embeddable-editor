@@ -7,6 +7,9 @@ test('repeated-value chips navigate and activate inside the component shadow roo
   const first = pager.getByRole('option', { name: '1', exact: true });
   const second = pager.getByRole('option', { name: '2', exact: true });
   const name = page.getByLabel('Attribute Name', { exact: true });
+  await expect
+    .poll(async () => (await currentMetadata(page))['@id'])
+    .toBe('https://example.org/instances/multi-field-values-1');
   const before = await currentMetadata(page);
   await first.focus();
   await page.keyboard.press('ArrowRight');

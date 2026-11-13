@@ -163,7 +163,7 @@ test.describe("a widget's own messages", () => {
   });
 
   test('a failed term search is announced and describes the box', async ({ page }) => {
-    await page.route('http://127.0.0.1:9/**', (route) => route.abort());
+    await page.route('http://127.0.0.1:47888/**', (route) => route.abort());
     await open(page, '04-controlled-terms');
     const input = page.getByRole('combobox', { name: 'organism', exact: true });
     await input.fill('Homo');
@@ -176,7 +176,7 @@ test.describe("a widget's own messages", () => {
   });
 
   test("an authority search that finds nothing says so through the field element's own region", async ({ page }) => {
-    await page.route('http://127.0.0.1:9/**', (route) => route.fulfill({ json: { found: false, results: {} } }));
+    await page.route('http://127.0.0.1:47888/**', (route) => route.fulfill({ json: { found: false, results: {} } }));
     await open(page, '08-authority', undefined, undefined, undefined, '&host=field&p=_contributor_orcid');
     const field = page.locator('cedar-embeddable-field');
     const input = field.locator('input').first();

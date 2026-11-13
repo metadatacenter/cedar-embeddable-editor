@@ -43,7 +43,7 @@ const EXCEPTIONS: readonly Exception[] = [];
 /** The three layout checks, each with the words its test titles use. */
 const LAYOUT_CHECKS: readonly (readonly [LayoutCheck, string])[] = [
   ['reflow', 'reflows at 320 CSS px'],
-  ['resize', 'holds at 200% zoom'],
+  ['resize', 'fits the viewport proxy for 200% zoom'],
   ['spacing', 'keeps its text whole under WCAG text spacing'],
 ];
 
@@ -555,7 +555,7 @@ const showTooltip = async (page: Page, mark: string, text: string): Promise<void
  * `fails`, fails.
  */
 const answerLookups = async (page: Page, fails = false): Promise<void> => {
-  await page.route('http://127.0.0.1:9/unused/bioportal/integrated-search', (route) =>
+  await page.route('http://127.0.0.1:47888/unused/bioportal/integrated-search', (route) =>
     fails
       ? route.abort()
       : route.fulfill({

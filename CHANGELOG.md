@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.35] - 2026-11-13
+
+Aligns with `cedar-model-typescript-library@1.0.28`.
+
+- Keeps the property IRI mark, the version stamp and the time picker's hour, minute and second boxes whole in Firefox and WebKit, where each was clipped.
+- Documents in the README what a template author and an embedding host must check themselves: captions and audio description for embedded media, and input purpose for personal details.
+
 ## [2.0.34] - 2026-11-12
 
 Aligns with `cedar-model-typescript-library@1.0.28`.

@@ -1,5 +1,6 @@
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as ui-tokens;
 @use '@org.metadatacenter/cedar-design-tokens/controls';
+@use '@org.metadatacenter/cedar-design-tokens/spacing';
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
 
 .cee-time-picker {
@@ -45,7 +46,10 @@
 .cee-time-segment {
   box-sizing: content-box;
   flex: 0 0 auto;
-  padding: ui-tokens.$space-3 1px;
+  // Firefox subtracts inline padding from the usable width of a content-sized input.
+  // Keep the same spacing outside the box so HH/MM/SS remain whole in every engine.
+  padding: ui-tokens.$space-3 0;
+  margin-inline: spacing.$time-segment-spacing;
   border: 0;
   outline: 0;
   background: transparent;

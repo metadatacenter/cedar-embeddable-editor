@@ -5,6 +5,11 @@ import { fileURLToPath } from 'node:url';
 import { addAttributeRow, open, passDebounceWindow } from './support/host';
 import { fieldBox } from './support/field-box';
 
+// axe and rendered contrast sampling have their own instrumentation cost under parallel load.
+// Keep UI expectations unchanged and allow a complete scan to finish without a test retry.
+test.setTimeout(60_000);
+test.use({ actionTimeout: 30_000, navigationTimeout: 30_000 });
+
 /**
  * Automated WCAG checks over every fixture the suite renders.
  *
@@ -60,6 +65,12 @@ interface Settled {
 const SETTLED: readonly Settled[] = [
   {
     rule: 'color-contrast',
+    target: /mat-mdc-tooltip-surface/,
+    measured: 'white on the tooltip surface; remeasured against 4.5:1 on every run',
+    reason: 'Firefox reports partial overlap for the property tooltip. Its text sits on its own opaque surface.',
+  },
+  {
+    rule: 'color-contrast',
     target: /#mat-input-\d+"\]\]$/,
     measured: 'values rgba(0, 0, 0, 0.87) at 14.25:1 or more, placeholders #555 at 7.46:1',
     reason: "The outline axe finds over a text box is a border with no fill, so the text is on the box's own surface.",
@@ -113,7 +124,11 @@ const SETTLED: readonly Settled[] = [
  * Violations that cannot be fixed without changing what is on screen. Each is listed so the gate
  * passes, and remains a known failure until the screen changes.
  */
-const KNOWN_VIOLATIONS: readonly { readonly rule: string; readonly target: RegExp; readonly reason: string }[] = [];
+const KNOWN_VIOLATIONS: readonly {
+  readonly rule: string;
+  readonly target: RegExp;
+  readonly reason: string;
+}[] = [];
 
 const settledEntry = (rule: string, target: string): Settled | undefined =>
   SETTLED.find((entry) => entry.rule === rule && entry.target.test(target));
@@ -151,6 +166,8 @@ const contrast = (one: readonly number[], other: readonly number[]): number => {
  * is declared in, a placeholder's included, laid over that background at its opacity.
  */
 async function measureContrast(page: Page, targets: readonly (readonly string[])[]): Promise<Measurement[]> {
+  // Fully decided contrast results have nothing left to sample.
+  if (targets.length === 0) return [];
   const boxes = await page.evaluate((paths) => {
     const parse = (color: string): number[] => (color.match(/[\d.]+/g) ?? ['0', '0', '0', '1']).map(Number);
     return paths.map((path) => {
@@ -197,7 +214,13 @@ async function measureContrast(page: Page, targets: readonly (readonly string[])
       };
     });
   }, targets);
-  const shot = (await page.screenshot({ fullPage: true, animations: 'disabled', caret: 'hide' })).toString('base64');
+  const shot = (
+    await page.screenshot({
+      fullPage: true,
+      animations: 'disabled',
+      caret: 'hide',
+    })
+  ).toString('base64');
   const backgrounds = await page.evaluate(
     async ({ image, rects }) => {
       for (const probe of document.querySelectorAll('[data-cee-contrast-probe]'))
@@ -271,15 +294,20 @@ async function measureContrast(page: Page, targets: readonly (readonly string[])
 const files = readdirSync(fileURLToPath(new URL('../fixtures/', import.meta.url)))
   .filter((name) => name.endsWith('.json'))
   .map((name) => name.slice(0, -'.json'.length));
-const templates = files.filter((name) => !name.endsWith('-instance'));
-/** An instance belongs to the longest template name it starts with. */
-const instancesOf = (template: string) =>
+// Fixture names are not artifact kinds: the markup instance has no "-instance" suffix,
+// and the date-format instance has a different prefix from its template. Use their actual link.
+const artifacts = new Map(
+  files.map((name) => [name, JSON.parse(readFileSync(new URL(`../fixtures/${name}.json`, import.meta.url), 'utf8'))]),
+);
+const templates = files.filter((name) => artifacts.get(name).properties && artifacts.get(name)._ui);
+const instancesOf = (template: string): string[] =>
   files.filter(
-    (name) =>
-      name.endsWith('-instance') &&
-      name.startsWith(`${template}-`) &&
-      !templates.some((other) => other.length > template.length && name.startsWith(`${other}-`)),
+    (name) => !templates.includes(name) && artifacts.get(name)['schema:isBasedOn'] === artifacts.get(template)['@id'],
   );
+for (const instance of files.filter((name) => !templates.includes(name))) {
+  if (templates.filter((template) => instancesOf(template).includes(instance)).length !== 1)
+    throw new Error(`Fixture ${instance} must identify exactly one template`);
+}
 
 /**
  * Check the whole page once it is still, so contrast is read at full opacity.
@@ -289,24 +317,41 @@ const instancesOf = (template: string) =>
  * second apart find nothing running. A shadow tree's animations are listed on its root.
  */
 async function expectAccessible(page: Page, state: string): Promise<void> {
-  await page.evaluate(async () => {
+  const settled = await page.evaluate(async () => {
     let quiet = 0;
     for (let pass = 0; pass < 40 && quiet < 3; pass++) {
       await new Promise((resolve) => setTimeout(resolve, 100));
       await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-      const roots: DocumentOrShadowRoot[] = [document];
+      const roots: (Document | ShadowRoot)[] = [document];
       for (const element of document.querySelectorAll('*')) if (element.shadowRoot) roots.push(element.shadowRoot);
       const running = roots
         .flatMap((root) => root.getAnimations())
         .filter(
           (animation) => animation.playState === 'running' && animation.effect?.getTiming().iterations !== Infinity,
         );
-      quiet = running.length ? 0 : quiet + 1;
+      // WebKit can report no running animations while Material's hint/error subscript is
+      // still visibly fading. Read the rendered opacity too; an animation API result alone
+      // let axe measure the selection hint at 1.87:1 before it reached its final colour.
+      const fadingSubscript = roots.some((root) =>
+        Array.from(root.querySelectorAll('.mat-mdc-form-field-hint-wrapper, .mat-mdc-form-field-error-wrapper')).some(
+          (element) => {
+            // Read-only fields keep hidden Material controls whose unused animation stays at 0.
+            if (!element.getClientRects().length) return false;
+            const style = getComputedStyle(element);
+            return style.visibility === 'visible' && style.opacity !== '1';
+          },
+        ),
+      );
+      quiet = running.length || fadingSubscript ? 0 : quiet + 1;
       await Promise.all(running.map((animation) => animation.finished.catch(() => undefined)));
     }
+    return quiet === 3;
   });
-  const builder = new AxeBuilder({ page }).exclude({ fromShadowDom: ['cedar-embeddable-editor', 'iframe'] });
-  const narrow = test.info().project.name === 'narrow';
+  expect(settled, `${state}: animations and Material subscripts did not settle`).toBe(true);
+  const builder = new AxeBuilder({ page }).exclude({
+    fromShadowDom: ['cedar-embeddable-editor', 'iframe'],
+  });
+  const narrow = test.info().project.name.endsWith('narrow');
   // axe-core lets a rule enabled by name override the tag selection, so one desktop scan covers both.
   // The builder's `options` replaces every option set before it, so it comes ahead of `withTags`.
   const scan = narrow
@@ -335,7 +380,7 @@ async function expectAccessible(page: Page, state: string): Promise<void> {
             (known) => known.rule === violation.id && known.target.test(JSON.stringify(node.target)),
           ),
       )
-      .map((node) => `${violation.id}: ${JSON.stringify(node.target)}`),
+      .map((node) => `${violation.id}: ${JSON.stringify(node.target)}\n${node.failureSummary ?? ''}`),
   );
   const pending = incomplete
     .filter((result) => SETTLED_RULES.includes(result.id))
@@ -367,34 +412,27 @@ async function expectAccessible(page: Page, state: string): Promise<void> {
 /**
  * Focus a control as the keyboard would.
  *
- * A page nobody has pointed at treats a focus a script moves as keyboard focus, so the control
- * draws its focus ring, which is the state this checks. The assertion says so rather than assumes.
+ * Use a real navigation key to establish keyboard modality in all engines before moving focus.
+ * A modifier alone, or a script focus after a pointer action, does not do that in Firefox/WebKit.
  */
 async function focusAsKeyboard(control: Locator): Promise<void> {
+  await control.page().keyboard.press('Tab');
   await control.focus();
   await expect(control).toBeFocused();
   expect(await control.evaluate((element) => element.matches(':focus-visible')), 'no focus ring drawn').toBe(true);
 }
 
+// Every state keeps its scan, but gets its own worker slot and timeout. Several serialized scans
+// in one test can exceed thirty seconds under load even while each individual state is healthy.
 for (const template of templates)
-  test(`${template}, empty, filled and read only`, async ({ page }) => {
-    await open(page, template);
-    await expectAccessible(page, `${template} empty`);
-    for (const instance of instancesOf(template)) {
-      await open(page, template, undefined, instance);
-      await expectAccessible(page, instance);
+  for (const preset of [undefined, 'readonly'] as const)
+    for (const instance of [undefined, ...instancesOf(template)]) {
+      const state = `${template}, ${instance ?? 'empty'}, ${preset ?? 'editable'}`;
+      test(state, async ({ page }) => {
+        await open(page, template, preset, instance);
+        await expectAccessible(page, state);
+      });
     }
-    await open(page, template, 'readonly');
-    await expectAccessible(page, `${template} read only`);
-  });
-
-for (const template of templates.filter((name) => instancesOf(name).length > 0))
-  test(`${template}, read only with each of its instances`, async ({ page }) => {
-    for (const instance of instancesOf(template)) {
-      await open(page, template, 'readonly', instance);
-      await expectAccessible(page, `${instance} read only`);
-    }
-  });
 
 const fixturesDir = new URL('../fixtures/', import.meta.url);
 const orderOf = (fixture: string): string[] =>
@@ -402,106 +440,112 @@ const orderOf = (fixture: string): string[] =>
 
 for (const fixture of ['01-input-types', '02-choices', '08-authority', '09-temporal'])
   for (const property of orderOf(fixture))
-    test(`the field element for ${fixture} ${property}, editable, read only and in preview`, async ({ page }) => {
-      for (const preset of [undefined, 'readonly', 'preview', 'preview-typed']) {
+    for (const preset of [undefined, 'readonly', 'preview', 'preview-typed'])
+      test(`the field element for ${fixture} ${property}, ${preset ?? 'editable'}`, async ({ page }) => {
         await open(page, fixture, preset, undefined, undefined, `&host=field&p=${property}`);
         await expectAccessible(page, `${fixture} ${property} ${preset ?? 'editable'}`);
-      }
-    });
+      });
 
 for (const fixture of ['01-input-types', '02-choices', '09-temporal'])
-  test(`${fixture} at comfortable density`, async ({ page }) => {
-    for (const preset of [undefined, 'readonly']) {
+  for (const preset of [undefined, 'readonly'])
+    test(`${fixture} at comfortable density, ${preset ?? 'editable'}`, async ({ page }) => {
       await open(page, fixture, preset);
       await page.locator('cedar-embeddable-editor').evaluate((editor) => editor.setAttribute('density', 'comfortable'));
       await expectAccessible(page, `${fixture} comfortable ${preset ?? 'editable'}`);
-    }
+    });
+
+for (const state of ['searching', 'empty'])
+  test(`an authority search, ${state}`, async ({ page }) => {
+    let release!: () => void;
+    const pending = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await page.route('http://127.0.0.1:47888/**', async (route) => {
+      await pending;
+      await route.fulfill({ json: { found: false, results: {} } });
+    });
+    await open(page, '08-authority', undefined, undefined, undefined, '&host=field&p=_contributor_orcid');
+    const field = page.locator('cedar-embeddable-field');
+    await field.locator('input').first().fill('Unmatched example');
+    await expect(field.getByText('Searching…', { exact: true })).toBeVisible();
+    if (state === 'searching') await expectAccessible(page, 'authority search under way');
+    release();
+    await expect(field.getByRole('option', { name: 'No results found', exact: true })).toBeVisible();
+    if (state === 'empty') await expectAccessible(page, 'authority search that found nothing');
   });
 
-test('an authority search under way, and one that found nothing', async ({ page }) => {
-  let release!: () => void;
-  const pending = new Promise<void>((resolve) => {
-    release = resolve;
+for (const state of ['searching', 'failed'])
+  test(`a term lookup, ${state}`, async ({ page }) => {
+    let release!: () => void;
+    const pending = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await page.route('http://127.0.0.1:47888/**', async (route) => {
+      await pending;
+      await route.abort();
+    });
+    await open(page, '04-controlled-terms');
+    const organism = fieldBox(page, 'organism');
+    await organism.fill('Homo');
+    await passDebounceWindow(page);
+    await expect(page.getByRole('option', { name: 'Searching…', exact: true })).toBeVisible();
+    if (state === 'searching') await expectAccessible(page, 'term lookup under way');
+    release();
+    await expect(page.getByRole('option', { name: /^Search failed/ })).toBeVisible();
+    if (state === 'failed') await expectAccessible(page, 'term lookup that failed');
   });
-  await page.route('http://127.0.0.1:9/**', async (route) => {
-    await pending;
-    await route.fulfill({ json: { found: false, results: {} } });
+
+for (const state of ['calendar month view', 'calendar multi-year view', 'year calendar'])
+  test(`an open calendar, ${state}`, async ({ page }) => {
+    await open(page, '09-temporal');
+    const dayPicker = page.locator('app-date-picker').nth(1);
+    await dayPicker.getByRole('button', { name: 'Open calendar' }).click();
+    await expect(page.locator('mat-month-view')).toBeVisible();
+    if (state === 'calendar month view') await expectAccessible(page, state);
+    // Keep the complete navigation and focus assertions in every state-specific scan.
+    await page.keyboard.press('ArrowRight');
+    const focused = page.locator('.mat-calendar-body-active > .mat-calendar-body-cell-content');
+    await expect(focused).toHaveCSS('outline-style', 'solid');
+    await expect(focused).toHaveCSS('outline-color', 'rgb(15, 118, 134)');
+    await page.locator('.mat-calendar-period-button').click();
+    await expect(page.locator('mat-multi-year-view')).toBeVisible();
+    if (state === 'calendar multi-year view') await expectAccessible(page, state);
+    await page.keyboard.press('Escape');
+    await page.locator('app-date-picker').first().getByRole('button', { name: 'Open calendar' }).click();
+    await expect(page.locator('mat-multi-year-view')).toBeVisible();
+    if (state === 'year calendar') await expectAccessible(page, state);
   });
-  await open(page, '08-authority', undefined, undefined, undefined, '&host=field&p=_contributor_orcid');
-  const field = page.locator('cedar-embeddable-field');
-  await field.locator('input').first().fill('Unmatched example');
-  await expect(field.getByText('Searching…', { exact: true })).toBeVisible();
-  await expectAccessible(page, 'authority search under way');
-  release();
-  await expect(field.getByRole('option', { name: 'No results found', exact: true })).toBeVisible();
-  await expectAccessible(page, 'authority search that found nothing');
-});
 
-test('a term lookup under way, and one that failed', async ({ page }) => {
-  let release!: () => void;
-  const pending = new Promise<void>((resolve) => {
-    release = resolve;
+for (const state of ['single', 'multiple'])
+  test(`an open select, ${state}`, async ({ page }) => {
+    await open(page, '02-choices');
+    await page.getByRole('combobox', { name: 'single_list', exact: true }).click();
+    await expect(page.getByRole('listbox', { name: 'single_list' })).toBeVisible();
+    if (state === 'single') await expectAccessible(page, 'single select open');
+    await page.keyboard.press('Escape');
+    await page.getByRole('combobox', { name: 'multi_list', exact: true }).click();
+    await expect(page.getByRole('listbox', { name: 'multi_list' })).toBeVisible();
+    if (state === 'multiple') await expectAccessible(page, 'multiple select open');
   });
-  await page.route('http://127.0.0.1:9/**', async (route) => {
-    await pending;
-    await route.abort();
+
+for (const state of ['focused', 'hovered'])
+  test(`an open menu, its item ${state}`, async ({ page }) => {
+    await open(page, '01-input-types', undefined, undefined, undefined, '&f=showDownloadMenu');
+    const download = page.getByRole('button', {
+      name: 'Download',
+      exact: true,
+    });
+    await download.focus();
+    await download.press('Enter');
+    const items = page.getByRole('menuitem');
+    await expect(items.first()).toBeFocused();
+    await page.keyboard.press('ArrowDown');
+    await expect(items.nth(1)).toBeFocused();
+    expect(await items.nth(1).evaluate((item) => item.matches(':focus-visible'))).toBe(true);
+    if (state === 'focused') await expectAccessible(page, 'menu open, an item focused');
+    await items.nth(3).hover();
+    if (state === 'hovered') await expectAccessible(page, 'menu item hovered');
   });
-  await open(page, '04-controlled-terms');
-  const organism = fieldBox(page, 'organism');
-  await organism.fill('Homo');
-  await passDebounceWindow(page);
-  await expect(page.getByRole('option', { name: 'Searching…', exact: true })).toBeVisible();
-  await expectAccessible(page, 'term lookup under way');
-  release();
-  await expect(page.getByRole('option', { name: /^Search failed/ })).toBeVisible();
-  await expectAccessible(page, 'term lookup that failed');
-});
-
-test('an open calendar, in its month view and its multi-year view', async ({ page }) => {
-  await open(page, '09-temporal');
-  const dayPicker = page.locator('app-date-picker').nth(1);
-  await dayPicker.getByRole('button', { name: 'Open calendar' }).click();
-  await expect(page.locator('mat-month-view')).toBeVisible();
-  await expectAccessible(page, 'calendar month view');
-  // The focused date carries the shared focus ring, because its tint is too faint to show focus.
-  await page.keyboard.press('ArrowRight');
-  const focused = page.locator('.mat-calendar-body-active > .mat-calendar-body-cell-content');
-  await expect(focused).toHaveCSS('outline-style', 'solid');
-  await expect(focused).toHaveCSS('outline-color', 'rgb(15, 118, 134)');
-  await page.locator('.mat-calendar-period-button').click();
-  await expect(page.locator('mat-multi-year-view')).toBeVisible();
-  await expectAccessible(page, 'calendar multi-year view');
-  await page.keyboard.press('Escape');
-  await page.locator('app-date-picker').first().getByRole('button', { name: 'Open calendar' }).click();
-  await expect(page.locator('mat-multi-year-view')).toBeVisible();
-  await expectAccessible(page, 'year calendar');
-});
-
-test('an open select, single and multiple', async ({ page }) => {
-  await open(page, '02-choices');
-  await page.getByRole('combobox', { name: 'single_list', exact: true }).click();
-  await expect(page.getByRole('listbox', { name: 'single_list' })).toBeVisible();
-  await expectAccessible(page, 'single select open');
-  await page.keyboard.press('Escape');
-  await page.getByRole('combobox', { name: 'multi_list', exact: true }).click();
-  await expect(page.getByRole('listbox', { name: 'multi_list' })).toBeVisible();
-  await expectAccessible(page, 'multiple select open');
-});
-
-test('an open menu, its item focused and hovered', async ({ page }) => {
-  await open(page, '01-input-types', undefined, undefined, undefined, '&f=showDownloadMenu');
-  const download = page.getByRole('button', { name: 'Download', exact: true });
-  await download.focus();
-  await download.press('Enter');
-  const items = page.getByRole('menuitem');
-  await expect(items.first()).toBeFocused();
-  await page.keyboard.press('ArrowDown');
-  await expect(items.nth(1)).toBeFocused();
-  expect(await items.nth(1).evaluate((item) => item.matches(':focus-visible'))).toBe(true);
-  await expectAccessible(page, 'menu open, an item focused');
-  await items.nth(3).hover();
-  await expectAccessible(page, 'menu item hovered');
-});
 
 /**
  * One hovered and one focused control of each kind, each on a page of its own so that the other
@@ -585,11 +629,10 @@ const REPRESENTATIVES: ReadonlyArray<{
 ];
 
 for (const { kind, fixture, instance, control } of REPRESENTATIVES)
-  test(`a ${kind}, hovered and focused`, async ({ page }) => {
-    await open(page, fixture, undefined, instance);
-    await (await control(page)).hover();
-    await expectAccessible(page, `${kind} hovered`);
-    await open(page, fixture, undefined, instance);
-    await focusAsKeyboard(await control(page));
-    await expectAccessible(page, `${kind} focused`);
-  });
+  for (const state of ['hovered', 'focused'])
+    test(`a ${kind}, ${state}`, async ({ page }) => {
+      await open(page, fixture, undefined, instance);
+      if (state === 'hovered') await (await control(page)).hover();
+      else await focusAsKeyboard(await control(page));
+      await expectAccessible(page, `${kind} ${state}`);
+    });

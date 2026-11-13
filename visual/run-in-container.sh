@@ -11,7 +11,7 @@
 #
 # So both sides run the same container. Playwright publishes an image per release
 # carrying the browsers that release drives and the fonts they rasterise with, and
-# `v1.63.0-noble` is the one matching `visual/package.json`. Move that pin and the
+# `v1.64.1-noble` is the one matching `visual/package.json`. Move that pin and the
 # baselines move with it, exactly as an OS upgrade used to.
 #
 # `node_modules` is a private anonymous volume rather than the host's directory: the host's is
