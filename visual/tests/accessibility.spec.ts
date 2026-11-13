@@ -317,7 +317,12 @@ async function expectAccessible(page: Page, state: string): Promise<void> {
       // let axe measure the selection hint at 1.87:1 before it reached its final colour.
       const fadingSubscript = roots.some((root) =>
         Array.from(root.querySelectorAll('.mat-mdc-form-field-hint-wrapper, .mat-mdc-form-field-error-wrapper')).some(
-          (element) => getComputedStyle(element).opacity !== '1',
+          (element) => {
+            // Read-only fields keep hidden Material controls whose unused animation stays at 0.
+            if (!element.getClientRects().length) return false;
+            const style = getComputedStyle(element);
+            return style.visibility === 'visible' && style.opacity !== '1';
+          },
         ),
       );
       quiet = running.length || fadingSubscript ? 0 : quiet + 1;
