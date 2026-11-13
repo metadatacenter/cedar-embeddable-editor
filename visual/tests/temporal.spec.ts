@@ -12,7 +12,7 @@ for (const host of ['editor', 'field'] as const) {
       await page.goto(
         `/host.html?t=09-temporal${host === 'field' ? '&host=field&p=_twelve_hour_seconds' : ''}&b=${BUNDLE_VERSION}`,
       );
-      await page.waitForFunction(() => window.__ceeReady);
+      await expect.poll(() => page.evaluate(() => window.__ceeReady), { timeout: 30_000 }).toBeTruthy();
       const element = page.locator(`cedar-embeddable-${host}`);
       await element.evaluate((el, profile) => el.setAttribute('density', profile), density);
       const clocks = element.locator('.cee-time-input-shell');

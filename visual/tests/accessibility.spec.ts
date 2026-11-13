@@ -277,15 +277,20 @@ async function measureContrast(page: Page, targets: readonly (readonly string[])
 const files = readdirSync(fileURLToPath(new URL('../fixtures/', import.meta.url)))
   .filter((name) => name.endsWith('.json'))
   .map((name) => name.slice(0, -'.json'.length));
-const templates = files.filter((name) => !name.endsWith('-instance'));
-/** An instance belongs to the longest template name it starts with. */
-const instancesOf = (template: string) =>
+// Fixture names are not artifact kinds: the markup instance has no "-instance" suffix,
+// and the date-format instance has a different prefix from its template. Use their actual link.
+const artifacts = new Map(
+  files.map((name) => [name, JSON.parse(readFileSync(new URL(`../fixtures/${name}.json`, import.meta.url), 'utf8'))]),
+);
+const templates = files.filter((name) => artifacts.get(name).properties && artifacts.get(name)._ui);
+const instancesOf = (template: string): string[] =>
   files.filter(
-    (name) =>
-      name.endsWith('-instance') &&
-      name.startsWith(`${template}-`) &&
-      !templates.some((other) => other.length > template.length && name.startsWith(`${other}-`)),
+    (name) => !templates.includes(name) && artifacts.get(name)['schema:isBasedOn'] === artifacts.get(template)['@id'],
   );
+for (const instance of files.filter((name) => !templates.includes(name))) {
+  if (templates.filter((template) => instancesOf(template).includes(instance)).length !== 1)
+    throw new Error(`Fixture ${instance} must identify exactly one template`);
+}
 
 /**
  * Check the whole page once it is still, so contrast is read at full opacity.
@@ -383,25 +388,17 @@ async function focusAsKeyboard(control: Locator): Promise<void> {
   expect(await control.evaluate((element) => element.matches(':focus-visible')), 'no focus ring drawn').toBe(true);
 }
 
+// Every state keeps its scan, but gets its own worker slot and timeout. Several serialized scans
+// in one test can exceed thirty seconds under load even while each individual state is healthy.
 for (const template of templates)
-  test(`${template}, empty, filled and read only`, async ({ page }) => {
-    await open(page, template);
-    await expectAccessible(page, `${template} empty`);
-    for (const instance of instancesOf(template)) {
-      await open(page, template, undefined, instance);
-      await expectAccessible(page, instance);
+  for (const preset of [undefined, 'readonly'] as const)
+    for (const instance of [undefined, ...instancesOf(template)]) {
+      const state = `${template}, ${instance ?? 'empty'}, ${preset ?? 'editable'}`;
+      test(state, async ({ page }) => {
+        await open(page, template, preset, instance);
+        await expectAccessible(page, state);
+      });
     }
-    await open(page, template, 'readonly');
-    await expectAccessible(page, `${template} read only`);
-  });
-
-for (const template of templates.filter((name) => instancesOf(name).length > 0))
-  test(`${template}, read only with each of its instances`, async ({ page }) => {
-    for (const instance of instancesOf(template)) {
-      await open(page, template, 'readonly', instance);
-      await expectAccessible(page, `${instance} read only`);
-    }
-  });
 
 const fixturesDir = new URL('../fixtures/', import.meta.url);
 const orderOf = (fixture: string): string[] =>

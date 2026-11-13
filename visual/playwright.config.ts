@@ -10,6 +10,21 @@ import { NARROW_ONLY, WIDTH_INDEPENDENT } from './tests/width-tags';
  * an upgrade that breaks the bundle while leaving `ng serve` working is
  * precisely the failure this is here to catch.
  */
+// Functional browser contracts share the existing worker budget; pixel baselines keep their own projects.
+const functionalSpecs = [
+  'bootstrap.spec.ts',
+  'host-change.spec.ts',
+  'validation-state-matrix.spec.ts',
+  'stored-problems.spec.ts',
+  'stored-constraints.spec.ts',
+  'temporal.spec.ts',
+  'authority-search-status.spec.ts',
+  'authority-settled-term.spec.ts',
+  'metadata-feedback.spec.ts',
+  'language-isolation.spec.ts',
+  'quiet-preview.spec.ts',
+];
+
 export default defineConfig({
   testDir: './tests',
   fullyParallel: true,
@@ -45,6 +60,8 @@ export default defineConfig({
    * hidden either way.
    */
   retries: process.env.CI ? 1 : 0,
+  // Stop a known-red CI/reactor run after a test exhausts its retry.
+  maxFailures: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? 'github' : [['list'], ['html', { open: 'never' }]],
 
   use: {
@@ -102,6 +119,11 @@ export default defineConfig({
   },
 
   projects: [
+    ...(['firefox', 'webkit'] as const).map((browserName) => ({
+      name: `${browserName}-functional`,
+      testMatch: functionalSpecs,
+      use: { browserName, viewport: { width: 1280, height: 900 } },
+    })),
     ...(['firefox', 'webkit'] as const).map((browserName) => ({
       name: `${browserName}-accessibility`,
       testMatch: /(?:accessibility|layout-resilience|focus|keyboard-paging)\.spec\.ts/,

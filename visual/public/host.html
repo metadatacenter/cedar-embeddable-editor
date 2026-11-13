@@ -280,7 +280,10 @@
         }
 
         /**
-         * An event handler, when ?e=1, recording what CEE tells the host.
+         * Wait for CEE's completed first render before measuring a settled DOM. A quiet DOM can
+         * still be an editor whose asynchronous initialization has not started, particularly in
+         * WebKit. ?e=1 also records diagnostics; ?e=0 deliberately omits the handler for its
+         * negative contract test, which waits for its rendered field itself.
          *
          * `eventHandler` is the input a host page passes to hear CEE's diagnostics, and
          * it now forwards `MessageHandlerService`'s traces and errors. This is that real
@@ -288,13 +291,24 @@
          * `harness/test/message-handler.spec.ts`.
          */
         window.__ceeEvents = [];
-        if (params.get('e') === '1') {
-          cee.eventHandler = {
-            trace: (label, value) => window.__ceeEvents.push({ kind: 'trace', label, value }),
-            error: (label, value) => window.__ceeEvents.push({ kind: 'error', label, value }),
-            ready: () => window.__ceeEvents.push({ kind: 'ready' }),
-          };
-        }
+        const initialized =
+          params.get('e') === '0'
+            ? Promise.resolve()
+            : new Promise((resolve) => {
+                const diagnostics = params.get('e') === '1';
+                cee.eventHandler = {
+                  ...(diagnostics
+                    ? {
+                        trace: (label, value) => window.__ceeEvents.push({ kind: 'trace', label, value }),
+                        error: (label, value) => window.__ceeEvents.push({ kind: 'error', label, value }),
+                      }
+                    : {}),
+                  ready: () => {
+                    if (diagnostics) window.__ceeEvents.push({ kind: 'ready' });
+                    resolve();
+                  },
+                };
+              });
 
         cee.config = { ...PRESETS[preset], ...overrides };
 
@@ -342,6 +356,7 @@
             tick();
           });
 
+        await initialized;
         await domSettled();
 
         /**

@@ -7,7 +7,7 @@ for (const host of ['editor', 'field'] as const) {
     await page.goto(
       `/host.html?t=06-validation${host === 'field' ? '&host=field&p=_short_text' : ''}&b=${BUNDLE_VERSION}`,
     );
-    await page.waitForFunction(() => window.__ceeReady);
+    await expect.poll(() => page.evaluate(() => window.__ceeReady), { timeout: 30_000 }).toBeTruthy();
     const element = page.locator(`cedar-embeddable-${host}`);
     await element.evaluate((el) => el.setAttribute('density', 'comfortable'));
     const input = fieldBox(element, 'short_text');
@@ -42,7 +42,7 @@ for (const host of ['editor', 'field'] as const) {
     await page.goto(
       `/host.html?t=06-validation${host === 'field' ? '&host=field&p=_short_text' : ''}&b=${BUNDLE_VERSION}`,
     );
-    await page.waitForFunction(() => window.__ceeReady);
+    await expect.poll(() => page.evaluate(() => window.__ceeReady), { timeout: 30_000 }).toBeTruthy();
     const element = page.locator(`cedar-embeddable-${host}`);
     const input = fieldBox(element, 'short_text');
     await expect(input).toBeVisible();
@@ -105,7 +105,7 @@ for (const host of ['editor', 'field'] as const) {
     await page.goto(
       `/host.html?t=06-validation${host === 'field' ? '&host=field&p=_short_text' : ''}&b=${BUNDLE_VERSION}`,
     );
-    await page.waitForFunction(() => window.__ceeReady);
+    await expect.poll(() => page.evaluate(() => window.__ceeReady), { timeout: 30_000 }).toBeTruthy();
     const element = page.locator(`cedar-embeddable-${host}`);
     const input = fieldBox(element, 'short_text');
     const box = input.locator('xpath=ancestor::mat-form-field').locator('.mat-mdc-text-field-wrapper');

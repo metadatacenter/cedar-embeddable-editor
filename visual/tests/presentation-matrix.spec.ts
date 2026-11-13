@@ -117,7 +117,9 @@ const FIELD_SETTINGS = [
 
 const openField = async (page: Page, fixture: string, property: string, settings: Record<string, boolean>) => {
   await page.goto(`/host.html?host=field&t=${fixture}&p=${property}${flags(settings)}&b=${BUNDLE_VERSION}`);
-  await page.waitForFunction(() => window.__ceeReady === true || window.__ceeError, null, { timeout: 20_000 });
+  await expect
+    .poll(() => page.evaluate(() => window.__ceeReady === true || window.__ceeError, null), { timeout: 20_000 })
+    .toBeTruthy();
   expect(await page.evaluate(() => window.__ceeError)).toBeFalsy();
 };
 

@@ -2477,6 +2477,8 @@ test.describe('markup in an instance value', { tag: WIDTH_INDEPENDENT }, () => {
         ).length,
     );
     expect(handlers, 'an onerror attribute survived sanitization').toBe(0);
+    // The empty image exists only to carry the injection probe; its authored decorative alternative survives.
+    await expect(page.locator('cedar-embeddable-editor img[src="data:,"]')).toHaveAttribute('alt', '');
     expect(handlerRan, 'the handler produced console output, so it ran').toEqual([]);
   });
 });
@@ -3739,9 +3741,11 @@ test.describe('config flags are wired to something', { tag: WIDTH_INDEPENDENT },
     const f = flags.length ? `&f=${flags.join(',')}` : '';
     const n = off.length ? `&n=${off.join(',')}` : '';
     await page.goto(`/host.html?t=${fixture}${f}${n}&b=${BUNDLE_VERSION}`);
-    await page.waitForFunction(() => window.__ceeReady === true || window.__ceeError, null, {
-      timeout: 20_000,
-    });
+    await expect
+      .poll(() => page.evaluate(() => window.__ceeReady === true || window.__ceeError, null), {
+        timeout: 20_000,
+      })
+      .toBeTruthy();
     expect(await page.evaluate(() => window.__ceeError)).toBeFalsy();
     await page.waitForTimeout(300);
     const html = await page.evaluate(
@@ -4020,7 +4024,7 @@ test.describe('the host event handler', { tag: WIDTH_INDEPENDENT }, () => {
   });
 
   test('gets nothing when no handler is attached, and CEE still renders', async ({ page }) => {
-    await open(page, '01-input-types');
+    await open(page, '01-input-types', undefined, undefined, undefined, '&e=0');
 
     const events = await page.evaluate(() => window.__ceeEvents);
     expect(events, 'no handler was attached, so nothing should have been recorded').toEqual([]);
@@ -4071,9 +4075,11 @@ test.describe('host inputs that fetch', () => {
   const openHost = async (page: import('@playwright/test').Page, query: string) => {
     await page.clock.setFixedTime(FROZEN);
     await page.goto(`/host.html?${query}&b=${BUNDLE_VERSION}`);
-    await page.waitForFunction(() => window.__ceeReady === true || window.__ceeError, null, {
-      timeout: 20_000,
-    });
+    await expect
+      .poll(() => page.evaluate(() => window.__ceeReady === true || window.__ceeError, null), {
+        timeout: 20_000,
+      })
+      .toBeTruthy();
     expect(await page.evaluate(() => window.__ceeError)).toBeFalsy();
   };
 

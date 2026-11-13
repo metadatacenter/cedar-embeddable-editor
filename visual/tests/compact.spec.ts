@@ -3,7 +3,7 @@ import { BUNDLE_VERSION, open } from './support/host';
 
 test('compact CEF matches read-only height and stays compact after typing and clearing', async ({ page }) => {
   await page.goto(`/host.html?host=field&t=01-input-types&p=_text&b=${BUNDLE_VERSION}`);
-  await page.waitForFunction(() => window.__ceeReady);
+  await expect.poll(() => page.evaluate(() => window.__ceeReady), { timeout: 30_000 }).toBeTruthy();
   const field = page.locator('cedar-embeddable-field');
 
   const box = field.locator('.mat-mdc-text-field-wrapper').first();
@@ -56,7 +56,7 @@ test('editable compact CEE uses the same box height and keeps temporal placehold
 
 test('compact paragraphs start with two rows and grow without clipping content', async ({ page }) => {
   await page.goto(`/host.html?host=field&t=01-input-types&p=_textarea&b=${BUNDLE_VERSION}`);
-  await page.waitForFunction(() => window.__ceeReady);
+  await expect.poll(() => page.evaluate(() => window.__ceeReady), { timeout: 30_000 }).toBeTruthy();
   const field = page.locator('cedar-embeddable-field');
 
   const input = field.locator('textarea');
