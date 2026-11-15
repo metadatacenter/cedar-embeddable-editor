@@ -278,6 +278,22 @@ $identity-text: 72px;
   }
 }
 
+// A narrow embedding pane cannot fit the component identity and artifact provenance side by side.
+@container cee (max-width: 300px) {
+  .template-header {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'logo' 'provenance' 'title';
+    &.has-actions {
+      grid-template-areas: 'logo' 'provenance' 'title' 'actions';
+    }
+  }
+  .template-provenance {
+    align-items: flex-start;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
+
 // Preview hosts already supply a dialog surface and close control.
 .cee-preview {
   .template-header:not(.has-actions) {

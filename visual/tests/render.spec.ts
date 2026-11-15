@@ -1666,6 +1666,31 @@ test.describe('the version stamp', { tag: WIDTH_INDEPENDENT }, () => {
  * sit within its height. Beside a title with a description it keeps to the top of the row, level with
  * the title. At a narrow width it takes a row of its own, so the title has the full width below it.
  */
+test(
+  'identity and artifact version remain separate in a narrow embedding pane',
+  { tag: WIDTH_INDEPENDENT },
+  async ({ page }) => {
+    await open(page, '01-input-types');
+    const editor = page.locator('cedar-embeddable-editor');
+    await editor.evaluate((el) => {
+      (el as HTMLElement).style.width = '175px';
+    });
+    const logo = page.locator('.logo-block');
+    const provenance = page.locator('.template-provenance');
+    await expect(provenance).toBeVisible();
+    await expect
+      .poll(async () => {
+        const identity = (await logo.boundingBox())!;
+        const version = (await provenance.boundingBox())!;
+        return version.y - identity.y - identity.height;
+      })
+      .toBeGreaterThanOrEqual(0);
+    const version = (await provenance.boundingBox())!;
+    const header = (await page.locator('.template-header').boundingBox())!;
+    expect(version.x + version.width).toBeLessThanOrEqual(header.x + header.width + 1);
+  },
+);
+
 test.describe('the identity', { tag: WIDTH_INDEPENDENT }, () => {
   for (const width of [1280, 480]) {
     test(`sets the name and the stamp beside the mark at ${width}`, async ({ page }) => {
@@ -4231,3 +4256,68 @@ test.describe('preview host heading', { tag: WIDTH_INDEPENDENT }, () => {
     });
   }
 });
+
+for (const width of [175, 260]) {
+  for (const repeated of [false, true]) {
+    test(
+      `a long required label keeps its visible marker at ${width}px (repeated=${repeated})`,
+      { tag: WIDTH_INDEPENDENT },
+      async ({ page }) => {
+        await open(page, '01-input-types');
+        await page.evaluate(
+          async ({ width, repeated }) => {
+            const template = await (await fetch('./fixtures/01-input-types.json')).json();
+            template._ui.propertyLabels._text = 'Participant identifier with a deliberately long display name';
+            if (repeated)
+              template.properties._text = { type: 'array', minItems: 1, maxItems: 3, items: template.properties._text };
+            const editor = document.querySelector('cedar-embeddable-editor')!;
+            editor.style.display = 'block';
+            editor.style.width = `${width}px`;
+            editor.templateObject = template;
+          },
+          { width, repeated },
+        );
+        const header = page
+          .locator('app-cedar-component-header')
+          .filter({ hasText: 'Participant identifier with a deliberately long display name' })
+          .first();
+        await expect(header.locator('.required-mark')).toBeVisible();
+        if (repeated) await expect(header.locator('.multi-instance-range')).toHaveText('(1 .. 3)');
+        const geometry = await header.evaluate((el) => {
+          const label = el.querySelector('.title-label')!;
+          const mark = el.querySelector('.required-mark')!;
+          const rect = mark.getBoundingClientRect();
+          const title = el.querySelector('.title')!.getBoundingClientRect();
+          const clipping = [];
+          for (let parent = mark.parentElement; parent && parent !== el.parentElement; parent = parent.parentElement) {
+            const style = getComputedStyle(parent);
+            if ([style.overflowX, style.overflowY].some((x) => ['hidden', 'clip', 'auto', 'scroll'].includes(x))) {
+              const box = parent.getBoundingClientRect();
+              if (
+                rect.left < box.left - 1 ||
+                rect.right > box.right + 1 ||
+                rect.top < box.top - 1 ||
+                rect.bottom > box.bottom + 1
+              )
+                clipping.push(parent.className);
+            }
+          }
+          return {
+            truncated: label.scrollWidth > label.clientWidth,
+            clipping,
+            left: rect.left,
+            right: rect.right,
+            titleLeft: title.left,
+            titleRight: title.right,
+            rangeRight: el.querySelector('.multi-instance-range')?.getBoundingClientRect().right ?? 0,
+          };
+        });
+        expect(geometry.truncated).toBe(true);
+        expect(geometry.clipping).toEqual([]);
+        expect(geometry.left).toBeGreaterThanOrEqual(geometry.titleLeft);
+        expect(geometry.right).toBeLessThanOrEqual(geometry.titleRight + 1);
+        expect(geometry.rangeRight).toBeLessThanOrEqual(geometry.titleRight + 1);
+      },
+    );
+  }
+}

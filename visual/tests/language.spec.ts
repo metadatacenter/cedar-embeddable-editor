@@ -320,7 +320,7 @@ for (const [preset, ui] of [
     // A label and its description are the template's. The required mark's name is CEE's.
     const nom = labelOf(page, 'nom');
     await expect(nom).toHaveAttribute('lang', 'fr');
-    await expect(nom.locator('sup.required-mark')).toHaveAttribute('lang', ui);
+    await expect(nom.locator('..').locator('sup.required-mark')).toHaveAttribute('lang', ui);
     await expect(inEditor(page, '.cee-description:text-is("nom property description")')).toHaveAttribute('lang', 'fr');
     // The box holds what is typed, which the template did not write. A field that declares a language
     // for its values marks its box with that one, and its label keeps the template's.

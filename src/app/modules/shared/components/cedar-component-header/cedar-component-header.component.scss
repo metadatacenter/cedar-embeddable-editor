@@ -115,8 +115,7 @@
   white-space: nowrap;
 }
 
-// Clip only along the line: a long name still ends in an ellipsis, and the raised required mark,
-// which leaves the line box, is not cut off.
+// Truncate the name alone; the required mark and occurrence range remain visible.
 .title-label {
   min-width: 0;
   overflow-x: clip;
@@ -126,6 +125,10 @@
 
 .field-title {
   font-weight: var(--cedar-font-weight-medium, #{tokens.$font-weight-medium});
+}
+
+.required-slot {
+  flex: 0 0 auto;
 }
 
 .multi-instance-range {
