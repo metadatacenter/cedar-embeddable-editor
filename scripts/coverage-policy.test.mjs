@@ -85,3 +85,20 @@ test('an untested save snapshot fails its own floor even when everything else is
   assert.equal(result.exitCode, 1);
   assert.ok(result.errors.some((message) => message.includes('instance-save-snapshot.ts')));
 });
+
+test('an untested field reveal fails its own floor even when everything else is covered', async () => {
+  const reveal = 'src/app/modules/shared/service/field-reveal.service.ts';
+  assert.deepEqual(
+    await checkFiles([
+      [widgetFile('text'), 100, 1],
+      [reveal, 78, 1],
+    ]),
+    { exitCode: 0, errors: [] },
+  );
+  const result = await checkFiles([
+    [widgetFile('text'), 100, 1],
+    [reveal, 78, 0],
+  ]);
+  assert.equal(result.exitCode, 1);
+  assert.ok(result.errors.some((message) => message.includes('field-reveal.service.ts')));
+});

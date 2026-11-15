@@ -90,6 +90,16 @@ export default defineConfig({
           functions: 95,
           lines: 95,
         },
+        // Taking the user to a problem field. Only this suite reaches it: the domain harness
+        // cannot construct its Angular collaborators, and the browser suites cannot tell
+        // which of its refusals ran.
+        'src/app/modules/shared/service/field-reveal.service.ts': {
+          perFile: true,
+          statements: 95,
+          branches: 90,
+          functions: 95,
+          lines: 95,
+        },
         'src/app/modules/shared/components/cedar-embeddable-metadata-editor-wrapper/*.ts': {
           perFile: true,
           statements: 70,
