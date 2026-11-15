@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Injector, runInInjectionContext } from '@angular/cor
 import { FormBuilder } from '@angular/forms';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { Subject, of } from 'rxjs';
-import { vi } from 'vitest';
+import { afterEach, vi } from 'vitest';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
 import { ControlledFieldDataService } from '../../../shared/service/controlled-field-data.service';
 import { MessageHandlerService } from '../../../shared/service/message-handler.service';
@@ -12,6 +12,11 @@ import { InputType } from '../../../shared/models/input-type.model';
 import { AuthorityTerm } from '../../../shared/models/authority/authority-search-response.model';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { CedarInputControlledComponent } from './cedar-input-controlled.component';
+
+// Fake timers end with the test that installed them, even when one of its assertions fails.
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 describe('CedarInputControlledComponent model-to-view sync', () => {
   it('forgets the previous term when the model has no value', () => {
@@ -100,7 +105,6 @@ describe('CedarInputControlledComponent model-to-view sync', () => {
     expect(getData).not.toHaveBeenCalled();
     expect(setCurrentValue).not.toHaveBeenCalled();
     expect(subscription.closed).toBe(true);
-    vi.useRealTimers();
   });
 
   it('unsubscribes from a controlled-term lookup already in flight', () => {
@@ -147,7 +151,6 @@ describe('CedarInputControlledComponent model-to-view sync', () => {
 
     expect(response.observed, 'the destroyed field still observed its HTTP result').toBe(false);
     expect(subscription.closed).toBe(true);
-    vi.useRealTimers();
   });
 });
 
@@ -411,7 +414,6 @@ describe('CedarInputControlledComponent', () => {
       vi.advanceTimersByTime(60_000);
 
       expect(component.justCleared).toBe(true);
-      vi.useRealTimers();
     });
 
     it('is withdrawn when the author types again', () => {
