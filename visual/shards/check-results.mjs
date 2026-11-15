@@ -12,4 +12,6 @@ function reports(directory) {
 
 const [directory, total = '4'] = process.argv.slice(2);
 if (!directory) throw new Error('Usage: node shards/check-results.mjs REPORT_DIRECTORY [SHARD_COUNT]');
-console.log(JSON.stringify(verifyReports(reports(resolve(directory)), Number(total)), null, 2));
+// The cases that may be skipped, each with its reason. Empty: no visual case skips.
+const allowedSkips = JSON.parse(readFileSync(new URL('./allowed-skips.json', import.meta.url), 'utf8'));
+console.log(JSON.stringify(verifyReports(reports(resolve(directory)), Number(total), allowedSkips), null, 2));

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { inventoryHash, planShards, verifyReports } from './sharding.ts';
+import { inventoryHash, planShards, skipKey, verifyReports } from './sharding.ts';
 
 const sample = (id, project = 'desktop', file = 'form.spec.ts') => ({
   id: String(id), project, file, title: `Case ${id}`, expectedStatus: 'passed',
@@ -52,20 +52,38 @@ function reports() {
   }));
 }
 
-test('the merge gate proves full coverage and retains declared skips separately', () => {
-  assert.deepEqual(verifyReports(reports(), 4), { total: 41, passed: 40, skipped: 1, shards: 4, slowestSeconds: 1.234 });
+const allowed = { 'desktop › form.spec.ts › Case existing-skip': 'Needs a second display.' };
+
+test('the merge gate proves full coverage and retains allowlisted skips separately', () => {
+  assert.deepEqual(verifyReports(reports(), 4, allowed), { total: 41, passed: 40, skipped: 1, shards: 4, slowestSeconds: 1.234 });
+});
+
+test('a skip the allowlist does not name with a reason fails the merge gate', () => {
+  assert.throws(() => verifyReports(reports(), 4), /Skipped without an allowlisted reason: desktop › form\.spec\.ts › Case existing-skip/);
+  assert.throws(() => verifyReports(reports(), 4, { [skipKey(sample('existing-skip'))]: ' ' }), /allowlisted reason/);
+  // A skip decided while the test runs is reported against a case that expected to pass.
+  const runtime = reports();
+  const test = runtime[0].tests[0];
+  test.outcome = 'skipped';
+  test.attempts[0].status = 'skipped';
+  assert.throws(() => verifyReports(runtime, 4, allowed), new RegExp(`allowlisted reason: ${skipKey(test)}`));
+});
+
+test('the merge gate reads an empty allowlist, since no visual case skips', async () => {
+  const { readFile } = await import('node:fs/promises');
+  assert.deepEqual(JSON.parse(await readFile(new URL('./allowed-skips.json', import.meta.url), 'utf8')), {});
 });
 
 test('green shard reports cannot hide an omitted, duplicate or unexpected case', () => {
   const omitted = reports(); omitted[0].tests.pop();
-  assert.throws(() => verifyReports(omitted, 4), /union/);
+  assert.throws(() => verifyReports(omitted, 4, allowed), /union/);
   const duplicate = reports(); duplicate[0].tests.push(duplicate[1].tests.pop()); duplicate[0].tests.push(duplicate[0].tests[0]);
-  assert.throws(() => verifyReports(duplicate, 4), /union|Duplicate/);
+  assert.throws(() => verifyReports(duplicate, 4, allowed), /union|Duplicate/);
   const replaced = reports(); replaced[0].tests[0].id = 'not-in-the-inventory';
-  assert.throws(() => verifyReports(replaced, 4), /union/);
-  assert.throws(() => verifyReports(reports().slice(1), 4), /Expected 4/);
+  assert.throws(() => verifyReports(replaced, 4, allowed), /union/);
+  assert.throws(() => verifyReports(reports().slice(1), 4, allowed), /Expected 4/);
   const repeatedShard = reports(); repeatedShard[3] = repeatedShard[0];
-  assert.throws(() => verifyReports(repeatedShard, 4), /duplicate shard/);
+  assert.throws(() => verifyReports(repeatedShard, 4, allowed), /duplicate shard/);
 });
 
 test('a retry, failure or different inventory/profile cannot count as a complete passing run', () => {
@@ -80,6 +98,6 @@ test('a retry, failure or different inventory/profile cannot count as a complete
     rows => { rows[0].profileSha256 = 'different'; },
   ]) {
     const rows = reports(); mutate(rows);
-    assert.throws(() => verifyReports(rows, 4));
+    assert.throws(() => verifyReports(rows, 4, allowed));
   }
 });

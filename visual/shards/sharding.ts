@@ -64,8 +64,22 @@ export interface ShardReport {
   tests: (ShardCase & { outcome: string; attempts: { status: string; retry: number; durationMs: number }[] })[];
 }
 
-/** Fail closed: four green jobs must collectively have run the complete discovered inventory. */
-export function verifyReports(reports: ShardReport[], total: number) {
+/** How the skip allowlist names a case: its project, file and title path. */
+export const skipKey = (test: ShardCase): string => `${test.project} › ${test.file} › ${test.title}`;
+
+/**
+ * Fail closed: four green jobs must collectively have run the complete discovered inventory.
+ *
+ * A skipped case counts as run only when `allowedSkips` names it with its reason, as
+ * `allowed-skips.json` does for the merge gate. Playwright reports a skip as a pass, so a
+ * conditional skip added to a spec, on a missing variable or a browser, would otherwise
+ * leave every job green while that case ran nowhere.
+ */
+export function verifyReports(
+  reports: ShardReport[],
+  total: number,
+  allowedSkips: Readonly<Record<string, string>> = {},
+) {
   if (reports.length !== total) throw new Error(`Expected ${total} shard reports, received ${reports.length}`);
   const first = reports[0];
   if (!first || first.inventory.count < 1) throw new Error('Empty shard inventory');
@@ -97,8 +111,12 @@ export function verifyReports(reports: ShardReport[], total: number) {
       const attempt = test.attempts[0];
       if (test.attempts.length !== 1 || attempt?.retry !== 0)
         throw new Error(`Missing or retried execution: ${test.id}`);
-      if (test.outcome === 'skipped' && attempt.status === 'skipped') skipped++;
-      else if (test.outcome === 'expected' && attempt.status === test.expectedStatus) passed++;
+      if (test.outcome === 'skipped' && attempt.status === 'skipped') {
+        const reason = Object.hasOwn(allowedSkips, skipKey(test)) ? allowedSkips[skipKey(test)] : '';
+        if (typeof reason !== 'string' || !reason.trim())
+          throw new Error(`Skipped without an allowlisted reason: ${skipKey(test)}`);
+        skipped++;
+      } else if (test.outcome === 'expected' && attempt.status === test.expectedStatus) passed++;
       else throw new Error(`Unexpected test result: ${test.id}`);
     }
   }
