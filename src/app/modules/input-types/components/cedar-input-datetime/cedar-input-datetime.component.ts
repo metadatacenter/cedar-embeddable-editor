@@ -56,7 +56,6 @@ export class CedarInputDatetimeComponent
   /** Both null when the field holds no time yet, and reset to null on clear. */
   decimalSeconds: string | null = null;
   timezone: TZone | null = null;
-  setDefaultZone = false;
   datetimeParsed: DatetimeRepresentation;
   /** An empty date control until a value or a default replaces it. */
   dateMonthYearControl = new FormControl<Date | null>(null);

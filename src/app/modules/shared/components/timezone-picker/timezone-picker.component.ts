@@ -4,7 +4,6 @@ import {
   DestroyRef,
   forwardRef,
   Input,
-  OnChanges,
   OnInit,
   ViewEncapsulation,
 } from '@angular/core';
@@ -34,7 +33,7 @@ export interface TZone {
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
-export class TimezonePickerComponent implements OnInit, OnChanges, ControlValueAccessor {
+export class TimezonePickerComponent implements OnInit, ControlValueAccessor {
   /**
    * Fixed offsets CEE has historically accepted, now named for what they are.
    *
@@ -90,7 +89,6 @@ export class TimezonePickerComponent implements OnInit, OnChanges, ControlValueA
 
   private static nextLabelId = 0;
 
-  @Input() getUserZone = false;
   @Input() customPlaceholderText = 'Timezone unspecified';
   /** The label of the field the offset belongs to, which the select's name begins with. */
   @Input() fieldLabel = '';
@@ -104,7 +102,6 @@ export class TimezonePickerComponent implements OnInit, OnChanges, ControlValueA
   timeZones: TZone[] = [...TimezonePickerComponent.AVAILABLE_TIMEZONES];
   readOnlyMode = false;
 
-  private initialized = false;
   private propagateChange: (value: TZone | null) => void = () => {};
   private propagateTouched: () => void = () => {};
 
@@ -112,11 +109,6 @@ export class TimezonePickerComponent implements OnInit, OnChanges, ControlValueA
     private readonly userPreferencesService: UserPreferencesService,
     private readonly destroyRef: DestroyRef,
   ) {}
-
-  static guessedUserZone(): TZone {
-    // getTimezoneOffset has the inverse sign of an ISO 8601 offset.
-    return TimezonePickerComponent.zoneForMinutes(-new Date().getTimezoneOffset());
-  }
 
   static zoneForOffset(offset: string): TZone | null {
     if (offset === 'Z' || offset === '+00:00' || offset === '-00:00') {
@@ -149,38 +141,17 @@ export class TimezonePickerComponent implements OnInit, OnChanges, ControlValueA
     return { id: offset, label: TimezonePickerComponent.labelFor(offset) };
   }
 
-  private static zoneForMinutes(totalMinutes: number): TZone {
-    if (totalMinutes === 0) {
-      return TimezonePickerComponent.zoneForOffset('Z')!;
-    }
-    const sign = totalMinutes < 0 ? '-' : '+';
-    const absolute = Math.abs(totalMinutes);
-    const hours = Math.floor(absolute / 60)
-      .toString()
-      .padStart(2, '0');
-    const minutes = (absolute % 60).toString().padStart(2, '0');
-    return TimezonePickerComponent.zoneForOffset(`${sign}${hours}:${minutes}`)!;
-  }
-
   private static labelFor(offset: string): string {
     return offset === 'Z' ? 'UTC (Z)' : `UTC${offset}`;
   }
 
   ngOnInit(): void {
-    this.initialized = true;
     this.userPreferencesService.readOnlyMode$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((mode) => {
       this.readOnlyMode = mode;
     });
     this.form.controls.timezone.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((value) => {
       this.propagateChange(value);
     });
-    this.applyGuessedZone();
-  }
-
-  ngOnChanges(): void {
-    if (this.initialized) {
-      this.applyGuessedZone();
-    }
   }
 
   /** Whether no zone in current use has this offset, so the list shows it only because a value holds it. */
@@ -239,12 +210,6 @@ export class TimezonePickerComponent implements OnInit, OnChanges, ControlValueA
     const offset = typeof value === 'string' ? value : value?.id;
     const zone = this.ensureAvailable(offset ? TimezonePickerComponent.zoneForStoredOffset(offset) : null);
     this.form.controls.timezone.setValue(zone, { emitEvent: false });
-  }
-
-  private applyGuessedZone(): void {
-    if (this.getUserZone && this.form.controls.timezone.value === null) {
-      this.form.controls.timezone.setValue(this.ensureAvailable(TimezonePickerComponent.guessedUserZone()));
-    }
   }
 
   private ensureAvailable(zone: TZone | null): TZone | null {

@@ -1,5 +1,5 @@
 import { DestroyRef } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { of } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 import { TimezonePickerComponent, TZone } from './timezone-picker.component';
@@ -201,31 +201,6 @@ describe('TimezonePickerComponent', () => {
       expect(component_compare({ id: '+01:00', label: 'x' }, { id: '+01:00', label: 'y' })).toBe(true);
       expect(component_compare({ id: '+01:00', label: 'x' }, { id: '+02:00', label: 'x' })).toBe(false);
       expect(component_compare(null, null)).toBe(true);
-    });
-  });
-
-  describe('when the host asks for the viewer own offset', () => {
-    it('fills an empty control with it', () => {
-      const destroyRef = { destroyed: false, onDestroy: () => () => undefined } as unknown as DestroyRef;
-      const component = new TimezonePickerComponent(
-        { readOnlyMode$: new Observable<boolean>(() => undefined) } as unknown as UserPreferencesService,
-        destroyRef,
-      );
-      component.getUserZone = true;
-
-      component.ngOnInit();
-
-      expect(shownOffset(component)).toBe(TimezonePickerComponent.guessedUserZone().id);
-    });
-
-    it('leaves an offset the instance already carries alone', () => {
-      const { component } = makeComponent();
-      component.writeValue('+05:30');
-      component.getUserZone = true;
-
-      component.ngOnChanges();
-
-      expect(shownOffset(component)).toBe('+05:30');
     });
   });
 
