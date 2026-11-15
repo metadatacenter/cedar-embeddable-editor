@@ -30,16 +30,19 @@ describe('structural defects and saveable value quality', () => {
     }
   });
 
-  it('keeps an omitted property blocking even if an export copy fills it, then clears after a real edit', () => {
+  /**
+   * The save completes the document against its template, so an omitted field leaves
+   * as its empty slot, and the server judges that document. CEE judges the same one:
+   * the omission blocks nothing, and the Java validator accepts what the save writes.
+   */
+  it('saves an omitted property as the empty slot its export writes', () => {
     const template = buildTemplate({ name: 'Missing property', children: [{ kind: text, name: 'answer' }] });
     const driver = new CeeDriver(template, { instance: instanceWith(templateIdOf(template), {}) });
-    expect(driver.qualityReport).toMatchObject({ structurallyValid: false, canSave: false });
-    expect(driver.qualityReport.problems).toContainEqual(
-      expect.objectContaining({ code: 'missingProperty', path: ['_answer'], location: '/_answer' }),
+    expect(driver.qualityReport).toMatchObject({ structurallyValid: true, canSave: true });
+    expect(driver.qualityReport.problems.map((problem: { code: string }) => problem.code)).not.toContain(
+      'missingProperty',
     );
     expect(driver.emitted._answer).toEqual({ '@value': null });
-    driver.handlerContext.buildQualityReport();
-    expect(driver.qualityReport.canSave).toBe(false);
     driver.setValue(['_answer'], text, 'An answer');
     expect(driver.qualityReport).toMatchObject({ structurallyValid: true, canSave: true, isValid: true });
   });
