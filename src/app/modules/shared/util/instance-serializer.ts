@@ -6,7 +6,6 @@ import {
   Template,
   TemplateInstance,
 } from 'cedar-model-typescript-library';
-import { deepClone } from './deep-value';
 
 /**
  * Hand the instance out in whatever serialisation is asked for.
@@ -75,16 +74,20 @@ export class InstanceSerializer {
    * Without a template it is skipped rather than failed. A host can read
    * `currentMetadata` before a template has been parsed, and an instance written
    * from whatever the tree already carries is a better answer than none.
+   *
+   * Export completion must not repair the live model merely because a host reads
+   * `currentMetadata`, since structural findings clear only after a real edit. So
+   * the library completes a copy, `InstanceInflater.inflated`, which copies the
+   * containers and keeps the instance's envelope and values as they are. Those
+   * values carry what the library's reader recorded of the stored document, such
+   * as a label stated as null, and the writer keeps such a null where the stored
+   * template requires it. A deep copy of the tree made here carried no record, so
+   * the document CEE wrote dropped the null, and the server refused an instance it
+   * had stored.
    */
   private static contracted(instance: TemplateInstance, template: Template | null): TemplateInstance {
-    // Export completion must not repair the live model merely because a host
-    // reads currentMetadata; structural findings clear only after a real edit.
     if (template === null) return instance;
-    // Envelope wrappers include canonical null sentinels whose identity the
-    // model writer recognizes. Inflation only mutates the data container.
-    const copy: TemplateInstance = Object.assign(Object.create(Object.getPrototypeOf(instance)), instance);
-    copy.dataContainer = deepClone(instance.dataContainer);
-    return InstanceInflater.inflate(copy, template, 'empty');
+    return InstanceInflater.inflated(instance, template, 'empty');
   }
 
   /**
