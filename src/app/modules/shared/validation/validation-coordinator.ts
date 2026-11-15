@@ -290,6 +290,10 @@ export class ValidationCoordinator {
       report.isValid = false;
       report.structurallyValid = false;
       report.canSave = false;
+    } else if (!actual) {
+      // An instance of an unsaved template names no template, so neither writer can write
+      // it, and a host reading `currentMetadata` receives the empty object and has nothing to save.
+      report.canSave = false;
     }
     data.dataQualityReport = report;
   }
