@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { draftContexts, draftTemplate } from '../../harness/src/validation-state-fixtures';
-import { changeDetails, open, recordChanges } from './support/host';
+import { changeDetails, currentMetadata, open, recordChanges } from './support/host';
 
 for (const depth of [1, 3, 6]) {
   for (const type of ['temporal', 'attrValue'] as const) {
@@ -94,6 +94,10 @@ for (const depth of [1, 6]) {
       }),
     );
     await open(page, 'validation-state', undefined, 'validation-state-instance');
+    // A host enables Save from this verdict, and a value the field cannot read blocks it.
+    expect(
+      await page.evaluate(() => document.querySelector('cedar-embeddable-editor')!.dataQualityReport),
+    ).toMatchObject({ structurallyValid: false, canSave: false });
     const path = Array.from({ length: depth }, (_, index) => `_level${index}`).concat('_f');
     expect(
       await page.evaluate(
@@ -111,6 +115,9 @@ for (const depth of [1, 6]) {
     await expect
       .poll(() => page.evaluate(() => document.querySelector('cedar-embeddable-editor')!.dataQualityReport.problems))
       .toEqual([]);
+    expect(
+      await page.evaluate(() => document.querySelector('cedar-embeddable-editor')!.dataQualityReport),
+    ).toMatchObject({ structurallyValid: true, canSave: true });
   });
 }
 
@@ -135,12 +142,11 @@ for (const depth of [1, 3, 6]) {
       }),
     );
     await open(page, 'validation-state', undefined, 'validation-state-instance');
-    const problem = await page.evaluate(() =>
-      document
-        .querySelector('cedar-embeddable-editor')!
-        .dataQualityReport.problems.find((p) => p.code === 'valueShape'),
-    );
+    const opened = await page.evaluate(() => document.querySelector('cedar-embeddable-editor')!.dataQualityReport);
+    const problem = opened.problems.find((p) => p.code === 'valueShape');
     expect(problem?.severity).toBe('error');
+    // Malformed data blocks a save, which a host reads from `canSave`.
+    expect(opened).toMatchObject({ structurallyValid: false, canSave: false });
     expect(
       await page.evaluate((where) => document.querySelector('cedar-embeddable-editor')!.reveal(where!), problem),
     ).toBe(true);
@@ -148,10 +154,35 @@ for (const depth of [1, 3, 6]) {
     await recordChanges(page);
     await page.locator('app-cedar-input-text input').fill('repaired');
     // The repaired list holds one of the two occurrences its element requires, which is a warning
-    // rather than malformed data.
+    // rather than malformed data. The form is incomplete, and it can be saved.
     await expect
-      .poll(async () => (await changeDetails(page)).at(-1)?.dataQualityReport.problems.map((problem) => problem.code))
-      .toEqual(['minItems']);
+      .poll(async () => {
+        const report = (await changeDetails(page)).at(-1)?.dataQualityReport;
+        return (
+          report && {
+            codes: report.problems.map((problem) => problem.code),
+            valid: report.isValid,
+            save: report.canSave,
+          }
+        );
+      })
+      .toEqual({ codes: ['minItems'], valid: false, save: true });
+    expect(
+      await page.evaluate(() => document.querySelector('cedar-embeddable-editor')!.dataQualityReport),
+    ).toMatchObject({ isValid: false, structurallyValid: true, canSave: true });
     await expect(page.getByText('This element contains malformed data.', { exact: false })).toHaveCount(0);
   });
 }
+
+test('offers no save of an instance whose template has never been saved', async ({ page }) => {
+  // Only a saved template has an identifier, so an instance of an unsaved one names no template.
+  // Neither writer can write it, and the host receives the empty object as its metadata.
+  const unsaved: Record<string, unknown> = { ...draftTemplate(1, 'text') };
+  delete unsaved['@id'];
+  await page.route('**/fixtures/validation-state.json', (route) => route.fulfill({ json: unsaved }));
+  await open(page, 'validation-state');
+  expect(await currentMetadata(page)).toEqual({});
+  expect(await page.evaluate(() => document.querySelector('cedar-embeddable-editor')!.dataQualityReport.canSave)).toBe(
+    false,
+  );
+});
