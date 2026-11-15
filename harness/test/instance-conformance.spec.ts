@@ -118,8 +118,41 @@ describe('a populated template', () => {
   });
 });
 
+/**
+ * The corpus templates whose stored form refuses an instance nobody has filled in.
+ *
+ * Judged against the stored template, as the server judges an instance, and CEE's
+ * save decision reads the same document. Template 003 was written to trigger
+ * validation errors: its `required` names two children it does not declare, and its
+ * `@context` schema gives `rdfs` a value the instance's context cannot take. Template
+ * 029 gives each language field, a list whose value CEE writes as `@value`, the
+ * stored shape of an IRI-valued field: `@id`, `@type` and `rdfs:label`, and no
+ * further keys.
+ */
+const REFUSED_BY_STORED_TEMPLATE = new Map<string, string[]>([
+  [
+    '003',
+    [
+      'valueShape at /@context/rdfs',
+      'missingProperty at /TextfieldRequired',
+      'missingProperty at /TextfieldChildExtra',
+    ],
+  ],
+  [
+    '029',
+    [
+      'valueShape at /Data File Title/0/Language/@value',
+      'valueShape at /Data File Language/Primary Language/@value',
+      'valueShape at /Data File Language/Other Language/0/@value',
+      'valueShape at /Data File Description/0/Description Language/@value',
+    ],
+  ],
+]);
+
 describe('the shared corpus', () => {
-  it.each(corpusTemplates().map((t) => [t.id, t] as const))(
+  const corpus = corpusTemplates().map((t) => [t.id, t] as const);
+
+  it.each(corpus.filter(([id]) => !REFUSED_BY_STORED_TEMPLATE.has(id)))(
     'template-%s produces an instance that satisfies it',
     (_id, artifact) => {
       const template = asSaved(artifact);
@@ -127,4 +160,19 @@ describe('the shared corpus', () => {
       expect(outcome.count, outcome.detail).toBe(0);
     },
   );
+
+  it.each(corpus.filter(([id]) => REFUSED_BY_STORED_TEMPLATE.has(id)))(
+    'template-%s produces an instance its stored template refuses, and CEE will not save it',
+    (id, artifact) => {
+      const template = asSaved(artifact);
+      const driver = new CeeDriver(template);
+      expect(conformance(template, driver).structural).toEqual(REFUSED_BY_STORED_TEMPLATE.get(id));
+      expect(driver.qualityReport.canSave).toBe(false);
+    },
+  );
+
+  it('still names only corpus templates among its refusals', () => {
+    const ids = new Set(corpus.map(([id]) => id));
+    expect([...REFUSED_BY_STORED_TEMPLATE.keys()].filter((id) => !ids.has(id))).toEqual([]);
+  });
 });
