@@ -4321,3 +4321,51 @@ for (const width of [175, 260]) {
     );
   }
 }
+
+for (const width of [175, 260]) {
+  for (const repeated of [false, true]) {
+    test(
+      `read-only Preview wraps a complete required field identity at ${width}px (repeated=${repeated})`,
+      { tag: WIDTH_INDEPENDENT },
+      async ({ page }) => {
+        await open(page, '01-input-types', undefined, undefined, undefined, '&f=previewMode,readOnlyMode');
+        await page.evaluate(
+          async ({ width, repeated }) => {
+            const template = await (await fetch('./fixtures/01-input-types.json')).json();
+            template._ui.propertyLabels._text = 'Participant identifier';
+            if (repeated)
+              template.properties._text = { type: 'array', minItems: 1, maxItems: 3, items: template.properties._text };
+            const editor = document.querySelector('cedar-embeddable-editor')!;
+            editor.style.display = 'block';
+            editor.style.width = `${width}px`;
+            editor.templateObject = template;
+          },
+          { width, repeated },
+        );
+        const header = page.locator('app-cedar-component-header').filter({ hasText: 'Participant identifier' }).first();
+        await expect(header.locator('.title-label')).toHaveText('Participant identifier');
+        await expect(header.locator('.required-mark')).toBeVisible();
+        if (repeated) await expect(header.locator('.multi-instance-range')).toHaveText('(1 .. 3)');
+        const geometry = await header.evaluate((el) => {
+          const label = el.querySelector('.title-label')!;
+          const range = document.createRange();
+          range.selectNodeContents(label);
+          const lines = [...range.getClientRects()].filter((r) => r.width > 0);
+          const box = el.getBoundingClientRect();
+          const mark = el.querySelector('.required-mark')!.getBoundingClientRect();
+          const last = lines.at(-1)!;
+          return {
+            lines: lines.length,
+            outside: lines.some((r) => r.left < box.left - 1 || r.right > box.right + 1),
+            markerSameLine: mark.top < last.bottom && mark.bottom > last.top,
+            overflow: el.scrollWidth > el.clientWidth + 1,
+          };
+        });
+        expect(geometry.outside).toBe(false);
+        expect(geometry.overflow).toBe(false);
+        expect(geometry.markerSameLine).toBe(true);
+        if (width === 175) expect(geometry.lines).toBeGreaterThan(1);
+      },
+    );
+  }
+}

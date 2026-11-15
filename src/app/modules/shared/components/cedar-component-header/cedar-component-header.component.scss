@@ -136,3 +136,40 @@
   color: tokens.$text-muted;
   font-weight: var(--cedar-font-weight-regular, #{tokens.$font-weight-regular});
 }
+
+// Preserve the editing row; Preview can spend vertical space on the complete identity.
+.title-identity {
+  display: inline-flex;
+  align-items: baseline;
+  gap: tokens.$space-1;
+  min-width: 0;
+}
+.identity-joiner {
+  display: none;
+}
+:host-context(.cee-preview.cee-read-only) {
+  .field-title {
+    flex-wrap: wrap;
+    .title-identity {
+      display: block;
+      max-width: 100%;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+    .title-label {
+      display: inline;
+      overflow: visible;
+      white-space: normal;
+    }
+    .required-slot {
+      white-space: nowrap;
+    }
+    .identity-joiner {
+      display: inline;
+    }
+  }
+  .field-icon-slot,
+  .header-trailing {
+    align-self: flex-start;
+  }
+}
