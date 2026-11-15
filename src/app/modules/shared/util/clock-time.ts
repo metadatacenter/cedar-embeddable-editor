@@ -57,9 +57,14 @@ export class ClockTime {
    * The widget above this only ever reads `getHours`/`getMinutes`/`getSeconds`
    * off it, but the date half is a separate control writing to the same stored
    * representation, and quietly rolling it over midnight would be a real bug.
+   *
+   * Without a template, the time goes on a fixed day rather than on today. A
+   * local `Date` cannot hold a time that the viewer's zone skips on its day, so
+   * on the day the clocks went forward a stored 02:30 was shown, and written
+   * back, as 03:30. No time zone moves its clocks on 1 January 2000.
    */
   static withTime(template: Date | null, hour: number, minute: number, second: number): Date {
-    const base = template ? new Date(template.getTime()) : new Date();
+    const base = template ? new Date(template.getTime()) : new Date(2000, 0, 1);
     base.setHours(hour, minute, second, 0);
     return base;
   }
