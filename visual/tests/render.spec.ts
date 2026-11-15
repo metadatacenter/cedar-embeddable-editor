@@ -1745,6 +1745,20 @@ test.describe('the header actions', { tag: WIDTH_INDEPENDENT }, () => {
   }
 });
 
+/**
+ * Wait until the lookup that typing started has finished.
+ *
+ * A lookup starts 400 ms after the last keystroke and then takes a random share of up to
+ * half a second for an authority and two seconds for a controlled term, so no fixed pause
+ * covers it. The fixtures configure no lookup service, so every lookup ends in the failure
+ * row, which only a finished lookup can draw. The absence checks that follow then see the
+ * state the finished lookup left rather than the state before it.
+ */
+const lookupSettled = (page: Page): Promise<void> =>
+  expect(page.locator('mat-option.lookup-failed'), 'the lookup the typing started did not finish').toBeVisible({
+    timeout: 10_000,
+  });
+
 test.describe('external authority fields', { tag: WIDTH_INDEPENDENT }, () => {
   test('typing does not raise an error', async ({ page }) => {
     await open(page, '04-controlled-terms');
@@ -1752,7 +1766,7 @@ test.describe('external authority fields', { tag: WIDTH_INDEPENDENT }, () => {
     const orcid = fieldBox(page, 'contributor');
     await expect(orcid).toBeVisible();
     await orcid.pressSequentially('dav', { delay: 60 });
-    await page.waitForTimeout(600);
+    await lookupSettled(page);
 
     await expect(page.locator('mat-error'), 'a partly typed search term is not an invalid value').toHaveCount(0);
   });
@@ -1762,7 +1776,7 @@ test.describe('external authority fields', { tag: WIDTH_INDEPENDENT }, () => {
 
     const orcid = fieldBox(page, 'contributor');
     await orcid.pressSequentially('dav', { delay: 60 });
-    await page.waitForTimeout(600);
+    await lookupSettled(page);
 
     await expect(orcid).toHaveValue('dav');
   });
@@ -1776,13 +1790,13 @@ test.describe('external authority fields', { tag: WIDTH_INDEPENDENT }, () => {
 
     const orcid = fieldBox(page, 'contributor');
     await orcid.pressSequentially('not a real researcher', { delay: 20 });
-    await page.waitForTimeout(600);
+    await lookupSettled(page);
     await orcid.blur();
-    await page.waitForTimeout(600);
 
+    // The notice appears once the text has been discarded, so the checks after it see the result.
+    await expect(page.locator('.input-warning')).toHaveCount(1);
     await expect(orcid).toHaveValue('');
     await expect(page.locator('mat-error')).toHaveCount(0);
-    await expect(page.locator('.input-warning')).toHaveCount(1);
   });
 });
 
@@ -1818,7 +1832,7 @@ test.describe('every external authority widget', { tag: WIDTH_INDEPENDENT }, () 
       const input = fieldBox(page, name);
       await expect(input).toBeVisible();
       await input.pressSequentially('dav', { delay: 40 });
-      await page.waitForTimeout(500);
+      await lookupSettled(page);
 
       await expect(page.locator('mat-error')).toHaveCount(0);
       await expect(input).toHaveValue('dav');
@@ -1835,13 +1849,12 @@ test.describe('every external authority widget', { tag: WIDTH_INDEPENDENT }, () 
 
       const input = fieldBox(page, name);
       await input.pressSequentially('zzz nonsense', { delay: 15 });
-      await page.waitForTimeout(500);
+      await lookupSettled(page);
       await input.blur();
-      await page.waitForTimeout(600);
 
+      await expect(page.locator('.input-warning')).toHaveCount(1);
       await expect(input, 'text naming no term cannot be saved, so it must not linger').toHaveValue('');
       await expect(page.locator('mat-error')).toHaveCount(0);
-      await expect(page.locator('.input-warning')).toHaveCount(1);
       await expect(page.locator('.input-warning')).toHaveCSS('color', 'rgb(180, 83, 9)');
     });
 
@@ -1862,9 +1875,8 @@ test.describe('every external authority widget', { tag: WIDTH_INDEPENDENT }, () 
 
       const input = fieldBox(page, name);
       await input.pressSequentially('zzz nonsense', { delay: 15 });
-      await page.waitForTimeout(500);
+      await lookupSettled(page);
       await input.blur();
-      await page.waitForTimeout(600);
 
       await expect(page.locator('.input-warning')).toContainText(label);
     });
@@ -2879,13 +2891,12 @@ test.describe('controlled terminology selection', () => {
 
     const field = fieldBox(page, 'organism');
     await field.pressSequentially('zzz nonsense', { delay: 15 });
-    await page.waitForTimeout(500);
+    await lookupSettled(page);
     await field.blur();
-    await page.waitForTimeout(600);
 
+    await expect(page.locator('.input-warning')).toHaveCount(1);
     await expect(field, 'text naming no term cannot be saved, so it must not linger').toHaveValue('');
     await expect(page.locator('mat-error')).toHaveCount(1);
-    await expect(page.locator('.input-warning')).toHaveCount(1);
     const metadata = await page.evaluate(() => document.querySelector('cedar-embeddable-editor')!.currentMetadata);
     expect(JSON.stringify(metadata), 'discarded text must not reach the instance').not.toContain('nonsense');
   });
