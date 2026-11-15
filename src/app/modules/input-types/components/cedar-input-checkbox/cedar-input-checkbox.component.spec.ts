@@ -197,6 +197,10 @@ describe('CedarInputCheckboxComponent', () => {
     const harness = makeComponent(['A', 'B'], [], ['B'], true);
     harness.component.ngOnInit();
 
+    // An untouched group states nothing either way, so the verdict is read first, and then
+    // what the group says once the user has been through it.
+    expect(harness.component.options.hasError('required'), 'the stored answer satisfies the group').toBe(false);
+    leave(harness, 'A');
     expect(harness.component.showsRequiredError).toBe(false);
   });
 
