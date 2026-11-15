@@ -7,23 +7,32 @@ import config from '../vitest.config.mts';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 
+const widgetFile = (name) =>
+  path.join(
+    'src/app/modules/input-types/components',
+    name === 'authority'
+      ? 'authority/abstract-authority-input.component.ts'
+      : `cedar-input-${name}/cedar-input-${name}.component.ts`,
+  );
+
 // Use the installed provider's threshold checker: asserting that perFile is set
 // would not prove what the coverage gate actually does with an untested widget.
 async function checkWidget(widget, hits) {
+  return checkFiles([
+    [widgetFile('text'), 100, 1],
+    [widgetFile(widget), 1, hits],
+  ]);
+}
+
+/** The gate's verdict on a coverage map holding these files, each as `[path, statements, hits]`. */
+async function checkFiles(files) {
   const provider = await coverageV8.getProvider();
   const errors = [];
   provider.ctx = { config: { root }, logger: { error: (message) => errors.push(message) } };
   provider.options = config.test.coverage;
   const coverage = provider.createCoverageMap();
-  for (const [name, count, executed] of [
-    ['text', 100, 1],
-    [widget, 1, hits],
-  ]) {
-    const relative =
-      name === 'authority'
-        ? 'authority/abstract-authority-input.component.ts'
-        : `cedar-input-${name}/cedar-input-${name}.component.ts`;
-    const file = path.join(root, 'src/app/modules/input-types/components', relative);
+  for (const [relative, count, executed] of files) {
+    const file = path.join(root, relative);
     const entry = { path: file, statementMap: {}, fnMap: {}, branchMap: {}, s: {}, f: {}, b: {} };
     for (let i = 0; i < count; i++) {
       const loc = { start: { line: i + 1, column: 0 }, end: { line: i + 1, column: 10 } };
@@ -59,3 +68,20 @@ for (const widget of ['checkbox', 'new-widget', 'authority']) {
     assert.ok(result.errors.some((message) => message.includes(filename)));
   });
 }
+
+test('an untested save snapshot fails its own floor even when everything else is covered', async () => {
+  const snapshot = 'src/app/modules/shared/util/instance-save-snapshot.ts';
+  assert.deepEqual(
+    await checkFiles([
+      [widgetFile('text'), 100, 1],
+      [snapshot, 40, 1],
+    ]),
+    { exitCode: 0, errors: [] },
+  );
+  const result = await checkFiles([
+    [widgetFile('text'), 100, 1],
+    [snapshot, 40, 0],
+  ]);
+  assert.equal(result.exitCode, 1);
+  assert.ok(result.errors.some((message) => message.includes('instance-save-snapshot.ts')));
+});

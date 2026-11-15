@@ -81,6 +81,15 @@ export default defineConfig({
           functions: 95,
           lines: 95,
         },
+        // The snapshot a host's save is written from. Only this suite reaches it, and the
+        // domain harness pools its util floor, where a file at zero hides behind the rest.
+        'src/app/modules/shared/util/instance-save-snapshot.ts': {
+          perFile: true,
+          statements: 95,
+          branches: 90,
+          functions: 95,
+          lines: 95,
+        },
         'src/app/modules/shared/components/cedar-embeddable-metadata-editor-wrapper/*.ts': {
           perFile: true,
           statements: 70,
