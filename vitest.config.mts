@@ -47,6 +47,11 @@ export default defineConfig({
       'src/app/modules/shared/util/carried-answers.matrix.spec.ts',
     ],
     setupFiles: ['src/test-setup.ts'],
+    // Every test starts from the real implementations and globals. A spy or a stubbed
+    // global left by one test otherwise reaches the next, where it can stand between a
+    // test and the path it names while the test still passes.
+    restoreMocks: true,
+    unstubGlobals: true,
     // `harness/` has its own project and its own config; running both from here
     // would give two different meanings to `npm test` in the same repo.
     root: '.',

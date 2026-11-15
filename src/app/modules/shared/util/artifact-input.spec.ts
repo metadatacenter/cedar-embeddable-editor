@@ -10,6 +10,9 @@ import { ArtifactInputCoordinator } from './artifact-input-coordinator';
 import { InstanceDeserializer } from './instance-deserializer';
 import * as carriedAnswers from './carried-answers';
 
+/** The real template build, taken before any test spies on it. */
+const initializeTemplate = DataContext.prototype.setInputTemplate;
+
 const template = controlledTemplate as unknown as CeeJsonObject;
 const instance = controlledInstance as unknown as CeeJsonObject;
 
@@ -239,14 +242,17 @@ describe('host transactions under unexpected dependency failures', () => {
     const { coordinator } = make();
     expect(coordinator.acceptTemplate(template)).toBe(true);
     const previous = coordinator.state;
-    vi.spyOn(carriedAnswers, 'carryAnswers').mockReturnValueOnce(false);
-    const initialize = DataContext.prototype.setInputTemplate;
-    vi.spyOn(DataContext.prototype, 'setInputTemplate')
-      .mockImplementationOnce(initialize)
+    const carry = vi.spyOn(carriedAnswers, 'carryAnswers').mockReturnValueOnce(false);
+    const build = vi
+      .spyOn(DataContext.prototype, 'setInputTemplate')
+      .mockImplementationOnce(initializeTemplate)
       .mockImplementationOnce(() => {
         throw new Error('fallback failed');
       });
     expect(coordinator.acceptTemplate(template)).toBe(false);
+    // The candidate was built and carrying refused, so the refusal came from the fresh rebuild.
+    expect(carry).toHaveBeenCalledTimes(1);
+    expect(build).toHaveBeenCalledTimes(2);
     expect(coordinator.state).toBe(previous);
     expect(coordinator.acceptTemplate(template)).toBe(true);
   });

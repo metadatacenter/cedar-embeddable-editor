@@ -117,6 +117,9 @@ export default defineConfig({
     setupFiles: [path.resolve(here, '../scripts/test-support/regex-worker.ts')],
     maxWorkers: process.env.CEDAR_TEST_WORKERS ? Number(process.env.CEDAR_TEST_WORKERS) : undefined,
     globals: true,
+    // Every test starts from the real implementations and globals, as in the unit suite.
+    restoreMocks: true,
+    unstubGlobals: true,
     environment: 'node',
     include: ['harness/test/**/*.spec.ts'],
     server: {
