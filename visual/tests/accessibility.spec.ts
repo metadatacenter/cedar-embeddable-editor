@@ -2,7 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { addAttributeRow, open, passDebounceWindow } from './support/host';
+import { addAttributeRow, open } from './support/host';
 import { fieldBox } from './support/field-box';
 
 // axe and rendered contrast sampling have their own instrumentation cost under parallel load.
@@ -487,7 +487,6 @@ for (const state of ['searching', 'failed'])
     await open(page, '04-controlled-terms');
     const organism = fieldBox(page, 'organism');
     await organism.fill('Homo');
-    await passDebounceWindow(page);
     await expect(page.getByRole('option', { name: 'Searching…', exact: true })).toBeVisible();
     if (state === 'searching') await expectAccessible(page, 'term lookup under way');
     release();

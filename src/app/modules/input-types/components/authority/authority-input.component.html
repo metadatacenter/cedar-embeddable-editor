@@ -82,7 +82,7 @@ genuinely theirs.
         <!--
           Resolved once. This binding was read through two `| async` pipes, one for the
           emptiness test and one for the rows, and each `AsyncPipe` subscribes the
-          pipeline separately. Every subscription carries its own `debounceTime` and
+          pipeline separately. Every subscription carries its own lookup delay and
           `switchMap`, so a keystroke drove two chains and issued two lookups.
         -->
         @let terms = filteredOptions | async;

@@ -9,7 +9,7 @@ import {
   type ResizeRequest,
   type SpacingRequest,
 } from './layout-resilience.generated.mjs';
-import { open, passDebounceWindow } from './support/host';
+import { open } from './support/host';
 import { fieldBox } from './support/field-box';
 
 /**
@@ -612,7 +612,6 @@ const OPEN_OVERLAYS: readonly {
       await answerSearches(page);
       await open(page, '08-authority', 'authority');
       await fieldBox(page, 'contributor_orcid').pressSequentially('maria', { delay: 20 });
-      await passDebounceWindow(page);
       await expect(page.getByRole('option')).toHaveCount(2, { timeout: 5000 });
     },
     shown: (page) => page.getByRole('option').first(),
@@ -673,7 +672,6 @@ const OPEN_OVERLAYS: readonly {
         .locator('cedar-embeddable-editor')
         .getByRole('combobox', { name: 'organism', exact: true })
         .pressSequentially('Homo', { delay: 20 });
-      await passDebounceWindow(page);
       await expect(page.getByRole('option', { name: /^Homo neanderthalensis/ }).first()).toBeVisible({ timeout: 5000 });
     },
     shown: (page) => page.getByRole('option', { name: /^Homo neanderthalensis/ }).first(),
@@ -687,7 +685,6 @@ const OPEN_OVERLAYS: readonly {
         .locator('cedar-embeddable-editor')
         .getByRole('combobox', { name: 'organism', exact: true })
         .pressSequentially('Homo', { delay: 20 });
-      await passDebounceWindow(page);
       await expect(page.getByRole('option', { name: /^Search failed/ })).toBeVisible({ timeout: 5000 });
     },
     shown: (page) => page.getByRole('option', { name: /^Search failed/ }),

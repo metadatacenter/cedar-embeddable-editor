@@ -1,6 +1,6 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import type { CeeLocation, CeeRevealOptions } from '../../src/app/cee-public-api';
-import { open, passDebounceWindow } from './support/host';
+import { open } from './support/host';
 import { fieldBox } from './support/field-box';
 
 /**
@@ -147,7 +147,6 @@ test.describe("a widget's own messages", () => {
     // A textbox while empty and a combobox once typed into, so found by its name alone.
     const input = fieldBox(page, 'contributor_orcid');
     await input.fill('test search');
-    await passDebounceWindow(page);
     // The smokes find this option by name, so the name stays the message.
     const failed = page.getByRole('option', { name: 'Search failed: the service could not be reached', exact: true });
     await expect(failed).toBeVisible();
@@ -167,7 +166,6 @@ test.describe("a widget's own messages", () => {
     await open(page, '04-controlled-terms');
     const input = page.getByRole('combobox', { name: 'organism', exact: true });
     await input.fill('Homo');
-    await passDebounceWindow(page);
     await expect(page.getByRole('option', { name: /^Search failed/ })).toBeVisible();
     await expect(liveRegion(page)).toHaveText('Search failed: the service could not be reached');
     await expect(input).toHaveAccessibleDescription(
@@ -181,7 +179,6 @@ test.describe("a widget's own messages", () => {
     const field = page.locator('cedar-embeddable-field');
     const input = field.locator('input').first();
     await input.fill('Unmatched example');
-    await passDebounceWindow(page);
     await expect(page.getByRole('option', { name: 'No results found', exact: true })).toBeVisible();
     await expect(liveRegion(page, 'cedar-embeddable-field')).toHaveText('No results found');
     await expect(input).toHaveAccessibleDescription('No results found');

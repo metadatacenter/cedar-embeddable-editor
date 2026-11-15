@@ -28,7 +28,6 @@ import {
   hermetic,
   open,
   openTwoEditors,
-  passDebounceWindow,
   recordChanges,
 } from './support/host';
 import { fieldBox } from './support/field-box';
@@ -369,7 +368,6 @@ test.describe('multiple editor instances', () => {
     await openTwoEditors(page, '04-controlled-terms');
     const terminologyRequest = page.waitForRequest((request) => request.url().includes('/isolation/first/terminology'));
     await fieldBox(page.locator('#editor-first'), 'organism').pressSequentially('human', { delay: 40 });
-    await passDebounceWindow(page);
     expect((await terminologyRequest).url()).toContain('/isolation/first/terminology');
 
     await openTwoEditors(page, '08-authority');
@@ -377,7 +375,6 @@ test.describe('multiple editor instances', () => {
       request.url().includes('/isolation/first/ext-auth/comp-tox/search-by-name'),
     );
     await fieldBox(page.locator('#editor-first'), 'chemical_pfas').pressSequentially('chemical', { delay: 40 });
-    await passDebounceWindow(page);
     expect((await authorityRequest).url()).toContain('/isolation/first/ext-auth/comp-tox/search-by-name');
   });
 });
@@ -1862,10 +1859,8 @@ test.describe('every external authority widget', { tag: WIDTH_INDEPENDENT }, () 
       await open(page, '08-authority');
       const input = fieldBox(page, name);
       await input.fill('test search');
-      await passDebounceWindow(page);
       await expect(page.locator('mat-option.lookup-failed')).toContainText('Search failed');
       await input.fill('another search');
-      await page.clock.setFixedTime(new Date(FROZEN.getTime() + 120_000));
       await expect(page.locator('mat-option.lookup-failed')).toContainText('Search failed');
     });
 
@@ -2565,7 +2560,6 @@ test.describe('external authority endpoints', { tag: WIDTH_INDEPENDENT }, () => 
       // Typed rather than filled: the widget searches on input, and `fill` can land as
       // a single event that the debounce swallows.
       await field.pressSequentially('probe', { delay: 40 });
-      await passDebounceWindow(page);
 
       // The service staggers requests by up to 500ms — transcribed from the ORCID
       // service it replaced, where it was there to avoid throttling — so this has to
@@ -2626,7 +2620,6 @@ test.describe('external authority endpoints', { tag: WIDTH_INDEPENDENT }, () => 
       await open(page, '08-authority', 'authority');
       const field = fieldBox(page, fieldName);
       await field.pressSequentially('deterministic', { delay: 40 });
-      await passDebounceWindow(page);
       const option = page.locator('mat-option').filter({ hasText: label });
       await expect(option, 'the authority response did not become a selectable option').toBeVisible({ timeout: 5000 });
       await option.click();
@@ -2677,7 +2670,6 @@ test.describe('external authority endpoints', { tag: WIDTH_INDEPENDENT }, () => 
        * expect to differ.
        */
       await field.click();
-      await passDebounceWindow(page);
       await expect(
         page.locator('mat-option'),
         'a settled field must not offer its own value back, nor claim it was not found',
@@ -2686,7 +2678,6 @@ test.describe('external authority endpoints', { tag: WIDTH_INDEPENDENT }, () => 
       // Editing it makes suggestions useful again, so they come back.
       await field.press('End');
       await field.press('Backspace');
-      await passDebounceWindow(page);
       await expect(page.locator('mat-option'), 'editing the value must reopen the search').not.toHaveCount(0);
     });
   }
@@ -2711,7 +2702,6 @@ test.describe('controlled terminology selection', () => {
     await open(page, '04-controlled-terms');
     const field = fieldBox(page, 'organism');
     await field.pressSequentially('Homo', { delay: 40 });
-    await passDebounceWindow(page);
     const option = page.locator('mat-option').filter({ hasText: label });
     await expect(option, 'the terminology response did not become a selectable option').toBeVisible({ timeout: 6000 });
     await option.click();
@@ -2751,7 +2741,6 @@ test.describe('controlled terminology selection', () => {
       has: fieldBox(page, 'organism'),
     });
     await widget.locator('input').pressSequentially('Homo', { delay: 40 });
-    await passDebounceWindow(page);
     await page.locator('mat-option').filter({ hasText: label }).click();
     await page.waitForTimeout(300);
 
@@ -2811,7 +2800,6 @@ test.describe('controlled terminology selection', () => {
     await open(page, '04-controlled-terms');
     const field = fieldBox(page, 'organism');
     await field.pressSequentially('Homo', { delay: 40 });
-    await passDebounceWindow(page);
     await page.locator('mat-option').filter({ hasText: terms[0].label }).click();
     await expect(field).toHaveValue(terms[0].label);
 
@@ -2856,7 +2844,6 @@ test.describe('controlled terminology selection', () => {
     await open(page, '04-controlled-terms', undefined, '04-controlled-terms-instance');
     const field = fieldBox(page, 'organism');
     await field.fill('Homo');
-    await passDebounceWindow(page);
     const option = page.locator('mat-option').filter({ hasText: label });
     await expect(option).toBeVisible({ timeout: 6000 });
     const box = await option.boundingBox();
