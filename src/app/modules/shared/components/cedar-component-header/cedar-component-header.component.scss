@@ -147,7 +147,7 @@
 .identity-joiner {
   display: none;
 }
-:host-context(.cee-preview.cee-read-only) {
+:host-context(.cee-wrap-field-names.cee-read-only) {
   .field-title {
     flex-wrap: wrap;
     .title-identity {
@@ -168,8 +168,8 @@
       display: inline;
     }
   }
-  .field-icon-slot,
-  .header-trailing {
+  .field-icon-slot:has(+ .field-title),
+  .field-title ~ .header-trailing {
     align-self: flex-start;
   }
 }

@@ -4328,7 +4328,8 @@ for (const width of [175, 260]) {
       `read-only Preview wraps a complete required field identity at ${width}px (repeated=${repeated})`,
       { tag: WIDTH_INDEPENDENT },
       async ({ page }) => {
-        await open(page, '01-input-types', undefined, undefined, undefined, '&f=previewMode,readOnlyMode');
+        await open(page, '01-input-types', undefined, undefined, undefined, '&f=wrapFieldNames,readOnlyMode');
+        await expect(page.locator('.logo-block')).toBeVisible();
         await page.evaluate(
           async ({ width, repeated }) => {
             const template = await (await fetch('./fixtures/01-input-types.json')).json();
@@ -4369,3 +4370,24 @@ for (const width of [175, 260]) {
     );
   }
 }
+
+test(
+  'ordinary read-only embeds retain their heading layout unless wrapping is requested',
+  { tag: WIDTH_INDEPENDENT },
+  async ({ page }) => {
+    await open(page, '01-input-types', undefined, undefined, undefined, '&f=readOnlyMode');
+    await page.evaluate(async () => {
+      const template = await (await fetch('./fixtures/01-input-types.json')).json();
+      template._ui.propertyLabels._text = 'Participant identifier';
+      template.properties._text = { type: 'array', minItems: 1, maxItems: 3, items: template.properties._text };
+      const editor = document.querySelector('cedar-embeddable-editor')!;
+      editor.style.display = 'block';
+      editor.style.width = '175px';
+      editor.templateObject = template;
+    });
+    const header = page.locator('app-cedar-component-header').filter({ hasText: 'Participant identifier' }).first();
+    await expect(page.locator('.logo-block')).toBeVisible();
+    await expect(header.locator('.required-mark')).toBeVisible();
+    expect(await header.locator('.title-label').evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(true);
+  },
+);

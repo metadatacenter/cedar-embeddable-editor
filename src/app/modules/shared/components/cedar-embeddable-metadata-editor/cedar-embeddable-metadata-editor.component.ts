@@ -45,6 +45,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
    */
   showDownloadMenu = false;
   previewMode = false;
+  wrapFieldNames = false;
 
   /**
    * Whether Expand All and Collapse All are offered.
@@ -191,6 +192,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
   @Input() set config(value: CeeConfig | null) {
     if (value != null) {
       this.previewMode = configFlag(value, CEE_CONFIG_KEY.previewMode, this.previewMode);
+      this.wrapFieldNames = configFlag(value, CEE_CONFIG_KEY.wrapFieldNames, this.wrapFieldNames);
       this.showDownloadMenu = configFlag(value, CEE_CONFIG_KEY.showDownloadMenu, this.showDownloadMenu);
       this.showExpandCollapseAll = configFlag(value, CEE_CONFIG_KEY.showExpandCollapseAll, this.showExpandCollapseAll);
       this.showTemplateDescription = configFlag(
