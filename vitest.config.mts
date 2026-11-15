@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
+import { DOMAIN_OWNED_SPECS } from './scripts/test-support/domain-owned-specs';
 
 /**
  * Vitest for the specs under `src/`.
@@ -37,14 +38,11 @@ export default defineConfig({
     include: ['src/**/*.spec.ts'],
     exclude: [
       'src/**/*.coordinator.spec.ts',
-      // The domain harness imports these five and runs them under its own floors,
-      // which count the serializer, carried answers and coordinator code they reach.
-      // Running them here as well repeated 1,277 tests for nothing either floor uses.
-      'src/app/modules/shared/util/host-input-history.fuzz.spec.ts',
-      'src/app/modules/shared/util/occurrence-history.fuzz.spec.ts',
-      'src/app/modules/shared/util/carried-answers.spec.ts',
-      'src/app/modules/shared/util/carried-answers.fuzz.spec.ts',
-      'src/app/modules/shared/util/carried-answers.matrix.spec.ts',
+      // The domain harness runs these under its own floors, which count the serializer,
+      // carried answers and coordinator code they reach. Running them here as well
+      // repeated 1,277 tests for nothing either floor uses. The harness config includes
+      // the same list.
+      ...DOMAIN_OWNED_SPECS,
     ],
     setupFiles: ['src/test-setup.ts'],
     // Every test starts from the real implementations and globals. A spy or a stubbed
