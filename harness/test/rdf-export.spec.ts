@@ -244,6 +244,69 @@ describe('an instance as RDF', () => {
   });
 });
 
+/**
+ * What an instance states, read from its own contexts rather than through the export.
+ *
+ * Each field value, label, identifier, type and provenance value becomes one predicate and
+ * object, with the predicate the key's context gives it. Nested elements contribute their own
+ * statements. An attribute-value field's list of names is structure, as the export documents,
+ * and empty fields state nothing. The subject is left out: the unit and contract cases above
+ * pin the graph's shape, and this is about content.
+ */
+const RDF_TYPE = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type';
+type Scope = Record<string, unknown>;
+
+const expandCompact = (value: string, scope: Scope): string => {
+  const colon = value.indexOf(':');
+  const base = colon > 0 ? scope[value.slice(0, colon)] : undefined;
+  return typeof base === 'string' && !value.slice(colon + 1).startsWith('//') ? base + value.slice(colon + 1) : value;
+};
+
+const predicateOf = (key: string, scope: Scope): string => {
+  const entry = scope[key];
+  const mapped = typeof entry === 'string' ? entry : (entry as { '@id'?: unknown } | undefined)?.['@id'];
+  const iri = expandCompact(typeof mapped === 'string' ? mapped : key, scope);
+  return iri.includes(':') ? iri : `UNMAPPED ${key}`;
+};
+
+const statedContent = (node: unknown, outer: Scope = {}, out: string[] = []): string[] => {
+  if (Array.isArray(node)) {
+    node.forEach((item) => statedContent(item, outer, out));
+    return out;
+  }
+  if (node === null || typeof node !== 'object') return out;
+  const record = node as Record<string, unknown>;
+  const local = record['@context'];
+  const scope: Scope = local !== null && typeof local === 'object' ? { ...outer, ...(local as Scope) } : outer;
+  for (const [key, value] of Object.entries(record)) {
+    if (key === '@context' || key === '@id' || key === '@value' || key === '@language' || value === null) continue;
+    if (key === '@type') {
+      if (!('@value' in record)) {
+        for (const type of [value].flat()) out.push(`${RDF_TYPE} NamedNode:${expandCompact(String(type), scope)}`);
+      }
+      continue;
+    }
+    const names = Array.isArray(value) && value.length > 0 && value.every((n) => typeof n === 'string' && n in record);
+    if (names) continue;
+    const predicate = predicateOf(key, scope);
+    const coerced = (scope[key] as { '@type'?: unknown } | undefined)?.['@type'] === '@id';
+    for (const item of [value].flat()) {
+      if (typeof item === 'string') {
+        if (item !== '') out.push(`${predicate} ${coerced ? 'NamedNode' : 'Literal'}:${item}`);
+      } else if (item !== null && typeof item === 'object') {
+        const field = item as Record<string, unknown>;
+        if (Object.hasOwn(field, '@value')) {
+          if (field['@value'] !== null && field['@value'] !== '') out.push(`${predicate} Literal:${field['@value']}`);
+        } else if (typeof field['@id'] === 'string') {
+          out.push(`${predicate} NamedNode:${field['@id']}`);
+        }
+        statedContent(field, scope, out);
+      }
+    }
+  }
+  return out;
+};
+
 describe('every corpus instance', () => {
   const paired = ceeSuiteCases().filter((c) => c.template !== null && c.instance !== null);
 
@@ -268,8 +331,15 @@ describe('every corpus instance', () => {
     const nquads = await canonical(fromNQuads(await toNQuads(instance)));
     const turtle = await canonical(fromTurtle(await toTurtle(instance)));
 
-    expect(nquads.length).toBeGreaterThan(0);
     expect(turtle).toEqual(nquads);
+    // The Turtle is written from the N-Quads, so the comparison above cannot see a value both
+    // downloads lose. Every value the instance holds must be stated, under its own predicate.
+    const stated = new Set(
+      statements(fromNQuads(await toNQuads(instance))).map((line) => line.slice(line.indexOf(' ') + 1)),
+    );
+    const expected = statedContent(instance);
+    expect(expected.length).toBeGreaterThan(0);
+    expect(expected.filter((line) => !stated.has(line))).toEqual([]);
   });
 });
 
