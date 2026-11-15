@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
-import { DOMAIN_OWNED_SPECS } from './scripts/test-support/domain-owned-specs';
+import { DOMAIN_OWNED_SPECS } from './scripts/test-support/domain-owned-specs.ts';
 
 /**
  * Vitest for the specs under `src/`.
