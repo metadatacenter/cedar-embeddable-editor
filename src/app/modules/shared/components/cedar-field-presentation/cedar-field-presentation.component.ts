@@ -37,6 +37,7 @@ const DESCRIPTION_TEXT =
 })
 export class CedarFieldPresentationComponent implements AfterViewChecked, OnDestroy, FieldSeverity {
   private readonly description = new DescriptionLink();
+  private pagerLayoutObserver: ResizeObserver | null = null;
   @Input({ required: true }) handlerContext!: HandlerContext;
   @Input() showContent = true;
   @Input() showHeader = true;
@@ -80,9 +81,54 @@ export class CedarFieldPresentationComponent implements AfterViewChecked, OnDest
     const text = host?.querySelector(DESCRIPTION_TEXT);
     const widget = host?.querySelector(':scope > .child-component-content > app-cedar-field-widget');
     this.description.set(text?.id || null, widget ? [...widget.querySelectorAll(FIELD_CONTROLS)] : []);
+    this.updatePagerPlacement();
+    if (
+      host &&
+      typeof ResizeObserver !== 'undefined' &&
+      !this.pagerLayoutObserver &&
+      host.querySelector(':scope > app-cedar-multi-pager')
+    ) {
+      this.pagerLayoutObserver = new ResizeObserver(() => this.updatePagerPlacement());
+      this.pagerLayoutObserver.observe(host);
+      for (const child of host.querySelectorAll(
+        ':scope > app-cedar-component-header, :scope > app-cedar-multi-pager > div',
+      )) {
+        this.pagerLayoutObserver.observe(child);
+      }
+    }
+  }
+
+  /** Keep the ordinary shared row, but use the narrow layout when its actual contents collide. */
+  private updatePagerPlacement(): void {
+    const host = this.elementRef?.nativeElement;
+    if (!host) return;
+    const pager = host.querySelector(':scope > app-cedar-multi-pager .pager-container');
+    const heading = host.querySelector(':scope > app-cedar-component-header');
+    if (!pager || !heading) {
+      host.classList.remove('stacked-editable-pager');
+      return;
+    }
+    // Hidden hosts have no geometry yet; the observer measures them when revealed.
+    if (host.getBoundingClientRect().width === 0) return;
+    const controls = [...pager.querySelectorAll('mat-chip-option, button')]
+      .map((control) => control.getBoundingClientRect())
+      .filter((box) => box.width > 0);
+    const firstControl = Math.min(...controls.map((box) => box.left));
+    const texts = [...heading.querySelectorAll('.title-label, .required-slot, .multi-instance-range')].flatMap(
+      (label) => {
+        const range = document.createRange();
+        range.selectNodeContents(label);
+        return [...range.getClientRects()];
+      },
+    );
+    host.classList.toggle(
+      'stacked-editable-pager',
+      texts.some((box) => box.right + 8 > firstControl),
+    );
   }
 
   ngOnDestroy(): void {
+    this.pagerLayoutObserver?.disconnect();
     this.description.clear();
   }
 

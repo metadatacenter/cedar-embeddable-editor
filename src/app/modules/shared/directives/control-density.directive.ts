@@ -18,6 +18,7 @@ export class ControlDensityDirective implements OnInit, OnDestroy {
   private readonly element = inject<ElementRef<HTMLTextAreaElement>>(ElementRef).nativeElement;
   private readonly autosize = inject(CdkTextareaAutosize);
   private observer?: MutationObserver;
+  private sizeObserver?: ResizeObserver;
   ngOnInit(): void {
     const root = this.element.getRootNode();
     const host = root instanceof ShadowRoot ? root.host : null;
@@ -34,8 +35,23 @@ export class ControlDensityDirective implements OnInit, OnDestroy {
       this.observer = new MutationObserver(apply);
       this.observer.observe(host, { attributes: true, attributeFilter: ['density', 'style'] });
     }
+    // Hosts can build the editor under display:none while loading saved metadata.
+    // CDK cannot measure there, and revealing the host does not trigger change detection.
+    // Measure when the box gains width, and when a container changes its available width.
+    // Ignore height-only notifications caused by the autosize operation itself.
+    if (typeof ResizeObserver !== 'undefined') {
+      let width = 0;
+      this.sizeObserver = new ResizeObserver(([entry]) => {
+        const next = entry.contentRect.width;
+        if (next === width) return;
+        width = next;
+        if (width > 0) apply();
+      });
+      this.sizeObserver.observe(this.element);
+    }
   }
   ngOnDestroy(): void {
     this.observer?.disconnect();
+    this.sizeObserver?.disconnect();
   }
 }

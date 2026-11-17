@@ -60,7 +60,11 @@ for (const readonly of [false, true]) {
       await expect(range).toHaveCSS('font-size', '12px');
       await expect(range).toHaveCSS('line-height', '18px');
       const container = pager.locator('.mat-mdc-paginator-container');
-      expect((await container.boundingBox())!.height).toBe(56);
+      // Occurrence pagination uses the same compact row metrics as its actions.
+      expect((await container.boundingBox())!.height).toBe(32);
+      for (const action of await pager.locator('mat-paginator button').all()) {
+        expect((await action.boundingBox())!.height).toBe(32);
+      }
       for (const action of await pager.locator('.pager-actions button').all()) {
         expect((await action.boundingBox())!.height).toBe(32);
       }

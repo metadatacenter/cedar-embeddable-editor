@@ -51,7 +51,7 @@ export interface CeeConfig {
   /** Embedding with a host-provided heading, in either read-only or editable mode. Hides CEE's identity header or CEF's field header; keeps descriptions and controls. */
   previewMode?: boolean;
 
-  /** Wrap complete read-only field names with their required markers. Defaults to false; retains the identity header. */
+  /** Wrap complete field names with their required markers in editable or read-only mode. Defaults to false; retains the identity header. */
   wrapFieldNames?: boolean;
 
   /**

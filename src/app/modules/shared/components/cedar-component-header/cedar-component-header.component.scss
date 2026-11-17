@@ -137,7 +137,7 @@
   font-weight: var(--cedar-font-weight-regular, #{tokens.$font-weight-regular});
 }
 
-// Preserve the editing row; Preview can spend vertical space on the complete identity.
+// Hosts can request complete identities in either editing or read-only presentation.
 .title-identity {
   display: inline-flex;
   align-items: baseline;
@@ -147,7 +147,7 @@
 .identity-joiner {
   display: none;
 }
-:host-context(.cee-wrap-field-names.cee-read-only) {
+:host-context(.cee-wrap-field-names) {
   .field-title {
     flex-wrap: wrap;
     .title-identity {
