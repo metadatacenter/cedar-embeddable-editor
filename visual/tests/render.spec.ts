@@ -596,44 +596,46 @@ test('multi-instance pager renders its chips without covering a narrow expansion
  * the delete button is centred under the mark that ends the element's heading. Reading, the last chip
  * ends where the heading does. Both used to start at the left, under the element's name.
  */
-for (const mode of ['editable', 'readonly'] as const) {
-  test(
-    `a narrow element's ${mode} pager ends under its heading's last mark`,
-    { tag: NARROW_ONLY },
-    async ({ page }) => {
-      await open(page, '03-nested-multi', mode === 'readonly' ? 'readonly' : undefined);
+for (const mode of ['editable', 'readonly'] as const)
+  for (const width of [320, 375, 480]) {
+    test(
+      `a narrow element's ${mode} pager ends under its heading's last mark at ${width}px`,
+      { tag: NARROW_ONLY },
+      async ({ page }) => {
+        await page.setViewportSize({ width, height: 900 });
+        await open(page, '03-nested-multi', mode === 'readonly' ? 'readonly' : undefined);
 
-      const elements = await page.evaluate(() => {
-        const root = document.querySelector('cedar-embeddable-editor')!.shadowRoot!;
-        return Array.from(root.querySelectorAll('mat-expansion-panel'), (panel) => {
-          const header = panel.querySelector(':scope > mat-expansion-panel-header app-cedar-component-header')!;
-          // The marks follow the header, drawn over the room it keeps for them.
-          const marks = panel.querySelectorAll(':scope > app-cedar-component-marks mat-icon');
-          const mark = marks[marks.length - 1].getBoundingClientRect();
-          // The panel's own pager precedes the nested panels in document order.
-          const pager = panel.querySelector('.aligned-up')!;
-          const chips = pager.querySelectorAll('.mat-mdc-chip');
-          const remove = pager.querySelector('button[aria-label="Delete current"] mat-icon')?.getBoundingClientRect();
-          return {
-            headerRight: header.getBoundingClientRect().right,
-            markCenter: mark.left + mark.width / 2,
-            removeCenter: remove ? remove.left + remove.width / 2 : null,
-            chipRight: chips[chips.length - 1].getBoundingClientRect().right,
-          };
+        const elements = await page.evaluate(() => {
+          const root = document.querySelector('cedar-embeddable-editor')!.shadowRoot!;
+          return Array.from(root.querySelectorAll('mat-expansion-panel'), (panel) => {
+            const header = panel.querySelector(':scope > mat-expansion-panel-header app-cedar-component-header')!;
+            // The marks follow the header, drawn over the room it keeps for them.
+            const marks = panel.querySelectorAll(':scope > app-cedar-component-marks mat-icon');
+            const mark = marks[marks.length - 1].getBoundingClientRect();
+            // The panel's own pager precedes the nested panels in document order.
+            const pager = panel.querySelector('.aligned-up')!;
+            const chips = pager.querySelectorAll('.mat-mdc-chip');
+            const remove = pager.querySelector('button[aria-label="Delete current"] mat-icon')?.getBoundingClientRect();
+            return {
+              headerRight: header.getBoundingClientRect().right,
+              markCenter: mark.left + mark.width / 2,
+              removeCenter: remove ? remove.left + remove.width / 2 : null,
+              chipRight: chips[chips.length - 1].getBoundingClientRect().right,
+            };
+          });
         });
-      });
 
-      expect(elements, 'both elements repeat').toHaveLength(2);
-      for (const element of elements) {
-        if (mode === 'editable') {
-          expect(Math.abs(element.removeCenter! - element.markCenter), JSON.stringify(element)).toBeLessThan(1);
-        } else {
-          expect(Math.abs(element.chipRight - element.headerRight), JSON.stringify(element)).toBeLessThan(1);
+        expect(elements, 'both elements repeat').toHaveLength(2);
+        for (const element of elements) {
+          if (mode === 'editable') {
+            expect(Math.abs(element.removeCenter! - element.markCenter), JSON.stringify(element)).toBeLessThan(1);
+          } else {
+            expect(Math.abs(element.chipRight - element.headerRight), JSON.stringify(element)).toBeLessThan(1);
+          }
         }
-      }
-    },
-  );
-}
+      },
+    );
+  }
 
 test('multi-instance actions track cardinality and always expose tooltips', async ({ page }) => {
   await open(page, '10-attribute-values');
@@ -2586,19 +2588,18 @@ test.describe('external authority endpoints', { tag: WIDTH_INDEPENDENT }, () => 
       // a single event that the debounce swallows.
       await field.pressSequentially('probe', { delay: 40 });
 
-      // The service staggers requests by up to 500ms — transcribed from the ORCID
-      // service it replaced, where it was there to avoid throttling — so this has to
-      // outwait that rather than assume a prompt request.
+      // Typing can issue partial queries before the final debounced request. Wait
+      // for the complete query, rather than letting an earlier request satisfy
+      // readiness and then inspecting the final query before it has been sent.
       await expect(async () => {
-        expect(asked.length, `${label} issued no search request`).toBeGreaterThan(0);
+        expect(
+          asked.some((u) => new URL(u).searchParams.get('q') === 'probe'),
+          `${label} issued no search request for the complete query`,
+        ).toBe(true);
       }).toPass({ timeout: 5000 });
 
       const wrong = asked.filter((u) => !u.includes(`/ext-auth/${authority}/`));
       expect(wrong, `${label} asked another authority's endpoint`).toEqual([]);
-      expect(
-        asked.some((u) => u.includes('q=probe')),
-        'the query is not in the request',
-      ).toBe(true);
     });
   }
 

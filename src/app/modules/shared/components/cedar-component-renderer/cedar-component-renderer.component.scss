@@ -94,7 +94,7 @@ $element-content-inset: tokens.$space-4;
 
 // Fixed insets can consume the entire width several elements deep. Keep the
 // hierarchy visible while leaving space to edit its fields in a narrow embed.
-@container cee-component (max-width: 240px) {
+@container cee-component (max-width: 400px) {
   .mat-expansion-panel {
     @include spacing.apply(--_cee-element-body-inset, element-narrow-inset);
     @include spacing.apply(--_cee-element-heading-inset, element-narrow-heading-inset);
@@ -112,6 +112,15 @@ $element-content-inset: tokens.$space-4;
  */
 .mat-expansion-panel-header.mat-expanded {
   height: 48px;
+}
+
+// Full-name hosts also need room for wrapped element identities. Keep the
+// normal header height as a minimum rather than clipping a second line.
+:host-context(.cee-wrap-field-names) .mat-expansion-panel-header {
+  box-sizing: border-box;
+  height: auto;
+  min-height: ui-tokens.$space-6 * 2;
+  padding-block: ui-tokens.$space-2;
 }
 
 .non-iterable-component {

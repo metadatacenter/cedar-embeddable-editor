@@ -1,4 +1,5 @@
 import {
+  AfterViewChecked,
   ChangeDetectionStrategy,
   Component,
   ElementRef,
@@ -29,12 +30,14 @@ import { ShortenedName } from '../cedar-component-header/cedar-component-header.
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
-export class CedarComponentRendererComponent implements OnChanges, OnDestroy, RevealTarget {
+export class CedarComponentRendererComponent implements OnChanges, AfterViewChecked, OnDestroy, RevealTarget {
   renderDecision: ComponentRenderDecision | null = null;
   panelOpenState = false;
   /** An element's name while its header shortens it, which the header then shows in a tooltip. */
   shortenedName: ShortenedName | null = null;
   private shown: CedarComponent | null = null;
+  private pagerLayoutObserver: ResizeObserver | null = null;
+  private observedPanel: HTMLElement | null = null;
 
   /*
    * Both optional, and null by default, because a renderer is also built by hand to
@@ -71,8 +74,50 @@ export class CedarComponentRendererComponent implements OnChanges, OnDestroy, Re
   }
 
   ngOnDestroy(): void {
+    this.pagerLayoutObserver?.disconnect();
     if (this.shown !== null) {
       this.reveal?.unregisterTarget(this.shown, this);
+    }
+  }
+
+  ngAfterViewChecked(): void {
+    const panel =
+      this.renderDecision?.kind === 'element'
+        ? (this.host?.querySelector<HTMLElement>(':scope > mat-accordion > mat-expansion-panel') ?? null)
+        : null;
+    if (panel !== this.observedPanel) {
+      this.pagerLayoutObserver?.disconnect();
+      this.pagerLayoutObserver = null;
+      this.observedPanel = panel;
+      if (panel && typeof ResizeObserver !== 'undefined') {
+        this.pagerLayoutObserver = new ResizeObserver(() => this.updateElementPagerPlacement());
+        this.pagerLayoutObserver.observe(panel);
+      }
+    }
+    this.updateElementPagerPlacement();
+  }
+
+  private updateElementPagerPlacement(): void {
+    const panel = this.observedPanel;
+    if (!panel || panel.getBoundingClientRect().width === 0) return;
+    const heading = panel.querySelector(':scope > mat-expansion-panel-header');
+    const body = panel.querySelector('.mat-expansion-panel-body');
+    const pager = body?.querySelector<HTMLElement>(':scope > app-cedar-multi-pager');
+    if (!heading || !pager) return;
+    const controls = [...pager.querySelectorAll('mat-chip-option, button')]
+      .map((control) => control.getBoundingClientRect())
+      .filter((box) => box.width > 0);
+    // Collapsed panels have no visible pager geometry yet.
+    if (controls.length === 0) return;
+    const firstControl = Math.min(...controls.map((box) => box.left));
+    const text = [...heading.querySelectorAll('.title-label, .multi-instance-range')].flatMap((label) => {
+      const range = document.createRange();
+      range.selectNodeContents(label);
+      return [...range.getClientRects()];
+    });
+    const stacked = text.some((box) => box.right + 8 > firstControl);
+    if (pager.classList.contains('stacked-element-pager') !== stacked) {
+      pager.classList.toggle('stacked-element-pager', stacked);
     }
   }
 

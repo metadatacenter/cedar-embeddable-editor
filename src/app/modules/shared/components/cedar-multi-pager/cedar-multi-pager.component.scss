@@ -106,6 +106,17 @@ mat-paginator {
   margin-bottom: ui-tokens.$space-4;
 }
 
+// An element can be narrower than its host, or its identity can occupy several
+// lines. Use a separate row whenever its actual text and controls would collide.
+@container cee (min-width: 621px) {
+  :host(.stacked-element-pager) .aligned-up,
+  :host-context(.cee-read-only):host(.stacked-element-pager) .aligned-up {
+    margin-top: ui-tokens.$space-2;
+    min-height: 0;
+    margin-bottom: ui-tokens.$space-3;
+  }
+}
+
 /*
  * At embedding widths the pager takes a row of its own below the heading, at the right of it and
  * within the heading's insets. Editing, the delete button is centred under the mark that ends the
