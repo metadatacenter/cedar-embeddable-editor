@@ -105,7 +105,11 @@ export class CedarFieldPresentationComponent implements AfterViewChecked, OnDest
     const pager = host.querySelector(':scope > app-cedar-multi-pager .pager-container');
     const heading = host.querySelector(':scope > app-cedar-component-header');
     if (!pager || !heading) {
-      host.classList.remove('stacked-editable-pager');
+      // Removing an absent token still writes an existing class attribute. A view
+      // check must not schedule another observer/change-detection turn when settled.
+      if (host.classList.contains('stacked-editable-pager')) {
+        host.classList.remove('stacked-editable-pager');
+      }
       return;
     }
     // Hidden hosts have no geometry yet; the observer measures them when revealed.
