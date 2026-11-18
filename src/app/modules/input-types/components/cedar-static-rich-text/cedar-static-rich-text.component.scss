@@ -23,6 +23,15 @@
   margin-bottom: 0;
 }
 
+/*
+ * Links the author wrote take CEDAR's link colour rather than the browser's blue and purple. They keep
+ * their underline, which tells them apart from the text around them, and a colour the author set on a
+ * link still wins.
+ */
+:host ::ng-deep a:any-link {
+  color: var(--cedar-color-primary, #{ui-tokens.$color-primary});
+}
+
 :host {
   display: block;
   margin-bottom: ui-tokens.$space-1;
