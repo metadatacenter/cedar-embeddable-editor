@@ -39,13 +39,20 @@ export class ControlDensityDirective implements OnInit, OnDestroy {
     // CDK cannot measure there, and revealing the host does not trigger change detection.
     // Measure when the box gains width, and when a container changes its available width.
     // Ignore height-only notifications caused by the autosize operation itself.
+    // Resizing an observed box inside its own callback is a ResizeObserver loop, so the box is
+    // released while it is resized and observed again in the next frame. The first notification
+    // after observing reports the width already measured, which the comparison ignores.
     if (typeof ResizeObserver !== 'undefined') {
       let width = 0;
       this.sizeObserver = new ResizeObserver(([entry]) => {
         const next = entry.contentRect.width;
         if (next === width) return;
         width = next;
-        if (width > 0) apply();
+        if (width > 0) {
+          this.sizeObserver?.unobserve(this.element);
+          apply();
+          requestAnimationFrame(() => this.sizeObserver?.observe(this.element));
+        }
       });
       this.sizeObserver.observe(this.element);
     }
@@ -53,5 +60,6 @@ export class ControlDensityDirective implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.observer?.disconnect();
     this.sizeObserver?.disconnect();
+    this.sizeObserver = undefined;
   }
 }

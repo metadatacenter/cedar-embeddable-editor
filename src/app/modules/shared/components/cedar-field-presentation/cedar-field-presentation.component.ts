@@ -38,6 +38,7 @@ const DESCRIPTION_TEXT =
 export class CedarFieldPresentationComponent implements AfterViewChecked, OnDestroy, FieldSeverity {
   private readonly description = new DescriptionLink();
   private pagerLayoutObserver: ResizeObserver | null = null;
+  private pagerLayoutTargets: Element[] = [];
   @Input({ required: true }) handlerContext!: HandlerContext;
   @Input() showContent = true;
   @Input() showHeader = true;
@@ -82,20 +83,32 @@ export class CedarFieldPresentationComponent implements AfterViewChecked, OnDest
     const widget = host?.querySelector(':scope > .child-component-content > app-cedar-field-widget');
     this.description.set(text?.id || null, widget ? [...widget.querySelectorAll(FIELD_CONTROLS)] : []);
     this.updatePagerPlacement();
-    if (
-      host &&
-      typeof ResizeObserver !== 'undefined' &&
-      !this.pagerLayoutObserver &&
-      host.querySelector(':scope > app-cedar-multi-pager')
-    ) {
-      this.pagerLayoutObserver = new ResizeObserver(() => this.updatePagerPlacement());
-      this.pagerLayoutObserver.observe(host);
-      for (const child of host.querySelectorAll(
-        ':scope > app-cedar-component-header, :scope > app-cedar-multi-pager > div',
-      )) {
-        this.pagerLayoutObserver.observe(child);
-      }
+    this.observePagerLayout(host);
+  }
+
+  /**
+   * Measure again when the heading or the pager row changes size. The host is not observed: the
+   * stacking class changes its height, and an observed box that its own observer's callback resizes
+   * is a ResizeObserver loop. The heading spans the host's width, so a width change still arrives.
+   * The targets follow the rendered nodes, which a later render can replace.
+   */
+  private observePagerLayout(host: HTMLElement | undefined): void {
+    if (!host || typeof ResizeObserver === 'undefined') return;
+    const targets = host.querySelector(':scope > app-cedar-multi-pager')
+      ? [...host.querySelectorAll(':scope > app-cedar-component-header, :scope > app-cedar-multi-pager > div')]
+      : [];
+    const unchanged =
+      targets.length === this.pagerLayoutTargets.length &&
+      targets.every((target, index) => target === this.pagerLayoutTargets[index]);
+    if (unchanged) return;
+    this.pagerLayoutObserver?.disconnect();
+    this.pagerLayoutTargets = targets;
+    if (targets.length === 0) {
+      this.pagerLayoutObserver = null;
+      return;
     }
+    this.pagerLayoutObserver ??= new ResizeObserver(() => this.updatePagerPlacement());
+    for (const target of targets) this.pagerLayoutObserver.observe(target);
   }
 
   /** Keep the ordinary shared row, but use the narrow layout when its actual contents collide. */

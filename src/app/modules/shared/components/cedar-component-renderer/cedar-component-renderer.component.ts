@@ -37,6 +37,7 @@ export class CedarComponentRendererComponent implements OnChanges, AfterViewChec
   shortenedName: ShortenedName | null = null;
   private shown: CedarComponent | null = null;
   private pagerLayoutObserver: ResizeObserver | null = null;
+  private pagerLayoutTargets: Element[] = [];
   private observedPanel: HTMLElement | null = null;
 
   /*
@@ -85,16 +86,37 @@ export class CedarComponentRendererComponent implements OnChanges, AfterViewChec
       this.renderDecision?.kind === 'element'
         ? (this.host?.querySelector<HTMLElement>(':scope > mat-accordion > mat-expansion-panel') ?? null)
         : null;
-    if (panel !== this.observedPanel) {
-      this.pagerLayoutObserver?.disconnect();
-      this.pagerLayoutObserver = null;
-      this.observedPanel = panel;
-      if (panel && typeof ResizeObserver !== 'undefined') {
-        this.pagerLayoutObserver = new ResizeObserver(() => this.updateElementPagerPlacement());
-        this.pagerLayoutObserver.observe(panel);
-      }
-    }
+    this.observedPanel = panel;
+    this.observeElementPagerLayout(panel);
     this.updateElementPagerPlacement();
+  }
+
+  /**
+   * Measure again when the heading or the pager's chips or actions change size. The panel is not
+   * observed: the stacking class changes its height, and an observed box that its own observer's
+   * callback resizes is a ResizeObserver loop. The heading spans the panel's width, so a width change
+   * still arrives, and the chips and actions report paging and added or removed occurrences. The
+   * targets follow the rendered nodes, which a later render can replace.
+   */
+  private observeElementPagerLayout(panel: HTMLElement | null): void {
+    const heading = panel?.querySelector(':scope > mat-expansion-panel-header');
+    const pager = panel?.querySelector('.mat-expansion-panel-body')?.querySelector(':scope > app-cedar-multi-pager');
+    const targets =
+      heading && pager && typeof ResizeObserver !== 'undefined'
+        ? [heading, ...pager.querySelectorAll(':scope > div > .pager-chips, :scope > div > .pager-actions')]
+        : [];
+    const unchanged =
+      targets.length === this.pagerLayoutTargets.length &&
+      targets.every((target, index) => target === this.pagerLayoutTargets[index]);
+    if (unchanged) return;
+    this.pagerLayoutObserver?.disconnect();
+    this.pagerLayoutTargets = targets;
+    if (targets.length === 0) {
+      this.pagerLayoutObserver = null;
+      return;
+    }
+    this.pagerLayoutObserver ??= new ResizeObserver(() => this.updateElementPagerPlacement());
+    for (const target of targets) this.pagerLayoutObserver.observe(target);
   }
 
   private updateElementPagerPlacement(): void {
