@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.36] - 2026-11-19
+
+Aligns with `cedar-model-typescript-library@1.0.29`.
+
+### Changed
+
+- Gives links in rich-text static fields CEDAR's link colour, keeping their underline; a colour the template author set on a link still wins.
+- Wraps complete field names in read-only Preview and in editing, keeps the required marker beside the name, and stacks narrow field headers without overlap.
+- Aligns the controls of repeating fields and elements and keeps nested editor headers distinct from their occurrence controls.
+
+### Fixed
+
+- Shows and writes back a stored time in the hour a time zone skips on the day it moves its clocks forward, which was shifted by an hour on that day.
+- Keeps a stated `null` label that the stored template requires when writing `currentMetadata`, so the server accepts an instance it had stored.
+- Lets a link or authority field whose stored value has a label but no IRI be saved, as the server allows, and reports `canSave` as false for an instance of an unsaved template, which neither writer can write.
+- Recognizes qualified RRIDs and resolver URLs, and keeps an authority link in place under the pointer when a long value wraps.
+- Stops the field and element pagers and paragraph measurement from resizing what they observe, which raised ResizeObserver loop errors in WebKit and Chromium.
+
 ## [2.0.35] - 2026-11-13
 
 Aligns with `cedar-model-typescript-library@1.0.28`.
