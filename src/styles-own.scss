@@ -187,6 +187,12 @@
   @include spacing.apply(margin-right, header-action-reserve);
 }
 
+// Content can need the narrow placement even in a wide host (long names or many values).
+.non-iterable-component.stacked-editable-pager > app-cedar-multi-pager .pager-container {
+  margin-top: ui-tokens.$space-2;
+  margin-bottom: 0;
+}
+
 .pager-container-ro {
   display: flex;
   flex-wrap: wrap;

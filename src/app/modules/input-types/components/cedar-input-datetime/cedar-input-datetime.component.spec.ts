@@ -9,6 +9,21 @@ import { ComponentDataService } from '../../../shared/service/component-data.ser
 import { UserPreferencesService } from '../../../shared/service/user-preferences.service';
 import { CedarInputDatetimeComponent } from './cedar-input-datetime.component';
 
+/** Run `body` in New York on 8 March 2026, the day its clocks skip from 02:00 to 03:00. */
+const onSpringForwardDay = (body: () => void): void => {
+  const zone = process.env['TZ'];
+  process.env['TZ'] = 'America/New_York';
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(new Date('2026-03-08T12:00:00-04:00'));
+  try {
+    body();
+  } finally {
+    vi.useRealTimers();
+    if (zone === undefined) delete process.env['TZ'];
+    else process.env['TZ'] = zone;
+  }
+};
+
 describe('CedarInputDatetimeComponent model-to-view sync', () => {
   const makeComponent = (
     temporalType: string,
@@ -537,5 +552,34 @@ describe('CedarInputDatetimeComponent by granularity', () => {
 
       expect(component.readOnlyValue()).toBe('');
     });
+
+    /*
+     * The clock holds its time in a local `Date`, which cannot hold a time the viewer's zone skips
+     * on that `Date`'s day. In New York, 8 March 2026 has no 02:00 to 02:59.
+     */
+    it('shows a stored time that today skips, on the day the clocks go forward', () =>
+      onSpringForwardDay(() => {
+        const { component, written } = makeField(Xsd.time, Temporal.second);
+        component.setCurrentValue('02:30:15');
+
+        expect(component.timePickerTime?.getHours()).toBe(2);
+        expect(component.timePickerTime?.getMinutes()).toBe(30);
+        expect(component.timePickerTime?.getSeconds()).toBe(15);
+
+        component.timeInputChanged(null);
+
+        expect(written.at(-1)).toBe('02:30:15');
+      }));
+
+    it('keeps the time of a stored instant on the day its zone skips it', () =>
+      onSpringForwardDay(() => {
+        const { component, written } = makeField(Xsd.dateTime, Temporal.minute);
+        component.setCurrentValue('2026-03-08T02:30:00');
+
+        expect(component.timePickerTime?.getHours()).toBe(2);
+        component.timeInputChanged(null);
+
+        expect(written.at(-1)).toBe('2026-03-08T02:30:00');
+      }));
   });
 });

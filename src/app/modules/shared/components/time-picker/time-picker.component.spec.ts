@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { DestroyRef } from '@angular/core';
 import { Observable } from 'rxjs';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 import { TimePickerComponent } from './time-picker.component';
 
@@ -66,6 +66,25 @@ describe('TimePickerComponent', () => {
 
     expect(emitted).toHaveLength(1);
     expect(emitted[0]?.getHours()).toBe(14);
+  });
+
+  it('reports an hour typed into an empty clock that today skips, on the day the clocks go forward', () => {
+    // In New York, 8 March 2026 has no 02:00 to 02:59.
+    const zone = process.env['TZ'];
+    process.env['TZ'] = 'America/New_York';
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-03-08T12:00:00-04:00'));
+    try {
+      const { component, emitted } = makeComponent();
+
+      component.hourChanged('2');
+
+      expect(emitted.at(-1)?.getHours()).toBe(2);
+    } finally {
+      vi.useRealTimers();
+      if (zone === undefined) delete process.env['TZ'];
+      else process.env['TZ'] = zone;
+    }
   });
 
   it('reports nothing for an hour outside the face being shown', () => {

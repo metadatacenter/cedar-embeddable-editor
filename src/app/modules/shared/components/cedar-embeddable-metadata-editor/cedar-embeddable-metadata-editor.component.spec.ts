@@ -60,6 +60,7 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
   // name, so one list drives both sides of the assertion.
   const BOOLEAN_FLAGS = [
     'previewMode',
+    'wrapFieldNames',
     'showDownloadMenu',
     'showTemplateDescription',
     'readOnlyMode',

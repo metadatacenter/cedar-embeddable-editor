@@ -25,7 +25,7 @@ const WIDGETS = [
   { widget: CedarInputPfasComponent, type: InputType.pfas, identifier: 'DTXSID7020182' },
   { widget: CedarInputPmidComponent, type: InputType.pmid, identifier: '12345678' },
   { widget: CedarInputRorComponent, type: InputType.ror, identifier: '03yrm5c26' },
-  { widget: CedarInputRridComponent, type: InputType.rrid, identifier: 'RRID:12345' },
+  { widget: CedarInputRridComponent, type: InputType.rrid, identifier: 'RRID:NCBITaxon_1260732' },
 ];
 
 describe('concrete authority widgets', () => {

@@ -152,7 +152,12 @@ export const AUTHORITY_DESCRIPTORS: ReadonlyArray<AuthorityDescriptor> = [
     placeholderKey: 'Generic.FilterRrid',
     invalidMessageKey: 'Validation.RridInvalid',
     revertedMessageKey: 'Validation.RridReverted',
-    looksLikeIdentifier: byPattern(/^(?:(?:https?:\/\/)?identifiers\.org\/RRID:\d+\b|RRID:\d+\b|\d+\b)/i),
+    // RRIDs include their source namespace (AB_, CVCL_, Addgene_, NCBITaxon_, ...).
+    // A resolver URL or explicit RRID prefix is also unambiguous; legacy bare numbers
+    // still take the direct lookup path rather than becoming name searches.
+    looksLikeIdentifier: byPattern(
+      /^(?:(?:https?:\/\/)?identifiers\.org\/RRID:[^\s/]+|(?:https?:\/\/)?scicrunch\.org\/resolver\/(?:RRID:)?[^\s/]+|RRID:[^\s/]+|[A-Z][A-Z0-9-]*[_:][A-Z0-9][A-Z0-9_.:-]*|nif-\d{4}-\d+|\d+)$/i,
+    ),
   },
   {
     inputType: InputType.nihGrant,

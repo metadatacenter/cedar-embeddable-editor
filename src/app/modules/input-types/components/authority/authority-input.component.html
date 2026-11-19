@@ -82,7 +82,7 @@ genuinely theirs.
         <!--
           Resolved once. This binding was read through two `| async` pipes, one for the
           emptiness test and one for the rows, and each `AsyncPipe` subscribes the
-          pipeline separately. Every subscription carries its own `debounceTime` and
+          pipeline separately. Every subscription carries its own lookup delay and
           `switchMap`, so a keystroke drove two chains and issued two lookups.
         -->
         @let terms = filteredOptions | async;
@@ -134,6 +134,10 @@ genuinely theirs.
           Details" — of what, and nothing is shown, since this opens a page
           elsewhere — while the accessible name read "View ORCID page" in English
           regardless of the chosen language.
+
+          Keep the input focused through a mouse click. Blurring a long value can
+          wrap its settled text and move this link between mouse-down and mouse-up,
+          losing the click. Keyboard focus and activation still follow the native link.
         -->
         <a
           matSuffix
@@ -141,6 +145,7 @@ genuinely theirs.
           [href]="detailsUrl"
           target="_blank"
           rel="noopener"
+          (mousedown)="editing && $event.preventDefault()"
           attr.aria-label="{{ 'Generic.OpenAuthorityPage' | translate: { authority: descriptor.label } }}"
           matTooltip="{{ 'Generic.OpenAuthorityPage' | translate: { authority: descriptor.label } }}"
         >

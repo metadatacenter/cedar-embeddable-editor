@@ -113,7 +113,7 @@ different destinations worth having.
       <mat-autocomplete #auto="matAutocomplete" autoActiveFirstOption>
         <!--
           Resolved once. A second `| async` on this binding subscribes the pipeline
-          again, and each subscription carries its own `debounceTime` and `switchMap`,
+          again, and each subscription carries its own lookup delay and `switchMap`,
           so it would issue a second lookup per keystroke.
         -->
         @let terms = filteredOptions | async;

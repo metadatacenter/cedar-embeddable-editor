@@ -1,4 +1,5 @@
 import {
+  AfterViewChecked,
   ChangeDetectionStrategy,
   Component,
   ElementRef,
@@ -29,12 +30,15 @@ import { ShortenedName } from '../cedar-component-header/cedar-component-header.
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
-export class CedarComponentRendererComponent implements OnChanges, OnDestroy, RevealTarget {
+export class CedarComponentRendererComponent implements OnChanges, AfterViewChecked, OnDestroy, RevealTarget {
   renderDecision: ComponentRenderDecision | null = null;
   panelOpenState = false;
   /** An element's name while its header shortens it, which the header then shows in a tooltip. */
   shortenedName: ShortenedName | null = null;
   private shown: CedarComponent | null = null;
+  private pagerLayoutObserver: ResizeObserver | null = null;
+  private pagerLayoutTargets: Element[] = [];
+  private observedPanel: HTMLElement | null = null;
 
   /*
    * Both optional, and null by default, because a renderer is also built by hand to
@@ -71,8 +75,71 @@ export class CedarComponentRendererComponent implements OnChanges, OnDestroy, Re
   }
 
   ngOnDestroy(): void {
+    this.pagerLayoutObserver?.disconnect();
     if (this.shown !== null) {
       this.reveal?.unregisterTarget(this.shown, this);
+    }
+  }
+
+  ngAfterViewChecked(): void {
+    const panel =
+      this.renderDecision?.kind === 'element'
+        ? (this.host?.querySelector<HTMLElement>(':scope > mat-accordion > mat-expansion-panel') ?? null)
+        : null;
+    this.observedPanel = panel;
+    this.observeElementPagerLayout(panel);
+    this.updateElementPagerPlacement();
+  }
+
+  /**
+   * Measure again when the heading or the pager's chips or actions change size. The panel is not
+   * observed: the stacking class changes its height, and an observed box that its own observer's
+   * callback resizes is a ResizeObserver loop. The heading spans the panel's width, so a width change
+   * still arrives, and the chips and actions report paging and added or removed occurrences. The
+   * targets follow the rendered nodes, which a later render can replace.
+   */
+  private observeElementPagerLayout(panel: HTMLElement | null): void {
+    const heading = panel?.querySelector(':scope > mat-expansion-panel-header');
+    const pager = panel?.querySelector('.mat-expansion-panel-body')?.querySelector(':scope > app-cedar-multi-pager');
+    const targets =
+      heading && pager && typeof ResizeObserver !== 'undefined'
+        ? [heading, ...pager.querySelectorAll(':scope > div > .pager-chips, :scope > div > .pager-actions')]
+        : [];
+    const unchanged =
+      targets.length === this.pagerLayoutTargets.length &&
+      targets.every((target, index) => target === this.pagerLayoutTargets[index]);
+    if (unchanged) return;
+    this.pagerLayoutObserver?.disconnect();
+    this.pagerLayoutTargets = targets;
+    if (targets.length === 0) {
+      this.pagerLayoutObserver = null;
+      return;
+    }
+    this.pagerLayoutObserver ??= new ResizeObserver(() => this.updateElementPagerPlacement());
+    for (const target of targets) this.pagerLayoutObserver.observe(target);
+  }
+
+  private updateElementPagerPlacement(): void {
+    const panel = this.observedPanel;
+    if (!panel || panel.getBoundingClientRect().width === 0) return;
+    const heading = panel.querySelector(':scope > mat-expansion-panel-header');
+    const body = panel.querySelector('.mat-expansion-panel-body');
+    const pager = body?.querySelector<HTMLElement>(':scope > app-cedar-multi-pager');
+    if (!heading || !pager) return;
+    const controls = [...pager.querySelectorAll('mat-chip-option, button')]
+      .map((control) => control.getBoundingClientRect())
+      .filter((box) => box.width > 0);
+    // Collapsed panels have no visible pager geometry yet.
+    if (controls.length === 0) return;
+    const firstControl = Math.min(...controls.map((box) => box.left));
+    const text = [...heading.querySelectorAll('.title-label, .multi-instance-range')].flatMap((label) => {
+      const range = document.createRange();
+      range.selectNodeContents(label);
+      return [...range.getClientRects()];
+    });
+    const stacked = text.some((box) => box.right + 8 > firstControl);
+    if (pager.classList.contains('stacked-element-pager') !== stacked) {
+      pager.classList.toggle('stacked-element-pager', stacked);
     }
   }
 

@@ -343,12 +343,21 @@
         }
 
         // The editor renders asynchronously; consider the DOM settled once two
-        // consecutive samples show no further mutation.
+        // consecutive samples show no further mutation. The editor renders into a
+        // shadow root, which `innerHTML` leaves out, so each sample adds the markup
+        // of every shadow root in the page.
+        const markupLength = (root) => {
+          let length = root.innerHTML.length;
+          for (const element of root.querySelectorAll('*')) {
+            if (element.shadowRoot) length += markupLength(element.shadowRoot);
+          }
+          return length;
+        };
         const domSettled = () =>
           new Promise((resolve) => {
             let last = -1;
             const tick = () => {
-              const now = document.body.innerHTML.length;
+              const now = markupLength(document.body);
               if (now === last && now > 0) return resolve();
               last = now;
               requestAnimationFrame(() => setTimeout(tick, 50));

@@ -28,7 +28,6 @@ import {
   hermetic,
   open,
   openTwoEditors,
-  passDebounceWindow,
   recordChanges,
 } from './support/host';
 import { fieldBox } from './support/field-box';
@@ -369,7 +368,6 @@ test.describe('multiple editor instances', () => {
     await openTwoEditors(page, '04-controlled-terms');
     const terminologyRequest = page.waitForRequest((request) => request.url().includes('/isolation/first/terminology'));
     await fieldBox(page.locator('#editor-first'), 'organism').pressSequentially('human', { delay: 40 });
-    await passDebounceWindow(page);
     expect((await terminologyRequest).url()).toContain('/isolation/first/terminology');
 
     await openTwoEditors(page, '08-authority');
@@ -377,7 +375,6 @@ test.describe('multiple editor instances', () => {
       request.url().includes('/isolation/first/ext-auth/comp-tox/search-by-name'),
     );
     await fieldBox(page.locator('#editor-first'), 'chemical_pfas').pressSequentially('chemical', { delay: 40 });
-    await passDebounceWindow(page);
     expect((await authorityRequest).url()).toContain('/isolation/first/ext-auth/comp-tox/search-by-name');
   });
 });
@@ -599,44 +596,46 @@ test('multi-instance pager renders its chips without covering a narrow expansion
  * the delete button is centred under the mark that ends the element's heading. Reading, the last chip
  * ends where the heading does. Both used to start at the left, under the element's name.
  */
-for (const mode of ['editable', 'readonly'] as const) {
-  test(
-    `a narrow element's ${mode} pager ends under its heading's last mark`,
-    { tag: NARROW_ONLY },
-    async ({ page }) => {
-      await open(page, '03-nested-multi', mode === 'readonly' ? 'readonly' : undefined);
+for (const mode of ['editable', 'readonly'] as const)
+  for (const width of [320, 375, 480]) {
+    test(
+      `a narrow element's ${mode} pager ends under its heading's last mark at ${width}px`,
+      { tag: NARROW_ONLY },
+      async ({ page }) => {
+        await page.setViewportSize({ width, height: 900 });
+        await open(page, '03-nested-multi', mode === 'readonly' ? 'readonly' : undefined);
 
-      const elements = await page.evaluate(() => {
-        const root = document.querySelector('cedar-embeddable-editor')!.shadowRoot!;
-        return Array.from(root.querySelectorAll('mat-expansion-panel'), (panel) => {
-          const header = panel.querySelector(':scope > mat-expansion-panel-header app-cedar-component-header')!;
-          // The marks follow the header, drawn over the room it keeps for them.
-          const marks = panel.querySelectorAll(':scope > app-cedar-component-marks mat-icon');
-          const mark = marks[marks.length - 1].getBoundingClientRect();
-          // The panel's own pager precedes the nested panels in document order.
-          const pager = panel.querySelector('.aligned-up')!;
-          const chips = pager.querySelectorAll('.mat-mdc-chip');
-          const remove = pager.querySelector('button[aria-label="Delete current"] mat-icon')?.getBoundingClientRect();
-          return {
-            headerRight: header.getBoundingClientRect().right,
-            markCenter: mark.left + mark.width / 2,
-            removeCenter: remove ? remove.left + remove.width / 2 : null,
-            chipRight: chips[chips.length - 1].getBoundingClientRect().right,
-          };
+        const elements = await page.evaluate(() => {
+          const root = document.querySelector('cedar-embeddable-editor')!.shadowRoot!;
+          return Array.from(root.querySelectorAll('mat-expansion-panel'), (panel) => {
+            const header = panel.querySelector(':scope > mat-expansion-panel-header app-cedar-component-header')!;
+            // The marks follow the header, drawn over the room it keeps for them.
+            const marks = panel.querySelectorAll(':scope > app-cedar-component-marks mat-icon');
+            const mark = marks[marks.length - 1].getBoundingClientRect();
+            // The panel's own pager precedes the nested panels in document order.
+            const pager = panel.querySelector('.aligned-up')!;
+            const chips = pager.querySelectorAll('.mat-mdc-chip');
+            const remove = pager.querySelector('button[aria-label="Delete current"] mat-icon')?.getBoundingClientRect();
+            return {
+              headerRight: header.getBoundingClientRect().right,
+              markCenter: mark.left + mark.width / 2,
+              removeCenter: remove ? remove.left + remove.width / 2 : null,
+              chipRight: chips[chips.length - 1].getBoundingClientRect().right,
+            };
+          });
         });
-      });
 
-      expect(elements, 'both elements repeat').toHaveLength(2);
-      for (const element of elements) {
-        if (mode === 'editable') {
-          expect(Math.abs(element.removeCenter! - element.markCenter), JSON.stringify(element)).toBeLessThan(1);
-        } else {
-          expect(Math.abs(element.chipRight - element.headerRight), JSON.stringify(element)).toBeLessThan(1);
+        expect(elements, 'both elements repeat').toHaveLength(2);
+        for (const element of elements) {
+          if (mode === 'editable') {
+            expect(Math.abs(element.removeCenter! - element.markCenter), JSON.stringify(element)).toBeLessThan(1);
+          } else {
+            expect(Math.abs(element.chipRight - element.headerRight), JSON.stringify(element)).toBeLessThan(1);
+          }
         }
-      }
-    },
-  );
-}
+      },
+    );
+  }
 
 test('multi-instance actions track cardinality and always expose tooltips', async ({ page }) => {
   await open(page, '10-attribute-values');
@@ -1669,6 +1668,31 @@ test.describe('the version stamp', { tag: WIDTH_INDEPENDENT }, () => {
  * sit within its height. Beside a title with a description it keeps to the top of the row, level with
  * the title. At a narrow width it takes a row of its own, so the title has the full width below it.
  */
+test(
+  'identity and artifact version remain separate in a narrow embedding pane',
+  { tag: WIDTH_INDEPENDENT },
+  async ({ page }) => {
+    await open(page, '01-input-types');
+    const editor = page.locator('cedar-embeddable-editor');
+    await editor.evaluate((el) => {
+      (el as HTMLElement).style.width = '175px';
+    });
+    const logo = page.locator('.logo-block');
+    const provenance = page.locator('.template-provenance');
+    await expect(provenance).toBeVisible();
+    await expect
+      .poll(async () => {
+        const identity = (await logo.boundingBox())!;
+        const version = (await provenance.boundingBox())!;
+        return version.y - identity.y - identity.height;
+      })
+      .toBeGreaterThanOrEqual(0);
+    const version = (await provenance.boundingBox())!;
+    const header = (await page.locator('.template-header').boundingBox())!;
+    expect(version.x + version.width).toBeLessThanOrEqual(header.x + header.width + 1);
+  },
+);
+
 test.describe('the identity', { tag: WIDTH_INDEPENDENT }, () => {
   for (const width of [1280, 480]) {
     test(`sets the name and the stamp beside the mark at ${width}`, async ({ page }) => {
@@ -1745,6 +1769,20 @@ test.describe('the header actions', { tag: WIDTH_INDEPENDENT }, () => {
   }
 });
 
+/**
+ * Wait until the lookup that typing started has finished.
+ *
+ * A lookup starts 400 ms after the last keystroke and then takes a random share of up to
+ * half a second for an authority and two seconds for a controlled term, so no fixed pause
+ * covers it. The fixtures configure no lookup service, so every lookup ends in the failure
+ * row, which only a finished lookup can draw. The absence checks that follow then see the
+ * state the finished lookup left rather than the state before it.
+ */
+const lookupSettled = (page: Page): Promise<void> =>
+  expect(page.locator('mat-option.lookup-failed'), 'the lookup the typing started did not finish').toBeVisible({
+    timeout: 10_000,
+  });
+
 test.describe('external authority fields', { tag: WIDTH_INDEPENDENT }, () => {
   test('typing does not raise an error', async ({ page }) => {
     await open(page, '04-controlled-terms');
@@ -1752,7 +1790,7 @@ test.describe('external authority fields', { tag: WIDTH_INDEPENDENT }, () => {
     const orcid = fieldBox(page, 'contributor');
     await expect(orcid).toBeVisible();
     await orcid.pressSequentially('dav', { delay: 60 });
-    await page.waitForTimeout(600);
+    await lookupSettled(page);
 
     await expect(page.locator('mat-error'), 'a partly typed search term is not an invalid value').toHaveCount(0);
   });
@@ -1762,7 +1800,7 @@ test.describe('external authority fields', { tag: WIDTH_INDEPENDENT }, () => {
 
     const orcid = fieldBox(page, 'contributor');
     await orcid.pressSequentially('dav', { delay: 60 });
-    await page.waitForTimeout(600);
+    await lookupSettled(page);
 
     await expect(orcid).toHaveValue('dav');
   });
@@ -1776,13 +1814,13 @@ test.describe('external authority fields', { tag: WIDTH_INDEPENDENT }, () => {
 
     const orcid = fieldBox(page, 'contributor');
     await orcid.pressSequentially('not a real researcher', { delay: 20 });
-    await page.waitForTimeout(600);
+    await lookupSettled(page);
     await orcid.blur();
-    await page.waitForTimeout(600);
 
+    // The notice appears once the text has been discarded, so the checks after it see the result.
+    await expect(page.locator('.input-warning')).toHaveCount(1);
     await expect(orcid).toHaveValue('');
     await expect(page.locator('mat-error')).toHaveCount(0);
-    await expect(page.locator('.input-warning')).toHaveCount(1);
   });
 });
 
@@ -1818,7 +1856,7 @@ test.describe('every external authority widget', { tag: WIDTH_INDEPENDENT }, () 
       const input = fieldBox(page, name);
       await expect(input).toBeVisible();
       await input.pressSequentially('dav', { delay: 40 });
-      await page.waitForTimeout(500);
+      await lookupSettled(page);
 
       await expect(page.locator('mat-error')).toHaveCount(0);
       await expect(input).toHaveValue('dav');
@@ -1835,13 +1873,12 @@ test.describe('every external authority widget', { tag: WIDTH_INDEPENDENT }, () 
 
       const input = fieldBox(page, name);
       await input.pressSequentially('zzz nonsense', { delay: 15 });
-      await page.waitForTimeout(500);
+      await lookupSettled(page);
       await input.blur();
-      await page.waitForTimeout(600);
 
+      await expect(page.locator('.input-warning')).toHaveCount(1);
       await expect(input, 'text naming no term cannot be saved, so it must not linger').toHaveValue('');
       await expect(page.locator('mat-error')).toHaveCount(0);
-      await expect(page.locator('.input-warning')).toHaveCount(1);
       await expect(page.locator('.input-warning')).toHaveCSS('color', 'rgb(180, 83, 9)');
     });
 
@@ -1849,10 +1886,8 @@ test.describe('every external authority widget', { tag: WIDTH_INDEPENDENT }, () 
       await open(page, '08-authority');
       const input = fieldBox(page, name);
       await input.fill('test search');
-      await passDebounceWindow(page);
       await expect(page.locator('mat-option.lookup-failed')).toContainText('Search failed');
       await input.fill('another search');
-      await page.clock.setFixedTime(new Date(FROZEN.getTime() + 120_000));
       await expect(page.locator('mat-option.lookup-failed')).toContainText('Search failed');
     });
 
@@ -1862,9 +1897,8 @@ test.describe('every external authority widget', { tag: WIDTH_INDEPENDENT }, () 
 
       const input = fieldBox(page, name);
       await input.pressSequentially('zzz nonsense', { delay: 15 });
-      await page.waitForTimeout(500);
+      await lookupSettled(page);
       await input.blur();
-      await page.waitForTimeout(600);
 
       await expect(page.locator('.input-warning')).toContainText(label);
     });
@@ -2553,21 +2587,19 @@ test.describe('external authority endpoints', { tag: WIDTH_INDEPENDENT }, () => 
       // Typed rather than filled: the widget searches on input, and `fill` can land as
       // a single event that the debounce swallows.
       await field.pressSequentially('probe', { delay: 40 });
-      await passDebounceWindow(page);
 
-      // The service staggers requests by up to 500ms — transcribed from the ORCID
-      // service it replaced, where it was there to avoid throttling — so this has to
-      // outwait that rather than assume a prompt request.
+      // Typing can issue partial queries before the final debounced request. Wait
+      // for the complete query, rather than letting an earlier request satisfy
+      // readiness and then inspecting the final query before it has been sent.
       await expect(async () => {
-        expect(asked.length, `${label} issued no search request`).toBeGreaterThan(0);
+        expect(
+          asked.some((u) => new URL(u).searchParams.get('q') === 'probe'),
+          `${label} issued no search request for the complete query`,
+        ).toBe(true);
       }).toPass({ timeout: 5000 });
 
       const wrong = asked.filter((u) => !u.includes(`/ext-auth/${authority}/`));
       expect(wrong, `${label} asked another authority's endpoint`).toEqual([]);
-      expect(
-        asked.some((u) => u.includes('q=probe')),
-        'the query is not in the request',
-      ).toBe(true);
     });
   }
 
@@ -2614,7 +2646,6 @@ test.describe('external authority endpoints', { tag: WIDTH_INDEPENDENT }, () => 
       await open(page, '08-authority', 'authority');
       const field = fieldBox(page, fieldName);
       await field.pressSequentially('deterministic', { delay: 40 });
-      await passDebounceWindow(page);
       const option = page.locator('mat-option').filter({ hasText: label });
       await expect(option, 'the authority response did not become a selectable option').toBeVisible({ timeout: 5000 });
       await option.click();
@@ -2665,7 +2696,6 @@ test.describe('external authority endpoints', { tag: WIDTH_INDEPENDENT }, () => 
        * expect to differ.
        */
       await field.click();
-      await passDebounceWindow(page);
       await expect(
         page.locator('mat-option'),
         'a settled field must not offer its own value back, nor claim it was not found',
@@ -2674,7 +2704,6 @@ test.describe('external authority endpoints', { tag: WIDTH_INDEPENDENT }, () => 
       // Editing it makes suggestions useful again, so they come back.
       await field.press('End');
       await field.press('Backspace');
-      await passDebounceWindow(page);
       await expect(page.locator('mat-option'), 'editing the value must reopen the search').not.toHaveCount(0);
     });
   }
@@ -2699,7 +2728,6 @@ test.describe('controlled terminology selection', () => {
     await open(page, '04-controlled-terms');
     const field = fieldBox(page, 'organism');
     await field.pressSequentially('Homo', { delay: 40 });
-    await passDebounceWindow(page);
     const option = page.locator('mat-option').filter({ hasText: label });
     await expect(option, 'the terminology response did not become a selectable option').toBeVisible({ timeout: 6000 });
     await option.click();
@@ -2739,7 +2767,6 @@ test.describe('controlled terminology selection', () => {
       has: fieldBox(page, 'organism'),
     });
     await widget.locator('input').pressSequentially('Homo', { delay: 40 });
-    await passDebounceWindow(page);
     await page.locator('mat-option').filter({ hasText: label }).click();
     await page.waitForTimeout(300);
 
@@ -2799,7 +2826,6 @@ test.describe('controlled terminology selection', () => {
     await open(page, '04-controlled-terms');
     const field = fieldBox(page, 'organism');
     await field.pressSequentially('Homo', { delay: 40 });
-    await passDebounceWindow(page);
     await page.locator('mat-option').filter({ hasText: terms[0].label }).click();
     await expect(field).toHaveValue(terms[0].label);
 
@@ -2844,7 +2870,6 @@ test.describe('controlled terminology selection', () => {
     await open(page, '04-controlled-terms', undefined, '04-controlled-terms-instance');
     const field = fieldBox(page, 'organism');
     await field.fill('Homo');
-    await passDebounceWindow(page);
     const option = page.locator('mat-option').filter({ hasText: label });
     await expect(option).toBeVisible({ timeout: 6000 });
     const box = await option.boundingBox();
@@ -2879,13 +2904,12 @@ test.describe('controlled terminology selection', () => {
 
     const field = fieldBox(page, 'organism');
     await field.pressSequentially('zzz nonsense', { delay: 15 });
-    await page.waitForTimeout(500);
+    await lookupSettled(page);
     await field.blur();
-    await page.waitForTimeout(600);
 
+    await expect(page.locator('.input-warning')).toHaveCount(1);
     await expect(field, 'text naming no term cannot be saved, so it must not linger').toHaveValue('');
     await expect(page.locator('mat-error')).toHaveCount(1);
-    await expect(page.locator('.input-warning')).toHaveCount(1);
     const metadata = await page.evaluate(() => document.querySelector('cedar-embeddable-editor')!.currentMetadata);
     expect(JSON.stringify(metadata), 'discarded text must not reach the instance').not.toContain('nonsense');
   });
@@ -4233,3 +4257,138 @@ test.describe('preview host heading', { tag: WIDTH_INDEPENDENT }, () => {
     });
   }
 });
+
+for (const width of [175, 260]) {
+  for (const repeated of [false, true]) {
+    test(
+      `a long required label keeps its visible marker at ${width}px (repeated=${repeated})`,
+      { tag: WIDTH_INDEPENDENT },
+      async ({ page }) => {
+        await open(page, '01-input-types');
+        await page.evaluate(
+          async ({ width, repeated }) => {
+            const template = await (await fetch('./fixtures/01-input-types.json')).json();
+            template._ui.propertyLabels._text = 'Participant identifier with a deliberately long display name';
+            if (repeated)
+              template.properties._text = { type: 'array', minItems: 1, maxItems: 3, items: template.properties._text };
+            const editor = document.querySelector('cedar-embeddable-editor')!;
+            editor.style.display = 'block';
+            editor.style.width = `${width}px`;
+            editor.templateObject = template;
+          },
+          { width, repeated },
+        );
+        const header = page
+          .locator('app-cedar-component-header')
+          .filter({ hasText: 'Participant identifier with a deliberately long display name' })
+          .first();
+        await expect(header.locator('.required-mark')).toBeVisible();
+        if (repeated) await expect(header.locator('.multi-instance-range')).toHaveText('(1 .. 3)');
+        const geometry = await header.evaluate((el) => {
+          const label = el.querySelector('.title-label')!;
+          const mark = el.querySelector('.required-mark')!;
+          const rect = mark.getBoundingClientRect();
+          const title = el.querySelector('.title')!.getBoundingClientRect();
+          const clipping = [];
+          for (let parent = mark.parentElement; parent && parent !== el.parentElement; parent = parent.parentElement) {
+            const style = getComputedStyle(parent);
+            if ([style.overflowX, style.overflowY].some((x) => ['hidden', 'clip', 'auto', 'scroll'].includes(x))) {
+              const box = parent.getBoundingClientRect();
+              if (
+                rect.left < box.left - 1 ||
+                rect.right > box.right + 1 ||
+                rect.top < box.top - 1 ||
+                rect.bottom > box.bottom + 1
+              )
+                clipping.push(parent.className);
+            }
+          }
+          return {
+            truncated: label.scrollWidth > label.clientWidth,
+            clipping,
+            left: rect.left,
+            right: rect.right,
+            titleLeft: title.left,
+            titleRight: title.right,
+            rangeRight: el.querySelector('.multi-instance-range')?.getBoundingClientRect().right ?? 0,
+          };
+        });
+        expect(geometry.truncated).toBe(true);
+        expect(geometry.clipping).toEqual([]);
+        expect(geometry.left).toBeGreaterThanOrEqual(geometry.titleLeft);
+        expect(geometry.right).toBeLessThanOrEqual(geometry.titleRight + 1);
+        expect(geometry.rangeRight).toBeLessThanOrEqual(geometry.titleRight + 1);
+      },
+    );
+  }
+}
+
+for (const width of [175, 260]) {
+  for (const repeated of [false, true]) {
+    test(
+      `read-only Preview wraps a complete required field identity at ${width}px (repeated=${repeated})`,
+      { tag: WIDTH_INDEPENDENT },
+      async ({ page }) => {
+        await open(page, '01-input-types', undefined, undefined, undefined, '&f=wrapFieldNames,readOnlyMode');
+        await expect(page.locator('.logo-block')).toBeVisible();
+        await page.evaluate(
+          async ({ width, repeated }) => {
+            const template = await (await fetch('./fixtures/01-input-types.json')).json();
+            template._ui.propertyLabels._text = 'Participant identifier';
+            if (repeated)
+              template.properties._text = { type: 'array', minItems: 1, maxItems: 3, items: template.properties._text };
+            const editor = document.querySelector('cedar-embeddable-editor')!;
+            editor.style.display = 'block';
+            editor.style.width = `${width}px`;
+            editor.templateObject = template;
+          },
+          { width, repeated },
+        );
+        const header = page.locator('app-cedar-component-header').filter({ hasText: 'Participant identifier' }).first();
+        await expect(header.locator('.title-label')).toHaveText('Participant identifier');
+        await expect(header.locator('.required-mark')).toBeVisible();
+        if (repeated) await expect(header.locator('.multi-instance-range')).toHaveText('(1 .. 3)');
+        const geometry = await header.evaluate((el) => {
+          const label = el.querySelector('.title-label')!;
+          const range = document.createRange();
+          range.selectNodeContents(label);
+          const lines = [...range.getClientRects()].filter((r) => r.width > 0);
+          const box = el.getBoundingClientRect();
+          const mark = el.querySelector('.required-mark')!.getBoundingClientRect();
+          const last = lines.at(-1)!;
+          return {
+            lines: lines.length,
+            outside: lines.some((r) => r.left < box.left - 1 || r.right > box.right + 1),
+            markerSameLine: mark.top < last.bottom && mark.bottom > last.top,
+            overflow: el.scrollWidth > el.clientWidth + 1,
+          };
+        });
+        expect(geometry.outside).toBe(false);
+        expect(geometry.overflow).toBe(false);
+        expect(geometry.markerSameLine).toBe(true);
+        if (width === 175) expect(geometry.lines).toBeGreaterThan(1);
+      },
+    );
+  }
+}
+
+test(
+  'ordinary read-only embeds retain their heading layout unless wrapping is requested',
+  { tag: WIDTH_INDEPENDENT },
+  async ({ page }) => {
+    await open(page, '01-input-types', undefined, undefined, undefined, '&f=readOnlyMode');
+    await page.evaluate(async () => {
+      const template = await (await fetch('./fixtures/01-input-types.json')).json();
+      template._ui.propertyLabels._text = 'Participant identifier';
+      template.properties._text = { type: 'array', minItems: 1, maxItems: 3, items: template.properties._text };
+      const editor = document.querySelector('cedar-embeddable-editor')!;
+      editor.style.display = 'block';
+      editor.style.width = '175px';
+      editor.templateObject = template;
+    });
+    const header = page.locator('app-cedar-component-header').filter({ hasText: 'Participant identifier' }).first();
+    await expect(page.locator('.logo-block')).toBeVisible();
+    await expect(header.locator('.required-mark')).toBeVisible();
+    expect(await header.locator('.title-label').evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(true);
+  },
+);

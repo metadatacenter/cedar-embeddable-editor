@@ -115,8 +115,7 @@
   white-space: nowrap;
 }
 
-// Clip only along the line: a long name still ends in an ellipsis, and the raised required mark,
-// which leaves the line box, is not cut off.
+// Truncate the name alone; the required mark and occurrence range remain visible.
 .title-label {
   min-width: 0;
   overflow-x: clip;
@@ -128,8 +127,49 @@
   font-weight: var(--cedar-font-weight-medium, #{tokens.$font-weight-medium});
 }
 
+.required-slot {
+  flex: 0 0 auto;
+}
+
 .multi-instance-range {
   flex: 0 0 auto;
   color: tokens.$text-muted;
   font-weight: var(--cedar-font-weight-regular, #{tokens.$font-weight-regular});
+}
+
+// Hosts can request complete identities in either editing or read-only presentation.
+.title-identity {
+  display: inline-flex;
+  align-items: baseline;
+  gap: tokens.$space-1;
+  min-width: 0;
+}
+.identity-joiner {
+  display: none;
+}
+:host-context(.cee-wrap-field-names) {
+  .title {
+    flex-wrap: wrap;
+    .title-identity {
+      display: block;
+      max-width: 100%;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+    .title-label {
+      display: inline;
+      overflow: visible;
+      white-space: normal;
+    }
+    .required-slot {
+      white-space: nowrap;
+    }
+    .identity-joiner {
+      display: inline;
+    }
+  }
+  .field-icon-slot:has(+ .field-title),
+  .field-title ~ .header-trailing {
+    align-self: flex-start;
+  }
 }

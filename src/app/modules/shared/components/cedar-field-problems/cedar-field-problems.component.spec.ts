@@ -3,6 +3,11 @@ import { InstanceDataStringAtom } from 'cedar-model-typescript-library';
 import { CedarFieldProblemsComponent } from './cedar-field-problems.component';
 import { FieldRevealService } from '../../service/field-reveal.service';
 import { SingleFieldComponent } from '../../models/field/single-field-component.model';
+import { MultiFieldComponent } from '../../models/field/multi-field-component.model';
+import { AbstractFieldComponent } from '../../models/field/abstract-field-component.model';
+import { MultiElementComponent } from '../../models/element/multi-element-component.model';
+import { CedarTemplate } from '../../models/template/cedar-template.model';
+import { CedarComponent } from '../../models/component/cedar-component.model';
 import { HandlerContext } from '../../util/handler-context';
 import { ValidationProblem } from '../../validation/validation-problem.model';
 import { LABEL_SLOT } from '../../a11y/joined-name';
@@ -108,5 +113,96 @@ describe('field report notice visibility', () => {
   it('keeps unchecked semantic status in the report without decorating ordinary fields', () => {
     expect(setup('semanticNotChecked', 'controlled').component.notices).toEqual([]);
     expect(setup('semanticUnavailable', 'controlled').component.notices).toEqual([]);
+  });
+
+  describe('in a repeating element', () => {
+    /**
+     * `answer` inside the repeating element `_rows`, whose pager is on its second entry. A
+     * repeating `answer` pages too, and is on its third.
+     */
+    const inRows = (answer: AbstractFieldComponent, ...problems: ValidationProblem[]) => {
+      const revealedAt: (readonly number[])[] = [];
+      const injector = Injector.create({
+        providers: [
+          {
+            provide: FieldRevealService,
+            useValue: {
+              wasRevealed: (_path: readonly string[], occurrences: readonly number[]) => {
+                revealedAt.push([...occurrences]);
+                return true;
+              },
+            },
+          },
+        ],
+      });
+      const component = runInInjectionContext(injector, () => new CedarFieldProblemsComponent());
+      const rows = new MultiElementComponent();
+      rows.name = '_rows';
+      rows.path = ['_rows'];
+      answer.name = 'answer';
+      answer.path = ['_rows', 'answer'];
+      rows.children = [answer];
+      const template = new CedarTemplate();
+      template.children = [rows];
+      const onScreen = new Map<CedarComponent, number>([
+        [rows, 1],
+        [answer, 2],
+      ]);
+      component.componentToShow = answer;
+      component.handlerContext = {
+        readOnlyMode: false,
+        dataContext: { templateRepresentation: template, dataQualityReport: { problems } },
+        validation: { draftFor: () => null },
+        multiInstanceObjectService: {
+          getMultiInstanceInfoForComponent: (shown: CedarComponent) =>
+            onScreen.has(shown) ? { currentIndex: onScreen.get(shown) } : null,
+        },
+        getDataObjectNodeByPath: () => null,
+      } as unknown as HandlerContext;
+      return { component, revealedAt };
+    };
+    const problem = (code: string, value: string | null, occurrences: number[]) =>
+      new ValidationProblem(['_rows', 'answer'], 'answer', 'textfield', code, 'Diagnostic', value, occurrences);
+
+    it('shows a problem only in the entry it names', () => {
+      const { component } = inRows(
+        new SingleFieldComponent(),
+        problem('choiceMembership', 'In the first row', [0]),
+        problem('choiceMembership', 'In this row', [1]),
+        problem('choiceMembership', 'In the third row', [2]),
+      );
+
+      expect(component.notices.map((notice) => notice.params)).toEqual([{ value: 'In this row' }]);
+    });
+
+    it('shows a problem with a repeating field only in the entry on screen at each level', () => {
+      const { component } = inRows(
+        new MultiFieldComponent(),
+        problem('choiceMembership', 'Another row', [0, 2]),
+        problem('choiceMembership', 'Another entry', [1, 0]),
+        problem('choiceMembership', 'On screen', [1, 2]),
+      );
+
+      expect(component.notices.map((notice) => notice.params)).toEqual([{ value: 'On screen' }]);
+    });
+
+    it('locates a problem about the whole list by the element entry that holds it', () => {
+      const field = new MultiFieldComponent();
+      field.multiInfo.maxItems = 2;
+      expect(inRows(field, problem('maxItems', null, [1])).component.notices).toEqual([
+        expect.objectContaining({ params: { max: 2 } }),
+      ]);
+      expect(inRows(field, problem('maxItems', null, [0])).component.notices).toEqual([]);
+      expect(inRows(field, problem('maxItems', null, [1, 2])).component.notices).toEqual([]);
+    });
+
+    it('asks whether the user was taken to an incomplete list in the element entry that holds it', () => {
+      const field = new MultiFieldComponent();
+      field.multiInfo.minItems = 3;
+      const { component, revealedAt } = inRows(field, problem('minItems', null, [1]));
+
+      expect(component.notices).toEqual([expect.objectContaining({ params: { min: 3 }, category: 'completeness' })]);
+      expect(revealedAt).toEqual([[1]]);
+    });
   });
 });

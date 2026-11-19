@@ -49,6 +49,24 @@ const PRE_SAVE_ENVELOPE_WARNING_IDS = new Set([
   '085',
 ]);
 
+/**
+ * Fresh instances the stored template refuses, so CEE refuses to save them as well.
+ *
+ * Template 016's `required` names `Phone field`, which the template does not declare, so
+ * no instance can hold it. Templates 076 and 087 require `@id` in the value of the
+ * required controlled field `Cell Type`, so an empty one is refused until a term is
+ * chosen. Template 004 is described with its paired case below.
+ */
+const REFUSED_WHEN_EMPTY: Record<string, Array<{ code: string; path: string }>> = {
+  '004': [0, 1].map((index) => ({
+    code: 'templateConstraint',
+    path: `/Number 2/${index}/_valueConstraints/decimalPlace`,
+  })),
+  '016': [{ code: 'missingProperty', path: '/Phone field' }],
+  '076': [{ code: 'missingProperty', path: '/Cell Type/@id' }],
+  '087': [{ code: 'missingProperty', path: '/Cell Type/@id' }],
+};
+
 const meaningfulLeaves = (value: unknown, path: PathSegment[] = []): Array<{ path: PathSegment[]; value: unknown }> => {
   // The template is authoritative for property IRIs and the writer rebuilds
   // this block. Values, identities, types, labels and provenance remain in the
@@ -76,7 +94,10 @@ const lifecycle = (entry: PairedCase) => {
     .getFebruary2024()
     .getTemplateInstanceReader()
     .readFromObject(emitted as JsonNode);
-  const validation = InstanceValidator.validate(instanceResult.instance, template);
+  // Judged against the stored template, as the server judges an instance and as CEE's save
+  // decision does. Older templates state required children, admitted keys, required value
+  // properties and property IRIs differently from what the model writes.
+  const validation = InstanceValidator.validate(instanceResult.instance, template, entry.template as JsonNode);
   return { driver, emitted, instanceResult, validation };
 };
 
@@ -123,19 +144,13 @@ describe('the production-derived CEE lifecycle corpus', () => {
 
       expect(parsedInstance.parsingResult.getBlueprintComparisonErrorCount()).toBe(0);
       expect(parsedInstance.parsingResult.getBlueprintComparisonWarningCount()).toBe(5);
+      const refused = REFUSED_WHEN_EMPTY[id] ?? [];
       expect(
-        InstanceValidator.validateReport(parsedInstance.instance, parsedTemplate)
+        InstanceValidator.validateReport(parsedInstance.instance, parsedTemplate, entry.template as JsonNode)
           .findings.filter((finding) => finding.category === 'structural')
           .map(({ code, path }) => ({ code, path })),
-      ).toEqual(
-        id === '004'
-          ? [0, 1].map((index) => ({
-              code: 'templateConstraint',
-              path: `/Number 2/${index}/_valueConstraints/decimalPlace`,
-            }))
-          : [],
-      );
-      if (id === '004') expect(driver.qualityReport.canSave).toBe(false);
+      ).toEqual(refused);
+      if (refused.length > 0) expect(driver.qualityReport.canSave).toBe(false);
     },
   );
 
@@ -173,21 +188,24 @@ describe('the production-derived CEE lifecycle corpus', () => {
               code: 'templateConstraint',
               path: `/Number 2/${index}/_valueConstraints/decimalPlace`,
             }))
-          : id === '029'
-            ? [
-                {
-                  code: 'missingProperty',
-                  path: '/Element with Several Fields, some Multi/1/Another text field/2/@value',
-                },
-              ]
-            : id === '046'
-              ? // Two element occurrences list {"@value": null} in an attribute-value field, where
-                // only attribute names belong; the Java validator refuses the document for both.
-                [1, 2].map((occurrence) => ({
-                  code: 'valueShape',
-                  path: `/Element 1/Element 2/0/Element 3/${occurrence}/Sample Attribute Value/0`,
-                }))
-              : [];
+          : id === '016'
+            ? // The template requires a child it does not declare; see REFUSED_WHEN_EMPTY.
+              [{ code: 'missingProperty', path: '/Phone field' }]
+            : id === '029'
+              ? [
+                  {
+                    code: 'missingProperty',
+                    path: '/Element with Several Fields, some Multi/1/Another text field/2/@value',
+                  },
+                ]
+              : id === '046'
+                ? // Two element occurrences list {"@value": null} in an attribute-value field, where
+                  // only attribute names belong; the Java validator refuses the document for both.
+                  [1, 2].map((occurrence) => ({
+                    code: 'valueShape',
+                    path: `/Element 1/Element 2/0/Element 3/${occurrence}/Sample Attribute Value/0`,
+                  }))
+                : [];
       const actualValidation = validation
         .getValidationReport()
         .findings.filter((finding) => finding.category === 'structural')
@@ -197,7 +215,7 @@ describe('the production-derived CEE lifecycle corpus', () => {
         expect(validation.getValidationReport().findings).toContainEqual(
           expect.objectContaining({ code: 'minItems', path: '/Multi Text Field' }),
         );
-      if (id === '004' || id === '029' || id === '046') expect(driver.qualityReport.canSave).toBe(false);
+      if (expectedValidation.length > 0) expect(driver.qualityReport.canSave).toBe(false);
     },
   );
 });

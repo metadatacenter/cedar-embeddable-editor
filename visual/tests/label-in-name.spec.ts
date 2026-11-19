@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { open, passDebounceWindow } from './support/host';
+import { open } from './support/host';
 
 /**
  * WCAG 2.5.3, Label in Name, and 4.1.2, Name, Role, Value, for the controls axe does not judge.
@@ -129,7 +129,6 @@ test('the option a term lookup shows meanwhile says that it is searching', async
   });
   await open(page, '04-controlled-terms');
   await page.locator('cedar-embeddable-editor').getByRole('combobox', { name: 'organism', exact: true }).fill('Homo');
-  await passDebounceWindow(page);
   await expect(page.getByRole('option', { name: 'Searching…', exact: true })).toBeVisible();
   await expect(page.getByRole('option').locator('mat-progress-spinner')).toBeVisible();
   release();

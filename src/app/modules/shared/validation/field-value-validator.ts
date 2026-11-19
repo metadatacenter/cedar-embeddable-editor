@@ -120,7 +120,13 @@ export class FieldValueValidator {
       return this.validateControlledNode(component, node, path);
     if (
       node instanceof InstanceDataContainer ||
-      (iriField ? !InstanceValueNode.isIriBearing(node) : !InstanceValueNode.isLiteral(node))
+      // A label without its IRI, in a link or authority field, is the field's empty slot
+      // with a label beside it. The model and the server store it, so CEE does not refuse
+      // it; the field counts as unfilled. A controlled term's lone label is judged above,
+      // because there the label names the term its missing IRI should identify.
+      (iriField
+        ? !InstanceValueNode.isIriBearing(node) && !(node instanceof InstanceDataLabelAtom)
+        : !InstanceValueNode.isLiteral(node))
     ) {
       // A null literal is also a legacy spelling of an empty IRI slot.
       if (InstanceValueNode.isLiteral(node) && InstanceValueNode.literal(node) == null) return [];

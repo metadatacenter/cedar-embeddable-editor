@@ -6,6 +6,8 @@ export interface ConformanceOutcome {
   count: number;
   detail: string;
   findingCodes?: string[];
+  /** The save-blocking findings, each as `<code> at <RFC 6901 path>`. */
+  structural?: string[];
 }
 
 /**
@@ -15,6 +17,13 @@ export interface ConformanceOutcome {
  * JSON Schema.  It deliberately remains independent of raw-schema validation:
  * parsing normalizes some legacy template shapes, so agreement here alone does
  * not prove that the resource server will accept the emitted document.
+ *
+ * The template document is passed as the stored template, as the server judges
+ * an instance against it. Older templates state four facts differently from
+ * what the model writes: the children a container requires, the further keys it
+ * admits, the properties a field's value must carry, and each container's
+ * property IRIs. The validator reads those from the stored document only, and
+ * CEE's own save decision reads them there too.
  */
 export const validateWithModel = (template: object, instance: object): ConformanceOutcome => {
   const parsedTemplate = CedarReaders.json()
@@ -26,10 +35,14 @@ export const validateWithModel = (template: object, instance: object): Conforman
     .getTemplateInstanceReader()
     .readFromObject(instance as JsonNode).instance;
 
-  const result = InstanceValidator.validate(parsedInstance, parsedTemplate);
+  const result = InstanceValidator.validate(parsedInstance, parsedTemplate, template as JsonNode);
   return {
     count: result.getBlueprintComparisonErrorCount(),
     findingCodes: result.getValidationReport().findings.map((finding) => finding.code),
+    structural: result
+      .getValidationReport()
+      .findings.filter((finding) => finding.category === 'structural')
+      .map((finding) => `${finding.code} at ${finding.path}`),
     detail: result
       .getBlueprintComparisonErrors()
       .map((e) => `${e.errorType.getValue()} at ${JSON.stringify(e.errorPath)}`)

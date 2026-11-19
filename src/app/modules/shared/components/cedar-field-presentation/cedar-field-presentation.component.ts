@@ -37,6 +37,8 @@ const DESCRIPTION_TEXT =
 })
 export class CedarFieldPresentationComponent implements AfterViewChecked, OnDestroy, FieldSeverity {
   private readonly description = new DescriptionLink();
+  private pagerLayoutObserver: ResizeObserver | null = null;
+  private pagerLayoutTargets: Element[] = [];
   @Input({ required: true }) handlerContext!: HandlerContext;
   @Input() showContent = true;
   @Input() showHeader = true;
@@ -80,9 +82,70 @@ export class CedarFieldPresentationComponent implements AfterViewChecked, OnDest
     const text = host?.querySelector(DESCRIPTION_TEXT);
     const widget = host?.querySelector(':scope > .child-component-content > app-cedar-field-widget');
     this.description.set(text?.id || null, widget ? [...widget.querySelectorAll(FIELD_CONTROLS)] : []);
+    this.updatePagerPlacement();
+    this.observePagerLayout(host);
+  }
+
+  /**
+   * Measure again when the heading or the pager row changes size. The host is not observed: the
+   * stacking class changes its height, and an observed box that its own observer's callback resizes
+   * is a ResizeObserver loop. The heading spans the host's width, so a width change still arrives.
+   * The targets follow the rendered nodes, which a later render can replace.
+   */
+  private observePagerLayout(host: HTMLElement | undefined): void {
+    if (!host || typeof ResizeObserver === 'undefined') return;
+    const targets = host.querySelector(':scope > app-cedar-multi-pager')
+      ? [...host.querySelectorAll(':scope > app-cedar-component-header, :scope > app-cedar-multi-pager > div')]
+      : [];
+    const unchanged =
+      targets.length === this.pagerLayoutTargets.length &&
+      targets.every((target, index) => target === this.pagerLayoutTargets[index]);
+    if (unchanged) return;
+    this.pagerLayoutObserver?.disconnect();
+    this.pagerLayoutTargets = targets;
+    if (targets.length === 0) {
+      this.pagerLayoutObserver = null;
+      return;
+    }
+    this.pagerLayoutObserver ??= new ResizeObserver(() => this.updatePagerPlacement());
+    for (const target of targets) this.pagerLayoutObserver.observe(target);
+  }
+
+  /** Keep the ordinary shared row, but use the narrow layout when its actual contents collide. */
+  private updatePagerPlacement(): void {
+    const host = this.elementRef?.nativeElement;
+    if (!host) return;
+    const pager = host.querySelector(':scope > app-cedar-multi-pager .pager-container');
+    const heading = host.querySelector(':scope > app-cedar-component-header');
+    if (!pager || !heading) {
+      // Removing an absent token still writes an existing class attribute. A view
+      // check must not schedule another observer/change-detection turn when settled.
+      if (host.classList.contains('stacked-editable-pager')) {
+        host.classList.remove('stacked-editable-pager');
+      }
+      return;
+    }
+    // Hidden hosts have no geometry yet; the observer measures them when revealed.
+    if (host.getBoundingClientRect().width === 0) return;
+    const controls = [...pager.querySelectorAll('mat-chip-option, button')]
+      .map((control) => control.getBoundingClientRect())
+      .filter((box) => box.width > 0);
+    const firstControl = Math.min(...controls.map((box) => box.left));
+    const texts = [...heading.querySelectorAll('.title-label, .required-slot, .multi-instance-range')].flatMap(
+      (label) => {
+        const range = document.createRange();
+        range.selectNodeContents(label);
+        return [...range.getClientRects()];
+      },
+    );
+    host.classList.toggle(
+      'stacked-editable-pager',
+      texts.some((box) => box.right + 8 > firstControl),
+    );
   }
 
   ngOnDestroy(): void {
+    this.pagerLayoutObserver?.disconnect();
     this.description.clear();
   }
 

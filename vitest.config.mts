@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
+import { DOMAIN_OWNED_SPECS } from './scripts/test-support/domain-owned-specs.ts';
 
 /**
  * Vitest for the specs under `src/`.
@@ -37,16 +38,18 @@ export default defineConfig({
     include: ['src/**/*.spec.ts'],
     exclude: [
       'src/**/*.coordinator.spec.ts',
-      // The domain harness imports these five and runs them under its own floors,
-      // which count the serializer, carried answers and coordinator code they reach.
-      // Running them here as well repeated 1,277 tests for nothing either floor uses.
-      'src/app/modules/shared/util/host-input-history.fuzz.spec.ts',
-      'src/app/modules/shared/util/occurrence-history.fuzz.spec.ts',
-      'src/app/modules/shared/util/carried-answers.spec.ts',
-      'src/app/modules/shared/util/carried-answers.fuzz.spec.ts',
-      'src/app/modules/shared/util/carried-answers.matrix.spec.ts',
+      // The domain harness runs these under its own floors, which count the serializer,
+      // carried answers and coordinator code they reach. Running them here as well
+      // repeated 1,277 tests for nothing either floor uses. The harness config includes
+      // the same list.
+      ...DOMAIN_OWNED_SPECS,
     ],
     setupFiles: ['src/test-setup.ts'],
+    // Every test starts from the real implementations and globals. A spy or a stubbed
+    // global left by one test otherwise reaches the next, where it can stand between a
+    // test and the path it names while the test still passes.
+    restoreMocks: true,
+    unstubGlobals: true,
     // `harness/` has its own project and its own config; running both from here
     // would give two different meanings to `npm test` in the same repo.
     root: '.',
@@ -75,6 +78,25 @@ export default defineConfig({
           perFile: true,
           statements: 95,
           branches: 95,
+          functions: 95,
+          lines: 95,
+        },
+        // The snapshot a host's save is written from. Only this suite reaches it, and the
+        // domain harness pools its util floor, where a file at zero hides behind the rest.
+        'src/app/modules/shared/util/instance-save-snapshot.ts': {
+          perFile: true,
+          statements: 95,
+          branches: 90,
+          functions: 95,
+          lines: 95,
+        },
+        // Taking the user to a problem field. Only this suite reaches it: the domain harness
+        // cannot construct its Angular collaborators, and the browser suites cannot tell
+        // which of its refusals ran.
+        'src/app/modules/shared/service/field-reveal.service.ts': {
+          perFile: true,
+          statements: 95,
+          branches: 90,
           functions: 95,
           lines: 95,
         },

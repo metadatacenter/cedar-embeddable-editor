@@ -27,6 +27,7 @@ import { Xsd } from '../../../shared/models/xsd.model';
 import { Temporal } from '../../../shared/models/temporal.model';
 import { TimezonePickerComponent, TZone } from '../../../shared/components/timezone-picker/timezone-picker.component';
 import { TimePickerComponent } from '../../../shared/components/time-picker/time-picker.component';
+import { ClockTime } from '../../../shared/util/clock-time';
 import {
   CedarTemporalConfiguration,
   CedarTemporalParts,
@@ -56,7 +57,6 @@ export class CedarInputDatetimeComponent
   /** Both null when the field holds no time yet, and reset to null on clear. */
   decimalSeconds: string | null = null;
   timezone: TZone | null = null;
-  setDefaultZone = false;
   datetimeParsed: DatetimeRepresentation;
   /** An empty date control until a value or a default replaces it. */
   dateMonthYearControl = new FormControl<Date | null>(null);
@@ -473,8 +473,8 @@ export class CedarInputDatetimeComponent
 
     if (this.datetimeParsed.timeIsSet) {
       // reset timepicker UI
-      this.timePickerTime = new Date();
-      this.timePickerTime.setHours(
+      this.timePickerTime = ClockTime.withTime(
+        null,
         +this.datetimeParsed.hours,
         +this.datetimeParsed.minutes,
         +this.datetimeParsed.seconds,

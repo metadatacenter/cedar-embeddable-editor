@@ -4,8 +4,8 @@
  * Rather than maintain a golden file per template, assert a *property*:
  *
  *   generate template -> CEE builds an instance -> write a value
- *                     -> read it back -> it is the value we wrote
- *                     -> the model library can parse the emitted JSON-LD
+ *                     -> read it back from the tree -> it is the value we wrote
+ *                     -> read it back from the document a host receives -> the same
  *
  * Properties do not rot. When Angular Material rewrites its DOM in v15, none of
  * this changes — which is exactly why it is worth writing before the upgrade
@@ -42,6 +42,18 @@ const reduceHeld = (held: unknown): unknown => {
   return held;
 };
 
+/**
+ * The node at `path` in the document a host receives.
+ *
+ * A repeating element above the field is read at its first entry, which is where the
+ * write landed: the pager starts there and the sweep never moves it.
+ */
+const emittedAt = (document: unknown, path: string[]): unknown =>
+  path.reduce<unknown>((node, segment, index) => {
+    const value = (node as Record<string, unknown> | null | undefined)?.[segment];
+    return Array.isArray(value) && index < path.length - 1 ? value[0] : value;
+  }, document);
+
 describe('value round-trip', () => {
   it('has cases to run', () => {
     expect(CASES.length).toBeGreaterThan(0);
@@ -59,6 +71,12 @@ describe('value round-trip', () => {
       const parent = driver.handlerContext.getParentDataObjectNodeByPath(c.path);
       expect(parent, 'no parent node resolved for attribute-value field').toBeTruthy();
       expect(plainValue((parent as InstanceDataContainer).values['attrKey'])).toBe(c.kind.sample);
+      // The field's container, which is an element's first entry when the element repeats.
+      const located = emittedAt(driver.emitted, c.path.slice(0, -1));
+      const container = (Array.isArray(located) ? located[0] : located) as Record<string, unknown>;
+      expect(plainValue(container['attrKey']), 'the attribute value did not reach the emitted document').toBe(
+        c.kind.sample,
+      );
       return;
     }
 
@@ -70,12 +88,17 @@ describe('value round-trip', () => {
     // value we expect back is the one we wrote.
     const read = plainValue(node);
     const expected = c.kind.sample;
+    // The tree is CEE's working copy. The host receives what the writer makes of it, so the
+    // value has to survive into that document too, wherever the field is nested.
+    const emitted = plainValue(emittedAt(driver.emitted, c.path));
 
     if (Array.isArray(read)) {
       // Non-paged multi fields (checkbox, list) hold the whole array at once.
       expect(read).toContain(expected);
+      expect(emitted, 'the value did not reach the emitted document').toContain(expected);
     } else {
       expect(read).toBe(expected);
+      expect(emitted, 'the value did not reach the emitted document').toBe(expected);
     }
   });
 });

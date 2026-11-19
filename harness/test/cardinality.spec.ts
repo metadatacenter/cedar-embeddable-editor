@@ -393,12 +393,15 @@ describe('required values are page-independent', () => {
   });
 
   /**
-   * An empty list has the required structural property but can be incomplete.
-   * An omitted property is a structural defect, even though the export writer
-   * completes a copy of the document. Reading that copy must not clear the
-   * finding from the current editing state.
+   * An omitted multi element is the empty list the save writes.
+   *
+   * The save completes the document against its template, which writes the
+   * omitted element as `[]`, and the server judges that document. So the omission
+   * is the same incomplete list an empty one is, with the same `minItems`
+   * complaint, and not a structural defect: the library judges the document as
+   * the save completes it, and the Java validator accepts what it writes.
    */
-  it('distinguishes an omitted structural element from an incomplete empty list', () => {
+  it('treats an omitted multi element as the empty list its save writes', () => {
     const template = threeInstances();
     const report = (elValue: unknown) => {
       const instance: any = instanceWith(templateIdOf(template), {}, INSTANCE_IRI);
@@ -422,7 +425,7 @@ describe('required values are page-independent', () => {
     expect(absent.written).toEqual([]);
     expect(empty.codes).toEqual(['minItems']);
     expect(absent.valid).toBe(false);
-    expect(absent.codes).toEqual(['minItems', 'missingProperty']);
+    expect(absent.codes).toEqual(empty.codes);
   });
 
   /**
@@ -483,7 +486,7 @@ describe('required values are page-independent', () => {
     return t;
   };
 
-  it('blocks an omitted structural element even when its exported copy completes the list', () => {
+  it('saves an omitted element as the empty list its export writes', () => {
     const template = noFloorTemplate();
     const instance: any = instanceWith(templateIdOf(template), {}, SECOND_INSTANCE_IRI);
 
@@ -491,10 +494,8 @@ describe('required values are page-independent', () => {
     driver.handlerContext.buildQualityReport();
 
     expect(driver.emitted._el).toEqual([]);
-    expect(driver.qualityReport.problems).toEqual([
-      expect.objectContaining({ code: 'missingProperty', path: ['_el'], location: '/_el' }),
-    ]);
-    expect(driver.qualityReport.canSave).toBe(false);
+    expect(driver.qualityReport.problems).toEqual([]);
+    expect(driver.qualityReport.canSave).toBe(true);
   });
 
   it('is valid when no minItems is declared and the element is an empty array', () => {

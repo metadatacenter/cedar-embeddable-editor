@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Injector, runInInjectionContext } from '@angular/cor
 import { FormBuilder } from '@angular/forms';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { Subject, of } from 'rxjs';
-import { vi } from 'vitest';
+import { afterEach, vi } from 'vitest';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
 import { ExternalAuthorityLookupService } from '../../../shared/service/external-authority-lookup.service';
@@ -13,6 +13,11 @@ import { FieldComponent } from '../../../shared/models/component/field-component
 import { InputType } from '../../../shared/models/input-type.model';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { AbstractAuthorityInputComponent } from './abstract-authority-input.component';
+
+// Fake timers end with the test that installed them, even when one of its assertions fails.
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 class TestAuthorityComponent extends AbstractAuthorityInputComponent {
   readonly descriptor: AuthorityDescriptor = {
@@ -96,7 +101,6 @@ describe('AbstractAuthorityInputComponent teardown', () => {
     expect(openPanel).not.toHaveBeenCalled();
     expect(setCurrentValue).not.toHaveBeenCalled();
     expect(subscription.closed).toBe(true);
-    vi.useRealTimers();
   });
 
   it('unsubscribes from an authority lookup already in flight', () => {
@@ -138,7 +142,6 @@ describe('AbstractAuthorityInputComponent teardown', () => {
 
     expect(response.observed, 'the destroyed field still observed its HTTP result').toBe(false);
     expect(subscription.closed).toBe(true);
-    vi.useRealTimers();
   });
 });
 
@@ -245,7 +248,6 @@ describe('AbstractAuthorityInputComponent', () => {
       vi.advanceTimersByTime(60_000);
 
       expect(component.justCleared).toBe(true);
-      vi.useRealTimers();
     });
 
     it('is withdrawn when the author types again', () => {

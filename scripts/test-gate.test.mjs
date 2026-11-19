@@ -14,7 +14,13 @@ const fs = require('node:fs');
 const script = process.argv[3];
 const emit = event => fs.appendFileSync(process.env.GATE_LOG, JSON.stringify({event, script, workers: process.env.CEDAR_TEST_WORKERS, vitest: process.env.VITEST_MAX_WORKERS})+'\\n');
 emit('start');
-setTimeout(() => { emit('end'); process.exit(script === process.env.GATE_FAIL ? 7 : 0); }, 50);
+// A failing stage ends first, so it fails while the stages beside it are still running.
+const failing = [process.env.GATE_FAIL, process.env.GATE_SIGNAL].includes(script);
+setTimeout(() => {
+  emit('end');
+  if (script === process.env.GATE_SIGNAL) process.kill(process.pid, 'SIGKILL');
+  process.exit(script === process.env.GATE_FAIL ? 7 : 0);
+}, failing ? 10 : 50);
 `, { mode: 0o755 });
   try {
     const script = fileURLToPath(new URL('./test-gate.mjs', import.meta.url));
@@ -57,6 +63,24 @@ test('failure fails the gate without running downstream stages', () => {
   const { result, events } = gate('full', 1, 'build:production');
   assert.notEqual(result.status, 0);
   assert.deepEqual(events.filter(e => e.event === 'start').map(e => e.script), ['build:production']);
+});
+
+// The prebuilt gate starts these five together and the visual suite only after all of them.
+const PARALLEL = ['lint', 'test:coordinator', 'test:domain:coverage', 'test:unit:ci', 'typecheck'];
+
+test('a failure beside running stages fails the gate without running downstream stages', () => {
+  const { result, events } = gate('prebuilt', 8, 'lint');
+  assert.notEqual(result.status, 0);
+  assert.deepEqual(events.filter(e => e.event === 'start').map(e => e.script).sort(), PARALLEL);
+  assert.match(result.stdout, /\[gate\] FAILED/);
+});
+
+test('a stage killed by a signal fails the gate without running downstream stages', () => {
+  const { result, events } = gate('prebuilt', 8, '', { GATE_SIGNAL: 'typecheck' });
+  assert.notEqual(result.status, 0);
+  assert.deepEqual(events.filter(e => e.event === 'start').map(e => e.script).sort(), PARALLEL);
+  assert.match(result.stdout, /\[gate\] types: exit null/);
+  assert.match(result.stdout, /\[gate\] FAILED/);
 });
 
 test('nonvisual and prebuilt modes preserve gate membership', () => {

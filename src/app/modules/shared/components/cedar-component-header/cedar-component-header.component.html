@@ -7,13 +7,16 @@
 
   <!--
     The label is the template's text, in the language it declares for it. The required mark's name is
-    CEE's, so it states CEE's language inside the marked label.
+    CEE's, so it states CEE's language separately from the label.
   -->
   <span class="title" [class.field-title]="fieldToDescribe">
-    <span #titleLabel class="title-label" [attr.lang]="textLanguage">
-      {{ cds.getRenderingLabelForComponent(component) }}
+    <span class="title-identity">
+      <span #titleLabel class="title-label" [attr.lang]="textLanguage">{{
+        cds.getRenderingLabelForComponent(component)
+      }}</span>
       @if (shouldRenderRequiredMark) {
-        <span>
+        <span class="required-slot"
+          ><span class="identity-joiner" aria-hidden="true">&nbsp;</span>
           <sup
             class="required-mark"
             role="img"

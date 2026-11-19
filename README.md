@@ -177,7 +177,11 @@ covers Angular, React, and Ember.
 A dialog host can set `previewMode: true` in either read-only or editable mode
 to omit CEE's identity header and use compact, content-sized form spacing. Template
 descriptions and page navigation remain available. `readOnlyMode` independently
-controls whether values can be edited. Ordinary embeds retain their existing layout.
+controls whether values can be edited. Ordinary embeds retain their existing layout. A narrow host can
+set `wrapFieldNames: true` to wrap complete field and element names with their required
+markers, keeping occurrence ranges and property controls visible. The setting applies in
+editable and read-only modes alike. Unlike `previewMode`, it preserves CEE's identity
+header. It defaults to `false`. CED's Preview and Workspace's metadata editor and artifact preview set it.
 
 Trial hosts such as Workspace “Try out” and CED’s editable preview set
 `suppressEmptyFieldErrors: true`. Clearing a control then hides its error state and

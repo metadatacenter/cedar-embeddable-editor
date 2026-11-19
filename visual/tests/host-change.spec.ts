@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { changeDetails, currentMetadata, open, passDebounceWindow, recordChanges } from './support/host';
+import { changeDetails, currentMetadata, open, recordChanges } from './support/host';
 import { fieldBox } from './support/field-box';
 
 test.describe('host change notifications', () => {
@@ -93,7 +93,6 @@ test.describe('host change notifications', () => {
 
     const field = fieldBox(page, 'organism');
     await field.pressSequentially('Homo', { delay: 40 });
-    await passDebounceWindow(page);
     await page.locator('mat-option').filter({ hasText: label }).click();
 
     await expect.poll(async () => (await changeDetails(page)).length).toBe(1);

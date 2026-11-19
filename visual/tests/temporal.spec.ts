@@ -398,7 +398,8 @@ test.describe('the time picker', () => {
 
     // Zero-padded, as a clock reads and as the dependency this replaced did.
     await expect(hour).toHaveValue('00');
-    expect(String(await storedValue(page, '_to_the_minute'))).toContain('00:');
+    // Exactly: a clamped 23:00:00 also contains `00:`.
+    await expect.poll(() => storedValue(page, '_to_the_minute')).toBe('00:00:00');
   });
 
   test('stepping below zero wraps to the end', async ({ page }) => {
@@ -441,8 +442,7 @@ test.describe('the time picker', () => {
     await expect(meridian).toHaveText('PM');
     await page.waitForTimeout(300);
 
-    const stored = String(await storedValue(page, '_twelve_hour'));
-    expect(stored, `2 PM must store as 14, got ${stored}`).toContain('14:');
+    await expect.poll(() => storedValue(page, '_twelve_hour'), '2 PM must store as 14').toBe('14:00:00');
   });
 
   test('a 12-hour field stores midnight as 00, not 12', async ({ page }) => {
@@ -458,9 +458,9 @@ test.describe('the time picker', () => {
       await page.waitForTimeout(200);
     }
     await expect(meridian).toHaveText('AM');
-    await page.waitForTimeout(300);
 
-    expect(String(await storedValue(page, '_twelve_hour'))).toContain('00:');
+    // Exactly: the wrong answer, 12:00:00, also contains `00:`.
+    await expect.poll(() => storedValue(page, '_twelve_hour'), 'midnight must store as 00').toBe('00:00:00');
   });
 
   /**
@@ -486,8 +486,7 @@ test.describe('the time picker', () => {
     await expect(meridian).toHaveText('PM');
     await page.waitForTimeout(300);
 
-    const stored = String(await storedValue(page, '_twelve_hour'));
-    expect(stored, `noon must store as 12, got ${stored}`).toContain('12:');
+    await expect.poll(() => storedValue(page, '_twelve_hour'), 'noon must store as 12').toBe('12:00:00');
   });
 
   /**

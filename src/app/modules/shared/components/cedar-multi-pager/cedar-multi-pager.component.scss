@@ -2,10 +2,36 @@
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as ui-tokens;
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
 @use 'cee-layout' as layout;
+@use '@angular/material' as mat;
 
 .mat-icon {
   width: tokens.$icon-size-default;
   height: tokens.$icon-size-default;
+}
+
+// Pagination joins the same occurrence row after five values. Material's default
+// 56px container lowers the entire row; use the existing occurrence action metrics.
+mat-paginator {
+  @include mat.paginator-overrides(
+    (
+      container-size: spacing.$occurrence-action-size,
+    )
+  );
+  @include mat.icon-button-overrides(
+    (
+      state-layer-size: spacing.$occurrence-action-size,
+      touch-target-size: spacing.$occurrence-action-size,
+      icon-size: tokens.$icon-size-default,
+    )
+  );
+}
+
+// The compact host adapter sets explicit button dimensions; keep these navigation
+// buttons on the occurrence row metrics in every host density as well.
+.mat-mdc-paginator ::ng-deep .mat-mdc-icon-button.mat-mdc-button-base {
+  width: spacing.$occurrence-action-size;
+  height: spacing.$occurrence-action-size;
+  @include spacing.apply(padding, occurrence-action-inset);
 }
 
 /*
@@ -78,6 +104,17 @@
   min-height: 0;
   margin-top: -40px;
   margin-bottom: ui-tokens.$space-4;
+}
+
+// An element can be narrower than its host, or its identity can occupy several
+// lines. Use a separate row whenever its actual text and controls would collide.
+@container cee (min-width: 621px) {
+  :host(.stacked-element-pager) .aligned-up,
+  :host-context(.cee-read-only):host(.stacked-element-pager) .aligned-up {
+    margin-top: ui-tokens.$space-2;
+    min-height: 0;
+    margin-bottom: ui-tokens.$space-3;
+  }
 }
 
 /*

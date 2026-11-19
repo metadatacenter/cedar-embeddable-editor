@@ -9,7 +9,7 @@ import {
   type ResizeRequest,
   type SpacingRequest,
 } from './layout-resilience.generated.mjs';
-import { open, passDebounceWindow } from './support/host';
+import { open } from './support/host';
 import { fieldBox } from './support/field-box';
 
 /**
@@ -335,6 +335,17 @@ for (const mode of MODES)
     (page) => proseWraps(page, mode),
   );
 
+const longElementName = 'affiliation across collaborating research institutions';
+
+async function useLongElementName(page: Page): Promise<void> {
+  await page.route('**/fixtures/03-nested-multi.json', async (route) => {
+    const response = await route.fetch();
+    const template = await response.json();
+    template.properties._author.items._ui.propertyLabels._affiliation = longElementName;
+    await route.fulfill({ response, json: template });
+  });
+}
+
 /**
  * At 320 CSS px a nested element's header is narrower than its name. The name shrinks and ends in an
  * ellipsis, and the chevron and both marks stay whole inside the header, in their order. The header
@@ -344,6 +355,7 @@ test("a nested element's header too narrow for its name ends the name in an elli
   page,
 }) => {
   await page.setViewportSize({ width: 320, height: 640 });
+  await useLongElementName(page);
   await open(page, '03-nested-multi');
   await settle(page);
   const heading = await page.evaluate(() => {
@@ -417,39 +429,42 @@ const focusFromKeyboard = async (page: Page, header: Locator): Promise<void> => 
  */
 test('a shortened element name shows in full in a tooltip on hover and on keyboard focus', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 640 });
+  await useLongElementName(page);
   await open(page, '03-nested-multi');
   await settle(page);
   const header = elementHeader(page, 'affiliation');
   await expect(header).not.toHaveClass(/mat-mdc-tooltip-disabled/);
 
   await header.locator('.title-label').hover();
-  await expect(tooltipOf(page, 'affiliation')).toBeVisible();
+  await expect(tooltipOf(page, longElementName)).toBeVisible();
   await page.mouse.move(0, 0);
-  await expect(tooltipOf(page, 'affiliation')).toHaveCount(0);
+  await expect(tooltipOf(page, longElementName)).toHaveCount(0);
 
   await focusFromKeyboard(page, header);
-  await expect(tooltipOf(page, 'affiliation')).toBeVisible();
+  await expect(tooltipOf(page, longElementName)).toBeVisible();
 });
 
-test('an element name that fits its header shows no tooltip', async ({ page }) => {
-  await page.setViewportSize({ width: 1280, height: 900 });
-  await open(page, '03-nested-multi');
-  await settle(page);
-  for (const name of ['author', 'affiliation']) {
-    const header = elementHeader(page, name);
-    await expect(header).toHaveClass(/mat-mdc-tooltip-disabled/);
-    await header.locator('.title-label').hover();
-    await focusFromKeyboard(page, header);
-  }
-  // Long enough for a tooltip that was going to open to have opened.
-  await page.waitForTimeout(500);
-  await expect(page.locator('.mat-mdc-tooltip-surface')).toHaveCount(0);
-});
+for (const width of [1280, 320])
+  test(`an element name that fits its header shows no tooltip at ${width}`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await open(page, '03-nested-multi');
+    await settle(page);
+    for (const name of ['author', 'affiliation']) {
+      const header = elementHeader(page, name);
+      await expect(header).toHaveClass(/mat-mdc-tooltip-disabled/);
+      await header.locator('.title-label').hover();
+      await focusFromKeyboard(page, header);
+    }
+    // Long enough for a tooltip that was going to open to have opened.
+    await page.waitForTimeout(500);
+    await expect(page.locator('.mat-mdc-tooltip-surface')).toHaveCount(0);
+  });
 
 test('an element name shortened by a narrower window shows its tooltip, and drops it once it fits', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
+  await useLongElementName(page);
   await open(page, '03-nested-multi');
   await settle(page);
   const header = elementHeader(page, 'affiliation');
@@ -458,7 +473,7 @@ test('an element name shortened by a narrower window shows its tooltip, and drop
   await page.setViewportSize({ width: 320, height: 640 });
   await expect(header).not.toHaveClass(/mat-mdc-tooltip-disabled/);
   await header.locator('.title-label').hover();
-  await expect(tooltipOf(page, 'affiliation')).toBeVisible();
+  await expect(tooltipOf(page, longElementName)).toBeVisible();
 
   await page.mouse.move(0, 0);
   await page.setViewportSize({ width: 1280, height: 900 });
@@ -612,7 +627,6 @@ const OPEN_OVERLAYS: readonly {
       await answerSearches(page);
       await open(page, '08-authority', 'authority');
       await fieldBox(page, 'contributor_orcid').pressSequentially('maria', { delay: 20 });
-      await passDebounceWindow(page);
       await expect(page.getByRole('option')).toHaveCount(2, { timeout: 5000 });
     },
     shown: (page) => page.getByRole('option').first(),
@@ -673,7 +687,6 @@ const OPEN_OVERLAYS: readonly {
         .locator('cedar-embeddable-editor')
         .getByRole('combobox', { name: 'organism', exact: true })
         .pressSequentially('Homo', { delay: 20 });
-      await passDebounceWindow(page);
       await expect(page.getByRole('option', { name: /^Homo neanderthalensis/ }).first()).toBeVisible({ timeout: 5000 });
     },
     shown: (page) => page.getByRole('option', { name: /^Homo neanderthalensis/ }).first(),
@@ -687,7 +700,6 @@ const OPEN_OVERLAYS: readonly {
         .locator('cedar-embeddable-editor')
         .getByRole('combobox', { name: 'organism', exact: true })
         .pressSequentially('Homo', { delay: 20 });
-      await passDebounceWindow(page);
       await expect(page.getByRole('option', { name: /^Search failed/ })).toBeVisible({ timeout: 5000 });
     },
     shown: (page) => page.getByRole('option', { name: /^Search failed/ }),
