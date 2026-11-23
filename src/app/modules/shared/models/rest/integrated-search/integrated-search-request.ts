@@ -2,6 +2,6 @@ import { IntegratedSearchRequestParameterObject } from './integrated-search-requ
 
 export class IntegratedSearchRequest {
   parameterObject: IntegratedSearchRequestParameterObject = new IntegratedSearchRequestParameterObject();
-  page = 1;
-  pageSize = 50;
+  offset = 0;
+  limit = 50;
 }

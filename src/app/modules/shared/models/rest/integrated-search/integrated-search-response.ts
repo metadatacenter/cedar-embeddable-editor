@@ -8,12 +8,12 @@ import { IntegratedSearchResponseItem } from './integrated-search-response-item'
  * carries an initialisation obligation for fields no constructor will ever set.
  */
 export interface IntegratedSearchResponse {
-  page: number;
-  pageCount: number;
-  pageSize: number;
   totalCount: number;
-  prevPage: object;
-  nextPage: object;
+  /** The limit and offset the page was served at. */
+  request: { limit: number; offset: number };
+  currentOffset: number;
+  /** Present, and true, when `totalCount` is the number a capped window reached rather than the whole. */
+  countCapped?: boolean;
   /**
    * Optional, because the endpoint answers an error with a payload that has no
    * collection at all. `filter` in the controlled-term component already tests
