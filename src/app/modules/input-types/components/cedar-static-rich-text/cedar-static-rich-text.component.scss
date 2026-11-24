@@ -29,7 +29,9 @@
  * link still wins.
  */
 :host ::ng-deep a:any-link {
-  color: var(--cedar-color-primary, #{ui-tokens.$color-primary});
+  // The strong shade: an author may set the block on a tint, and the ordinary primary falls below
+  // 4.5:1 on a light grey such as #e8e8e8, where the strong one stays above it.
+  color: var(--cedar-color-primary-strong, #{ui-tokens.$color-primary-strong});
 }
 
 :host {

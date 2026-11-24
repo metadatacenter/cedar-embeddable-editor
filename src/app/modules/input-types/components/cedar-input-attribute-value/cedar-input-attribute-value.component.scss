@@ -5,6 +5,13 @@
   container: cee-attribute / inline-size;
 }
 
+// Native focus can expose only the input's lower half in a scrolling embed.
+// Reveal its floating labels and focus frame with the pair, without moving a
+// pair that is already wholly in view.
+.form-container {
+  scroll-margin-block: ui-tokens.$space-4;
+}
+
 @container cee-attribute (max-width: 240px) {
   .half-width,
   .half-width-with-margin {
