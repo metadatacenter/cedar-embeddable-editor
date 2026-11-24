@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.37] - 2026-11-24
+
+Aligns with `cedar-model-typescript-library@1.0.29`.
+
+### Changed
+
+- Asks integrated search for its first page by limit and offset rather than by page number, which the terminology server is withdrawing, and reads the paging envelope the server answers with.
+- Gives links in rich-text static fields the strong primary colour, which keeps a 4.5:1 contrast on the light tints authors set rich text on.
+- Shows the complete build version beside the CEDAR mark in preview when a host asks for full field names.
+
+### Fixed
+
+- Scrolls a focused attribute-value pair fully into view in a scrolling embed, so its floating labels and focus frame are not clipped.
+- Publishes no change from an attribute-value field while it is read-only.
+
 ## [2.0.36] - 2026-11-19
 
 Aligns with `cedar-model-typescript-library@1.0.29`.
