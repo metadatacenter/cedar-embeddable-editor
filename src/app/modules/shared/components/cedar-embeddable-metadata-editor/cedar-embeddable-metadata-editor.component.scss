@@ -318,3 +318,17 @@ $identity-text: 72px;
     padding: 0;
   }
 }
+
+// Full-name hosts also keep the complete build identity available in their preview.
+.cee-wrap-field-names {
+  .logo-block {
+    grid-template-columns: $mark-size minmax(0, max-content);
+    // A wrapped stamp must not enlarge the name's row to the same height.
+    grid-template-rows: auto auto;
+  }
+  .cee-version {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    overflow: visible;
+  }
+}

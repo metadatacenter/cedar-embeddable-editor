@@ -52,6 +52,26 @@ export class CedarInputAttributeValueComponent extends CedarUIDirective {
     return [this.options];
   }
 
+  /** Keep floating labels with focused boxes, including inside a host's scrolling shadow tree. */
+  revealFocusedPair(pair: HTMLElement): void {
+    const boxes = [pair, ...pair.querySelectorAll('mat-label')].map((element) => element.getBoundingClientRect());
+    const top = Math.min(...boxes.map((box) => box.top));
+    const bottom = Math.max(...boxes.map((box) => box.bottom));
+    let clipped = top < 0 || bottom > window.innerHeight;
+    const pairRoot = pair.getRootNode();
+    let ancestor: Element | null = pair.parentElement ?? (pairRoot instanceof ShadowRoot ? pairRoot.host : null);
+    while (ancestor && !clipped) {
+      if (/auto|scroll|hidden|clip/.test(getComputedStyle(ancestor).overflowY)) {
+        const bounds = ancestor.getBoundingClientRect();
+        const visibleTop = bounds.top + ancestor.clientTop;
+        clipped = top < visibleTop || bottom > visibleTop + ancestor.clientHeight;
+      }
+      const root = ancestor.getRootNode();
+      ancestor = ancestor.parentElement ?? (root instanceof ShadowRoot ? root.host : null);
+    }
+    if (clipped) pair.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }
+
   /**
    * The name box was typed into or left.
    *
