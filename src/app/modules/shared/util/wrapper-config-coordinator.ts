@@ -1,4 +1,4 @@
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateLoader, TranslateService } from '@ngx-translate/core';
 import { CEE_CONFIG_KEY, CeeConfig, baseUrl, configFlag, configText } from './config-reader';
 import { checkCeeConfig } from './config-validation';
 import { ControlledFieldDataService, INTEGRATED_SEARCH_PATH } from '../service/controlled-field-data.service';
@@ -17,6 +17,7 @@ export class WrapperConfigCoordinator {
     private readonly controlledFields: ControlledFieldDataService,
     private readonly messages: MessageHandlerService,
     private readonly translate: TranslateService,
+    private readonly loader: TranslateLoader,
     private readonly globals: GlobalSettingsContextService,
   ) {}
 
@@ -86,11 +87,12 @@ export class WrapperConfigCoordinator {
     if (this.globals.languageMapPathPrefix === previousPathPrefix) {
       return;
     }
-    // `reloadLang` forgets the stored map, fetches it again and announces the
-    // replacement, so subscribing is the whole of the work: the observable is cold and
-    // does nothing until something subscribes. Writing the result back with
-    // `setTranslation` as well would announce a second time, and every pipe listening
-    // for the change would re-read for nothing.
-    languagesLoadedBefore.forEach((language) => this.translate.reloadLang(language).subscribe());
+    // The map from the new source replaces the stored one in a single write, which
+    // announces the replacement once. `reloadLang` would delete the stored map before
+    // fetching, and from ngx-translate 18.1 that deletion announces an empty map, so
+    // every rendered label would read nothing until the fetch returned.
+    languagesLoadedBefore.forEach((language) =>
+      this.loader.getTranslation(language).subscribe((map) => this.translate.setTranslation(language, map)),
+    );
   }
 }

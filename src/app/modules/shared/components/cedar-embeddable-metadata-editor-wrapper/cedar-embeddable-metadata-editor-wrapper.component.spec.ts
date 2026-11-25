@@ -88,6 +88,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
         setTranslation: mocks.setTranslation,
         instant: (key: string) => key,
       } as unknown as TranslateService,
+      { getTranslation: () => of({}) } as unknown as TranslateLoader,
       mocks.globalSettings as unknown as GlobalSettingsContextService,
       { reveal: vi.fn() } as unknown as FieldRevealService,
     );
@@ -409,6 +410,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
         setTranslation: vi.fn(),
         instant: (key: string) => key,
       } as unknown as TranslateService,
+      { getTranslation: () => of({}) } as unknown as TranslateLoader,
       {} as unknown as GlobalSettingsContextService,
       { reveal: vi.fn() } as unknown as FieldRevealService,
     );
@@ -806,6 +808,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent late language configurat
       messaging as unknown as MessageHandlerService,
       { clear: vi.fn() } as unknown as ActiveComponentRegistryService,
       translate,
+      loader,
       globalSettings,
       { reveal: vi.fn() } as unknown as FieldRevealService,
     );
@@ -816,11 +819,12 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent late language configurat
     const { component, translate, fetched } = wire();
     /*
      * The event an already-rendered editor depends on, and the half of the repair
-     * that a loaded map does not evidence. `reloadLang` alone puts the new labels
-     * where `instant` finds them while every rendered widget goes on showing the old
-     * ones, because the fetch stores its result silently. `onTranslationChange` is
-     * what the pipes are subscribed to, so this is how the test sees what a reader
-     * would see.
+     * that a loaded map does not evidence. A map stored without an announcement puts
+     * the new labels where `instant` finds them while every rendered widget goes on
+     * showing the old ones. `onTranslationChange` is what the pipes are subscribed
+     * to, so this is how the test sees what a reader would see. It also sees an
+     * announcement too many: one carrying an empty map would blank every label until
+     * the external map arrived.
      */
     const announced: string[] = [];
     translate.onTranslationChange.subscribe((event) => announced.push(event.lang));
@@ -921,6 +925,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent invalid configuration va
         setTranslation: vi.fn(),
         instant: (key: string) => key,
       } as unknown as TranslateService,
+      { getTranslation: () => of({}) } as unknown as TranslateLoader,
       globalSettings,
       { reveal: vi.fn() } as unknown as FieldRevealService,
     );

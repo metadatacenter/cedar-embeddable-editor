@@ -44,6 +44,7 @@ const createField = () => {
     { schedule: async () => false } as unknown as Arguments[7],
     { setTrustTemplateRichText: vi.fn() } as unknown as Arguments[8],
     { getLangs: () => [], setFallbackLang: vi.fn(), use: vi.fn() } as unknown as Arguments[9],
+    {} as unknown as Arguments[10],
     preferences,
   );
   const events: CedarEmbeddableFieldChangeDetail[] = [];

@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
 import { of } from 'rxjs';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateLoader, TranslateService } from '@ngx-translate/core';
 import { ControlledFieldDataService, INTEGRATED_SEARCH_PATH } from '../service/controlled-field-data.service';
 import { GlobalSettingsContextService } from '../service/global-settings-context.service';
 import { MessageHandlerService } from '../service/message-handler.service';
@@ -16,13 +16,23 @@ const make = (loaded: string[] = []) => {
   const setIntegratedSearchUrl = vi.fn();
   const setFallbackLang = vi.fn();
   const use = vi.fn();
-  const reloadLang = vi.fn(() => of({ Generic: { ExpandAll: 'Expand' } }));
+  const reloadLang = vi.fn();
+  const deleteLanguage = vi.fn();
   const setTranslation = vi.fn();
+  const getTranslation = vi.fn((language: string) => of({ Generic: { ExpandAll: 'Expand ' + language } }));
   const globals = { languageMapPathPrefix: null } as GlobalSettingsContextService;
   const coordinator = new WrapperConfigCoordinator(
     { setIntegratedSearchUrl } as unknown as ControlledFieldDataService,
     { error, trace, traceGroup } as unknown as MessageHandlerService,
-    { getLangs: () => loaded, setFallbackLang, use, reloadLang, setTranslation } as unknown as TranslateService,
+    {
+      getLangs: () => loaded,
+      setFallbackLang,
+      use,
+      reloadLang,
+      deleteLanguage,
+      setTranslation,
+    } as unknown as TranslateService,
+    { getTranslation } as unknown as TranslateLoader,
     globals,
   );
   const context = () => {
@@ -38,7 +48,9 @@ const make = (loaded: string[] = []) => {
     setFallbackLang,
     use,
     reloadLang,
+    deleteLanguage,
     setTranslation,
+    getTranslation,
   };
 };
 
@@ -101,10 +113,25 @@ describe('WrapperConfigCoordinator', () => {
     r.coordinator.apply(r.context());
 
     expect(r.globals.languageMapPathPrefix).toBe('/maps/');
-    expect(r.reloadLang).toHaveBeenCalledWith('en');
-    expect(r.reloadLang).toHaveBeenCalledWith('hu');
-    // `reloadLang` stores what it fetches and announces it. A second write of the same
-    // map would announce again, so the coordinator does not make one.
+    expect(r.getTranslation).toHaveBeenCalledWith('en');
+    expect(r.getTranslation).toHaveBeenCalledWith('hu');
+    // Each language's new map replaces the old one in one write, so it is announced once.
+    expect(r.setTranslation.mock.calls).toEqual([
+      ['en', { Generic: { ExpandAll: 'Expand en' } }],
+      ['hu', { Generic: { ExpandAll: 'Expand hu' } }],
+    ]);
+    // Neither path that forgets the stored map first is taken: from ngx-translate 18.1
+    // forgetting it announces an empty map, which every rendered label would read.
+    expect(r.reloadLang).not.toHaveBeenCalled();
+    expect(r.deleteLanguage).not.toHaveBeenCalled();
+  });
+
+  it('leaves the stored maps alone when the source does not move', () => {
+    const r = make(['en']);
+
+    r.coordinator.apply(r.context());
+
+    expect(r.getTranslation).not.toHaveBeenCalled();
     expect(r.setTranslation).not.toHaveBeenCalled();
   });
 });
