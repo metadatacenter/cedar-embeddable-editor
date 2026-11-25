@@ -68,7 +68,7 @@
     "@types/jsonld": "^1.5.15",
     "@types/n3": "^1.26.4",
     "@types/node": "^24.9.2",
-    "@vitest/coverage-v8": "^5.1.1",
+    "@vitest/coverage-v8": "^5.1.2",
     "angular-eslint": "^22.8.0",
     "esbuild": "^0.28.2",
     "eslint": "^10.15.0",
@@ -79,7 +79,7 @@
     "prettier": "^3.10.1",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.74.0",
-    "vitest": "^5.1.1"
+    "vitest": "^5.1.2"
   },
   "overrides": {
     "minimatch@>=7 <11.0.1": "11.0.5"
