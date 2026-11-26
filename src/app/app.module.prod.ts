@@ -2,7 +2,6 @@ import { BrowserModule } from '@angular/platform-browser';
 import { DoBootstrap, Injector, NgModule } from '@angular/core';
 import { createCustomElement } from '@angular/elements';
 import { HttpClient, provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
-import { AppProdComponent } from './app.component.prod';
 import { SharedModule } from './modules/shared/shared.module';
 import { JsonPipe } from '@angular/common';
 import { CedarEmbeddableMetadataEditorWrapperComponent } from './modules/shared/components/cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component';
@@ -20,7 +19,7 @@ import {
 import { CedarEmbeddableFieldWrapperComponent } from './modules/shared/components/cedar-embeddable-field-wrapper/cedar-embeddable-field-wrapper.component';
 
 @NgModule({
-  declarations: [AppProdComponent],
+  declarations: [],
   bootstrap: [],
   exports: [],
   imports: [BrowserModule, SharedModule],
