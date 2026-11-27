@@ -164,6 +164,7 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
     private readonly renderScheduler: RenderSchedulerService,
     private readonly templateTrustService: TemplateTrustService,
     private readonly translateService: TranslateService,
+    private readonly translateLoader: TranslateLoader,
     private readonly userPreferencesService: UserPreferencesService,
   ) {
     this.handlerContext = new HandlerContext(this.dataContext, this.messageHandlerService);
@@ -171,6 +172,7 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
       this.controlledFieldDataService,
       this.messageHandlerService,
       this.translateService,
+      this.translateLoader,
       this.globalSettingsContextService,
     );
     this.widgetConfig = new WidgetConfigCoordinator(

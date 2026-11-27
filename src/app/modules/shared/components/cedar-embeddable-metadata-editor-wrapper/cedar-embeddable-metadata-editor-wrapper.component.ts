@@ -123,6 +123,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     private messageHandlerService: MessageHandlerService,
     private activeComponentRegistry: ActiveComponentRegistryService,
     private translateService: TranslateService,
+    private translateLoader: TranslateLoader,
     private globalSettingsContextService: GlobalSettingsContextService,
     private fieldReveal: FieldRevealService,
     @Optional() private readonly validationView: ChangeDetectorRef | null = null,
@@ -132,6 +133,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
       this.controlledFieldDataService,
       this.messageHandlerService,
       this.translateService,
+      this.translateLoader,
       this.globalSettingsContextService,
     );
     this.dataContext = this.artifacts.state.dataContext;

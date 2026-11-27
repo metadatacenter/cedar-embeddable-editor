@@ -3407,7 +3407,10 @@ test.describe('a term rendered as a value', () => {
       };
     });
     expect(logo.width).toBe(60);
-    expect(logo.height).toBe(20);
+    expect(logo.height).toBe(24);
+    const artwork = await authorityPage.locator('img').boundingBox();
+    expect(artwork?.width).toBe(60);
+    expect(artwork?.height).toBe(20);
     expect(logo.image).toBe('https://terms.example/resources/icons/bioportal.png');
     await expect(authorityPage.locator('img')).toBeVisible();
 
@@ -3416,8 +3419,8 @@ test.describe('a term rendered as a value', () => {
     const authorityAction = orcid.locator('a.cee-term-link-action');
     await expect(authorityAction).toHaveAttribute('aria-label', /ORCID/);
     const actionBox = await authorityAction.boundingBox();
-    expect(actionBox?.width).toBe(20);
-    expect(actionBox?.height).toBe(20);
+    expect(actionBox?.width).toBe(24);
+    expect(actionBox?.height).toBe(24);
     expect((await orcid.locator('.cee-term-link').boundingBox())?.height).toBe(36);
   });
 

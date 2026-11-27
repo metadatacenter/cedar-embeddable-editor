@@ -625,13 +625,19 @@ app-cedar-component-renderer:has(> mat-accordion) + app-cedar-component-renderer
  */
 .cee-term-link-action {
   display: inline-flex;
-  flex: 0 0 ui-tokens.$icon-size-default;
+  flex: 0 0 spacing.$target-size-minimum;
   align-items: center;
   justify-content: center;
-  width: ui-tokens.$icon-size-default;
-  height: ui-tokens.$icon-size-default;
-  // Clear of the identifier it follows, so neither target overlaps the other's 24px (WCAG 2.5.8).
+  width: spacing.$target-size-minimum;
+  height: spacing.$target-size-minimum;
+  // A suffix can wrap below the identifier: grow down into the box's padding, not up over its link.
+  // Compensating margins retain the artwork, wrapping width and row height.
+  box-sizing: border-box;
+  padding-bottom: ui-tokens.$space-1;
+  padding-inline-end: ui-tokens.$space-1;
+  margin-bottom: -(ui-tokens.$space-1);
   margin-inline-start: ui-tokens.$space-1;
+  margin-inline-end: -(ui-tokens.$space-1);
   color: inherit;
   text-decoration: none;
 

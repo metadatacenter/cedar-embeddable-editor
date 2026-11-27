@@ -1,3 +1,4 @@
+@use '@org.metadatacenter/cedar-design-tokens/spacing';
 @use '@org.metadatacenter/cedar-design-tokens/patterns';
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as ui-tokens;
 
@@ -60,15 +61,23 @@
  * the original CEE view. Empty fields show constraints instead and never render this link.
  */
 .cee-authority-icon-link {
-  display: block;
+  // Keep a wrapped identifier's overflowing line box from intercepting the badge edge.
+  position: relative;
+  display: flex;
+  align-items: center;
   flex: 0 0 60px;
   width: 60px;
-  height: 20px;
+  height: spacing.$target-size-minimum;
+  // Grow above the mark, into the box's padding, rather than covering an IRI wrapped below it.
+  // The artwork and the prefix's footprint stay 60 × 20.
+  box-sizing: border-box;
+  padding-top: ui-tokens.$space-1;
+  margin-top: -(ui-tokens.$space-1);
   margin-right: ui-tokens.$space-3;
 }
 
 .cee-authority-icon {
   width: 100%;
-  height: 100%;
+  height: ui-tokens.$icon-size-default;
   object-fit: contain;
 }

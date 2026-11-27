@@ -66,7 +66,7 @@ export class ValidationCoordinator {
     const url = authority
       ? this.bridgeBaseUrl && `${this.bridgeBaseUrl}ext-auth/${authority.detailsPath}/verify`
       : this.terminologyBaseUrl && `${this.terminologyBaseUrl}bioportal/validate-term`;
-    const body = authority ? { iri } : { iri, valueConstraints: field?._valueConstraints ?? {} };
+    const body = authority ? { iri } : { termIri: iri, valueConstraints: field?._valueConstraints ?? {} };
     const answer = this.semantic.inspect(url, body, iri);
     report.semanticChecks.push({ ...answer, path: [...component.path], occurrences: [...occurrences] });
     if (answer.status !== 'passed') {
