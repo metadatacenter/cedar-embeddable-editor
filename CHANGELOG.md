@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.38] - 2026-11-27
+
+Aligns with `cedar-model-typescript-library@1.0.29`.
+
+### Changed
+
+- Gives link and authority-page actions in read-only fields 24-pixel click targets, without changing their artwork, wrapping or row heights.
+- Sends the term to semantic verification as `termIri`, the terminology server's canonical request name.
+
+### Fixed
+
+- Keeps labels in place when a host names a new language map source after the editor has loaded, rather than showing empty labels until the new map arrives.
+
 ## [2.0.37] - 2026-11-24
 
 Aligns with `cedar-model-typescript-library@1.0.29`.
