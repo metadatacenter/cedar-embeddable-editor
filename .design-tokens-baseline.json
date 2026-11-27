@@ -120,13 +120,6 @@
       "value": "48px",
       "count": 1
     },
-    "ea81185153ce8b6953ff": {
-      "file": "src/app/modules/input-types/components/cedar-input-controlled/cedar-input-controlled.component.scss",
-      "rule": "geometry",
-      "property": "height",
-      "value": "20px",
-      "count": 1
-    },
     "f2617f19da46b08096a3": {
       "file": "src/app/modules/shared/components/time-picker/time-picker.component.scss",
       "rule": "geometry",
